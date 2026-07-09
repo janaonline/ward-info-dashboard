@@ -1,29 +1,29 @@
 import { onThemeChange, getCurrentTheme } from './theme.js';
 
 export const LAYER = {
-  polling:   { label: 'Polling booth',  color: '#6d4bd6', walk: false, indicative: true },
-  bus:       { label: 'Bus stop',       color: '#2f8f66', walk: true,  ptkey: 'bus' },
-  metro:     { label: 'Metro station',  color: '#b0309e', walk: true,  ptkey: 'metro' },
-  school:    { label: 'School',         color: '#2563c9', walk: false, ptkey: 'school' },
-  anganwadi: { label: 'Anganwadi',      color: '#e08a1e', walk: false, ptkey: 'anganwadi' },
-  park:      { label: 'Park',           color: '#3aa856', walk: true,  ptkey: 'park' },
-  playground:{ label: 'Playground',     color: '#7fae1f', walk: false, ptkey: 'playground' },
-  lake:      { label: 'Lake',           color: '#1597c9', walk: true,  ptkey: 'lake' },
-  pond:      { label: 'Pond / tank',    color: '#41c2d4', walk: false, ptkey: 'pond' },
-  police:    { label: 'Police station', color: '#3f4a5c', walk: false, ptkey: 'police' },
-  fire:      { label: 'Fire station',   color: '#e0483b', walk: false, ptkey: 'fire' },
+  polling:   { label: 'Polling booth',  color: '#a89a86', walk: false, indicative: true },
+  bus:       { label: 'Bus stop',       color: '#3f7d34', walk: true,  ptkey: 'bus' },
+  metro:     { label: 'Metro station',  color: '#1f7a5c', walk: true,  ptkey: 'metro' },
+  school:    { label: 'School',         color: '#c8890a', walk: false, ptkey: 'school' },
+  anganwadi: { label: 'Anganwadi',      color: '#eab308', walk: false, ptkey: 'anganwadi' },
+  park:      { label: 'Park',           color: '#5e9b48', walk: true,  ptkey: 'park' },
+  playground:{ label: 'Playground',     color: '#8fae14', walk: false, ptkey: 'playground' },
+  lake:      { label: 'Lake',           color: '#2f7fb0', walk: true,  ptkey: 'lake' },
+  pond:      { label: 'Pond / tank',    color: '#6bb3d9', walk: false, ptkey: 'pond' },
+  police:    { label: 'Police station', color: '#616161', walk: false, ptkey: 'police' },
+  fire:      { label: 'Fire station',   color: '#d33a4c', walk: false, ptkey: 'fire' },
   toilet:    { label: 'Public toilet',  color: '#9a6b3f', walk: true,  ptkey: 'toilet' },
-  flood:     { label: 'Flood spot',     color: '#d9663b', walk: false, flood: true },
+  flood:     { label: 'Flood spot',     color: '#e05a2f', walk: false, flood: true },
 };
 
 export const LAYER_ORDER = ['bus','park','school','metro','toilet','anganwadi','playground','lake','pond','police','fire','flood'];
 
 export const CORP_COLORS = {
-  North: '#b0309e',
-  East: '#2563c9',
-  West: '#e08a1e',
-  South: '#3aa856',
-  Central: '#6d4bd6',
+  North: '#d33a4c',
+  East: '#e8912a',
+  West: '#d4b81f',
+  South: '#5e9b48',
+  Central: '#6f6f6f',
 };
 
 const CARTO_SUBDOMAINS = ['a', 'b', 'c', 'd'];

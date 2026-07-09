@@ -1,37 +1,58 @@
 :root {
-  /* light mode (confirmed exact from original prototype) */
-  --bg:#e7efe8; --surface:#ffffff; --surface-2:#f2f7f3; --inset:#eef4ef;
-  --ink:#16241d; --muted:#5b6b62; --hint:#93a29a;
-  --line:rgba(22,36,29,.10); --line2:rgba(22,36,29,.17);
-  --green:#2f8f66; --green-d:#227a55; --green-soft:#e3f1ea; --green-ring:#bfe1cf;
-  --yellow:#f6d15f; --yellow-soft:#fdf1cf; --yellow-ink:#7c5c11; --yellow-line:#ecd28a;
-  --blue:#2563c9; --violet:#6d4bd6; --red:#e0483b;
-  --radius:11px; --radius-m:9px; --radius-s:7px;
-  --shadow:0 1px 2px rgba(22,36,29,.04), 0 10px 30px rgba(22,36,29,.08);
-  --shadow-s:0 1px 2px rgba(22,36,29,.04), 0 4px 14px rgba(22,36,29,.06);
+  /* surfaces / neutrals (green-ramp tints, Open City brand) */
+  --bg:#f3fce8; --surface:#ffffff; --surface-2:#eef7e0; --inset:#e4f1d3;
+  --ink:#1b2410; --muted:#54614a; --hint:#7f8d72;
+  --line:rgba(27,36,16,.10); --line2:rgba(27,36,16,.18);
+
+  /* brand green (primary / positive) */
+  --green:#5e9b48; --green-d:#457a31; --green-soft:#dcf1c9; --green-ring:#c6eaa0;
+
+  /* brand red (alert / bad) */
+  --red:#d33a4c; --red-d:#b12a3a; --red-soft:#ffe7e6; --red-ring:#ffadac;
+
+  /* brand yellow (highlighter mark / warn) */
+  --yellow:#ffd527; --yellow-soft:#fff3c4; --yellow-ink:#6b5300; --yellow-line:#f0dd8a;
+
+  /* kept for back-compat, no longer brand-critical */
+  --blue:#2563c9; --violet:#6d4bd6;
+
+  --radius:14px; --radius-m:11px; --radius-s:8px;
+
+  /* elevation scale (material) */
+  --shadow-1:0 1px 2px rgba(27,36,16,.06), 0 1px 3px rgba(27,36,16,.10);
+  --shadow-2:0 2px 6px rgba(27,36,16,.08), 0 8px 18px rgba(27,36,16,.12);
+  --shadow-3:0 10px 24px rgba(27,36,16,.14), 0 18px 48px rgba(27,36,16,.18);
+  --shadow:var(--shadow-2); --shadow-s:var(--shadow-1);
+
+  /* spacing scale (4pt) */
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px;
+  --space-5:24px; --space-6:32px; --space-7:48px;
+
+  --ease-out:cubic-bezier(.2,.7,.2,1); --dur:.18s;
 
   /* font roles */
-  --font-body: "Inter", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
-  --font-stat: "Inter Tight", var(--font-body);
-  --font-display: "Playfair Display", Georgia, serif;
+  --font-body:"PT Sans", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+  --font-stat:"Poppins", var(--font-body);
+  --font-display:"Poppins", system-ui, sans-serif;
 }
 
 [data-theme="dark"] {
-  --bg:#121814; --surface:#1b231d; --surface-2:#212b23; --inset:#26312a;
-  --ink:#eef3ee; --muted:#a9b8ae; --hint:#7c8b81;
-  --line:rgba(238,243,238,.10); --line2:rgba(238,243,238,.18);
-  --green:#4fbf8c; --green-d:#6fd6a5; --green-soft:#1d3327; --green-ring:#2f4f3d;
-  --yellow:#f6d15f; --yellow-soft:#3a3218; --yellow-ink:#f3dfa0; --yellow-line:#5a4d24;
-  --blue:#5b8fe0; --violet:#9c85f0; --red:#f0776a;
-  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
-  --shadow-s:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.3);
+  --bg:#10160b; --surface:#1a2113; --surface-2:#222c18; --inset:#2a3620;
+  --ink:#eef3e6; --muted:#aab89a; --hint:#7d8b6d;
+  --line:rgba(238,243,230,.10); --line2:rgba(238,243,230,.18);
+
+  --green:#92c56e; --green-d:#c6eaa0; --green-soft:#233318; --green-ring:#3c5228;
+  --red:#f56a6d; --red-d:#ffadac; --red-soft:#3a1c1d; --red-ring:#5a2b2c;
+  --yellow:#ffd527; --yellow-soft:#3a3212; --yellow-ink:#f3dfa0; --yellow-line:#5a4d24;
+  --blue:#5b8fe0; --violet:#9c85f0;
+
+  --shadow-1:0 1px 2px rgba(0,0,0,.35), 0 1px 3px rgba(0,0,0,.45);
+  --shadow-2:0 2px 6px rgba(0,0,0,.40), 0 8px 18px rgba(0,0,0,.50);
+  --shadow-3:0 10px 24px rgba(0,0,0,.55), 0 18px 48px rgba(0,0,0,.60);
+  --shadow:var(--shadow-2); --shadow-s:var(--shadow-1);
 }
 
-[data-theme="dark"] mark { color:#1a1606; }
+[data-theme="dark"] mark { color:var(--yellow-ink); background:var(--yellow-soft); }
 [data-theme="dark"] .candphoto {
   background: repeating-linear-gradient(135deg, var(--inset), var(--inset) 8px, #2c3830 8px, #2c3830 16px);
 }
-
-/* map-marker/legend accent colors are not covered by the token swap above (LAYER[key].color
-   in maps.js) — police slate #3f4a5c and polling violet #6d4bd6 read muddy on a dark surface,
-   so components.css lightens them specifically for [data-theme="dark"] legend chips/markers. */
