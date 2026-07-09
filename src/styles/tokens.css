@@ -1,0 +1,37 @@
+:root {
+  /* light mode (confirmed exact from original prototype) */
+  --bg:#e7efe8; --surface:#ffffff; --surface-2:#f2f7f3; --inset:#eef4ef;
+  --ink:#16241d; --muted:#5b6b62; --hint:#93a29a;
+  --line:rgba(22,36,29,.10); --line2:rgba(22,36,29,.17);
+  --green:#2f8f66; --green-d:#227a55; --green-soft:#e3f1ea; --green-ring:#bfe1cf;
+  --yellow:#f6d15f; --yellow-soft:#fdf1cf; --yellow-ink:#7c5c11; --yellow-line:#ecd28a;
+  --blue:#2563c9; --violet:#6d4bd6; --red:#e0483b;
+  --radius:11px; --radius-m:9px; --radius-s:7px;
+  --shadow:0 1px 2px rgba(22,36,29,.04), 0 10px 30px rgba(22,36,29,.08);
+  --shadow-s:0 1px 2px rgba(22,36,29,.04), 0 4px 14px rgba(22,36,29,.06);
+
+  /* font roles */
+  --font-body: "Inter", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+  --font-stat: "Inter Tight", var(--font-body);
+  --font-display: "Playfair Display", Georgia, serif;
+}
+
+[data-theme="dark"] {
+  --bg:#121814; --surface:#1b231d; --surface-2:#212b23; --inset:#26312a;
+  --ink:#eef3ee; --muted:#a9b8ae; --hint:#7c8b81;
+  --line:rgba(238,243,238,.10); --line2:rgba(238,243,238,.18);
+  --green:#4fbf8c; --green-d:#6fd6a5; --green-soft:#1d3327; --green-ring:#2f4f3d;
+  --yellow:#f6d15f; --yellow-soft:#3a3218; --yellow-ink:#f3dfa0; --yellow-line:#5a4d24;
+  --blue:#5b8fe0; --violet:#9c85f0; --red:#f0776a;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+  --shadow-s:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.3);
+}
+
+[data-theme="dark"] mark { color:#1a1606; }
+[data-theme="dark"] .candphoto {
+  background: repeating-linear-gradient(135deg, var(--inset), var(--inset) 8px, #2c3830 8px, #2c3830 16px);
+}
+
+/* map-marker/legend accent colors are not covered by the token swap above (LAYER[key].color
+   in maps.js) — police slate #3f4a5c and polling violet #6d4bd6 read muddy on a dark surface,
+   so components.css lightens them specifically for [data-theme="dark"] legend chips/markers. */
