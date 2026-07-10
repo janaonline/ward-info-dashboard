@@ -69,7 +69,7 @@ src/styles/transition.css         theme-ripple + eyebrow-pulse keyframes only
 The view JS modules build their markup via template strings and re-query the DOM by these exact IDs/classes. CSS or markup changes must never rename or remove them without updating every JS reference:
 
 - **IDs**: `findList`, `findCount`, `findSearch`, `findLocate` (all rendered by `home-view.js`), `homeContainer`, `homeCorpMap`, `loadingIndicator`, `methodologyLink`, `methodologyContainer`, `methBack`, `themeToggle`, `bufferToggle`, `wardContainer`, `wardBack`, `copyLinkBtn`, `wardMap`, `view-home`/`view-ward`/`view-methodology`.
-- **Classes**: `.view`, `.view--active`, `.ward-row` (carries `data-uid`), `.legend-btn` (carries `.active` + `data-layer`), `.amrow` (carries `data-layer`), `.nav-btn` (carries `data-uid`), `.map`.
+- **Classes**: `.view`, `.view--active`, `.ward-row` (carries `data-uid`), `.legend-btn` (carries `.active` + `data-layer`), `.amrow` (carries `data-layer`), `.nav-btn` (carries `data-uid`), `.map`, `.map-tip` (Popup `className` set in `home-view.js`, styled in `components.css`).
 
 ## Verification Rules
 
@@ -91,7 +91,7 @@ UI/CSS changes additionally require a manual browser walk of all 3 views (home, 
 ## Current state (by area)
 
 - **Data loading**: keys everything by `uid`, not `ward_name`; loads 3 static files from `public/data/` with no backend; PapaParse handles CSV parsing including quoted, comma-containing fields.
-- **Maps**: MapLibre GL JS (pinned `5.24.0` via CDN) across 2 map instances (home choropleth, ward detail); CARTO light/dark raster tiles swapped on theme change; feature-state hover, 800m geodesic walk buffers, and a seeded polling-booth scatter are all ported verbatim from the original prototype's algorithms.
+- **Maps**: MapLibre GL JS (pinned `5.24.0` via CDN) across 2 map instances (home choropleth, ward detail); CARTO light/dark raster tiles swapped on theme change; feature-state hover, 800m geodesic walk buffers, and a seeded polling-booth scatter are all ported verbatim from the original prototype's algorithms. Hovering a ward on the home choropleth shows a cursor-following `maplibregl.Popup` tooltip ("Ward N · name · corporation", class `.map-tip`, theme-aware via tokens) and outlines the hovered ward in black via the feature-state-driven `wards-line-hover` layer — the fill is constant and does not change on hover.
 - **Facts engine**: `buildFacts`/`suggestedQuestions` in `ward-view.js` use exact ground-truth thresholds (not invented), capped at 7 facts / 6 questions.
 - **Theming**: full Open City brand palette (light + dark), a 4pt spacing scale, and a 3-step elevation system in `tokens.css`; Poppins (headings/stat numbers) + PT Sans (body); theme toggle uses the View Transitions API with a circular ripple and a `prefers-reduced-motion`-respecting fallback.
 - **Map/legend colors**: `LAYER` (13 amenity types) and `CORP_COLORS` (5 corporations) use an 18-color palette derived from the brand's red/green/yellow arc plus one deliberate off-brand blue pair reserved for lake/pond (the brand palette has no blue, and this is the one intentional exception, agreed on for water-category legibility).

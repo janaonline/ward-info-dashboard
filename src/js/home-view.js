@@ -97,7 +97,21 @@ export function initHomeView({ W, meta }, { onOpenWard }) {
     corpMap = createMap('homeCorpMap', { center: [77.5946, 12.9716], zoom: 9.5 });
     corpMap.on('load', () => {
       const geojson = buildWardPolygonsGeoJSON(W);
-      addChoroplethLayer(corpMap, geojson);
+      const hover = addChoroplethLayer(corpMap, geojson);
+      const tip = new maplibregl.Popup({ closeButton: false, closeOnClick: false, className: 'map-tip', offset: 12 });
+
+      corpMap.on('mousemove', 'wards-fill', (e) => {
+        if (!e.features.length) return;
+        const f = e.features[0];
+        hover.setHovered(f.id);
+        tip.setLngLat(e.lngLat)
+          .setHTML(`Ward ${fmt(f.properties.ward_id)} &middot; ${esc(f.properties.name)} &middot; ${esc(f.properties.corporation)}`)
+          .addTo(corpMap);
+      });
+      corpMap.on('mouseleave', 'wards-fill', () => {
+        hover.clear();
+        tip.remove();
+      });
     });
   }
 }

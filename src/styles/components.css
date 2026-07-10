@@ -99,6 +99,19 @@ mark {
 .map-corp { height: 260px; margin: 16px 0; }
 .map-ward { height: 320px; margin: 10px 0; }
 
+.map-tip { pointer-events: none; }
+.map-tip .maplibregl-popup-content {
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  padding: 6px 10px;
+  border-radius: var(--radius-s);
+  box-shadow: var(--shadow-2);
+  border: 1px solid var(--line);
+}
+.map-tip .maplibregl-popup-tip { display: none; }
+
 .legend-chip {
   display: inline-flex;
   align-items: center;
