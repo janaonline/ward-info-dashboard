@@ -193,7 +193,7 @@ export function buildWardPolygonsGeoJSON(W, { filterUids } = {}) {
   const features = uids.map((uid, i) => ({
     type: 'Feature',
     id: i,
-    properties: { uid, name: W[uid].ward_name, corporation: W[uid].corporation },
+    properties: { uid, name: W[uid].ward_name, corporation: W[uid].corporation, ward_id: W[uid].ward_id },
     geometry: { type: 'Polygon', coordinates: W[uid].geom },
   }));
   return { type: 'FeatureCollection', features };
@@ -272,7 +272,7 @@ export function addChoroplethLayer(map, geojson) {
         'Central', CORP_COLORS.Central,
         '#999999',
       ],
-      'fill-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.85, 0.6],
+      'fill-opacity': 0.6,
     },
   });
   map.addLayer({
@@ -280,6 +280,15 @@ export function addChoroplethLayer(map, geojson) {
     type: 'line',
     source: 'wards',
     paint: { 'line-color': '#ffffff', 'line-width': 0.5 },
+  });
+  map.addLayer({
+    id: 'wards-line-hover',
+    type: 'line',
+    source: 'wards',
+    paint: {
+      'line-color': '#000000',
+      'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 2, 0],
+    },
   });
   return makeHoverTracker(map, 'wards');
 }

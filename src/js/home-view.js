@@ -44,17 +44,19 @@ function renderList(W, query) {
 export function initHomeView({ W, meta }, { onOpenWard }) {
   onOpenWardRef = onOpenWard;
   const container = document.getElementById('homeContainer');
+  const nCorps = new Set(Object.values(W).map(w => w.corporation)).size;
 
   container.innerHTML = `
     <div class="cover">
-      <div class="eyebrow"><span class="eyebrow-dot"></span> ${fmt(meta.n_wards)} wards &middot; Bengaluru</div>
-      <h1 class="headline">Know <mark>your ward</mark> before you vote.</h1>
-      <p class="sub">Amenities, coverage gaps, and your corporator &mdash; for every one of Bengaluru's ${fmt(meta.n_wards)} wards, in one place.</p>
+      <div class="eyebrow"><span class="eyebrow-dot"></span> Greater Bengaluru &middot; Ward Guide</div>
+      <h1 class="headline">Bengaluru is choosing its <mark>ward councillor</mark> for the first time in years.</h1>
+      <p class="hero-kicker">Know your ward before you vote.</p>
       <div class="find-controls">
         <input id="findSearch" type="search" placeholder="Search by ward, area, or constituency" autocomplete="off">
         <button id="findLocate" class="btn btn-secondary" type="button">Use my location</button>
       </div>
       <div id="homeCorpMap" class="map map-corp" aria-label="Map of Bengaluru's civic corporations"></div>
+      <p class="map-caption">Greater Bengaluru Authority boundary &middot; ${fmt(nCorps)} corporations &middot; ${fmt(meta.n_wards)} wards</p>
       <div class="corp-legend">
         ${Object.entries(CORP_COLORS).map(([name, color]) => `
           <span class="legend-chip"><span class="chip-dot" style="background:${color}"></span>${name}</span>
@@ -95,7 +97,21 @@ export function initHomeView({ W, meta }, { onOpenWard }) {
     corpMap = createMap('homeCorpMap', { center: [77.5946, 12.9716], zoom: 9.5 });
     corpMap.on('load', () => {
       const geojson = buildWardPolygonsGeoJSON(W);
-      addChoroplethLayer(corpMap, geojson);
+      const hover = addChoroplethLayer(corpMap, geojson);
+      const tip = new maplibregl.Popup({ closeButton: false, closeOnClick: false, className: 'map-tip', offset: 12 });
+
+      corpMap.on('mousemove', 'wards-fill', (e) => {
+        if (!e.features.length) return;
+        const f = e.features[0];
+        hover.setHovered(f.id);
+        tip.setLngLat(e.lngLat)
+          .setHTML(`Ward ${fmt(f.properties.ward_id)} &middot; ${esc(f.properties.name)} &middot; ${esc(f.properties.corporation)}`)
+          .addTo(corpMap);
+      });
+      corpMap.on('mouseleave', 'wards-fill', () => {
+        hover.clear();
+        tip.remove();
+      });
     });
   }
 }

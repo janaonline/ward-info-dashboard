@@ -99,6 +99,19 @@ mark {
 .map-corp { height: 260px; margin: 16px 0; }
 .map-ward { height: 320px; margin: 10px 0; }
 
+.map-tip { pointer-events: none; }
+.map-tip .maplibregl-popup-content {
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  padding: 6px 10px;
+  border-radius: var(--radius-s);
+  box-shadow: var(--shadow-2);
+  border: 1px solid var(--line);
+}
+.map-tip .maplibregl-popup-tip { display: none; }
+
 .legend-chip {
   display: inline-flex;
   align-items: center;
@@ -132,7 +145,15 @@ mark {
   line-height: 1.15;
   margin: 12px 0;
 }
-.sub { color: var(--muted); font-size: 1rem; max-width: 46ch; }
+.hero-kicker {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--green-d);
+  margin-bottom: var(--space-3);
+}
+
+.map-caption { color: var(--hint); font-size: 0.85rem; margin: var(--space-2) 0; }
 
 .corp-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: var(--space-5); }
 

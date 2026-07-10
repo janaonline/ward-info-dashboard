@@ -22,7 +22,7 @@ The site deploys to [Vercel](https://vercel.com) as a static project — no fram
 
 ## Features
 
-**Home** — the landing view and the single place to find your ward: a search box covering all 369 wards (by name, ward number, corporation, or assembly constituency), a "use my location" button that geolocates you straight into your ward, a choropleth map of Bengaluru's 5 civic corporations, and a browsable list of every ward that opens the ward detail on tap.
+**Home** — the landing view and the single place to find your ward: a search box covering all 369 wards (by name, ward number, corporation, or assembly constituency), a "use my location" button that geolocates you straight into your ward, a choropleth map of Bengaluru's 5 civic corporations (hovering a ward outlines it and shows its number, name, and corporation in a tooltip), and a browsable list of every ward that opens the ward detail on tap.
 
 **Ward detail** — the core of the app for a single ward: corporator/contact info, a map with a legend of amenity types (buses, metro, schools, parks, lakes, toilets, police, fire, flood spots, polling booths — with an optional 800m walking-distance overlay for the walkable amenity types), an amenities grid with coverage bars, a "did you know?" facts panel (e.g. walking-distance coverage vs. the WHO open-space benchmark, flood risk, schools-per-resident), suggested questions to ask your candidates, a WhatsApp share link + copy-link button, and North/East/South/West navigation to neighbouring wards.
 
