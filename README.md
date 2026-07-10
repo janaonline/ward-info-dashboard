@@ -22,9 +22,7 @@ The site deploys to [Vercel](https://vercel.com) as a static project — no fram
 
 ## Features
 
-**Home** — a landing view with a choropleth map of Bengaluru's 5 civic corporations and a "use my location" call-to-action that geolocates you straight into your ward.
-
-**Find your ward** — a searchable list of all 369 wards (by name, ward number, corporation, or assembly constituency), a map of every ward boundary you can click, and a geolocation shortcut, matching the Home view's CTA.
+**Home** — the landing view and the single place to find your ward: a search box covering all 369 wards (by name, ward number, corporation, or assembly constituency), a "use my location" button that geolocates you straight into your ward, a choropleth map of Bengaluru's 5 civic corporations, and a browsable list of every ward that opens the ward detail on tap.
 
 **Ward detail** — the core of the app for a single ward: corporator/contact info, a map with a legend of amenity types (buses, metro, schools, parks, lakes, toilets, police, fire, flood spots, polling booths — with an optional 800m walking-distance overlay for the walkable amenity types), an amenities grid with coverage bars, a "did you know?" facts panel (e.g. walking-distance coverage vs. the WHO open-space benchmark, flood risk, schools-per-resident), suggested questions to ask your candidates, a WhatsApp share link + copy-link button, and North/East/South/West navigation to neighbouring wards.
 
@@ -52,6 +50,6 @@ There's no lint, formatter, type checker, or bundler in this project by design �
 
 - Syntax-check any edited JS file: `node --input-type=module --check < src/js/<file>.js`
 - Grep for regressions: no `chart.js`/`plus jakarta` references, no leftover old color values, and none of the IDs/classes the view modules depend on (see `CLAUDE.md`'s "must-preserve selectors") have been renamed or removed.
-- For any CSS/markup change, manually click through all 4 views in both themes at a few screen widths — there's no automated visual test suite.
+- For any CSS/markup change, manually click through all 3 views (home, ward detail, methodology) in both themes at a few screen widths — there's no automated visual test suite.
 
 See `.claude/skills/verify-and-update-docs/SKILL.md` for the full verify-then-document workflow this repo follows, and `CLAUDE.md` for the detailed rules an AI coding agent should follow when working in this codebase.

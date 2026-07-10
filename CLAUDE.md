@@ -5,7 +5,7 @@ Agent-facing rules for **Know Your Ward** — a static, no-build Bengaluru civic
 ## File map
 
 ```
-index.html                        4-view shell, CDN tags (MapLibre, PapaParse, Google Fonts), theme toggle, methodology link
+index.html                        3-view shell, CDN tags (MapLibre, PapaParse, Google Fonts), theme toggle, methodology link
 vercel.json                       Cache-Control headers for /public/data/*
 favicon.svg                       site icon
 
@@ -17,8 +17,8 @@ src/js/data-loader.js             loadData() -> { W, nameIndex, A, meta } — th
 src/js/theme.js                   theme persistence, View-Transitions ripple toggle, theme-change pub/sub
 src/js/maps.js                    all MapLibre + geometry helpers: LAYER, CORP_COLORS, tile URLs, ray-casting,
                                    seeded polling scatter, walk buffers, feature-state hover tracking
-src/js/home-view.js               cover view: corp choropleth map, geolocation CTA
-src/js/find-view.js               search, geolocation, all-ward map, capped/sorted list
+src/js/home-view.js               cover/landing view: search, geolocation, corp choropleth map,
+                                   capped/sorted all-ward list
 src/js/ward-view.js               ward detail: head block, map+legend, amenities grid, facts engine,
                                    N/E/S/W nav, ask/share panels — the largest view module
 src/js/methodology-view.js        static content + "return to previous view"
@@ -68,7 +68,7 @@ src/styles/transition.css         theme-ripple + eyebrow-pulse keyframes only
 
 The view JS modules build their markup via template strings and re-query the DOM by these exact IDs/classes. CSS or markup changes must never rename or remove them without updating every JS reference:
 
-- **IDs**: `findList`, `findCount`, `findContainer`, `findSearch`, `findLocate`, `findMap`, `homeContainer`, `ctaFind`, `ctaLocate`, `homeCorpMap`, `loadingIndicator`, `methodologyLink`, `methodologyContainer`, `methBack`, `themeToggle`, `bufferToggle`, `wardContainer`, `wardBack`, `copyLinkBtn`, `wardMap`, `view-home`/`view-find`/`view-ward`/`view-methodology`.
+- **IDs**: `findList`, `findCount`, `findSearch`, `findLocate` (all rendered by `home-view.js`), `homeContainer`, `homeCorpMap`, `loadingIndicator`, `methodologyLink`, `methodologyContainer`, `methBack`, `themeToggle`, `bufferToggle`, `wardContainer`, `wardBack`, `copyLinkBtn`, `wardMap`, `view-home`/`view-ward`/`view-methodology`.
 - **Classes**: `.view`, `.view--active`, `.ward-row` (carries `data-uid`), `.legend-btn` (carries `.active` + `data-layer`), `.amrow` (carries `data-layer`), `.nav-btn` (carries `data-uid`), `.map`.
 
 ## Verification Rules
@@ -79,7 +79,7 @@ This project has no bundler, linter, formatter, or type checker — that is a de
 2. A `grep` sweep confirming: no banned terms reappear (`chart.js`, `plus jakarta`), no leftover reference to a removed color/token, and every ID/class in the "must-preserve selectors" list above is still present in `src/js/*.js`.
 3. Confirm every `var(--...)` used in `base.css`/`components.css`/`transition.css` has a matching definition in `tokens.css` (`:root` or `[data-theme="dark"]`) — except `--ripple-x`/`--ripple-y`, which are set at runtime by `theme.js`, not defined statically.
 
-UI/CSS changes additionally require a manual browser walk of all 4 views, in both themes, at a few widths — there is no automated screenshot or test-runner tooling in this repo. See `.claude/skills/verify-and-update-docs/SKILL.md` for the full workflow.
+UI/CSS changes additionally require a manual browser walk of all 3 views (home, ward, methodology), in both themes, at a few widths — there is no automated screenshot or test-runner tooling in this repo. See `.claude/skills/verify-and-update-docs/SKILL.md` for the full workflow.
 
 ## Do Not
 
@@ -91,7 +91,7 @@ UI/CSS changes additionally require a manual browser walk of all 4 views, in bot
 ## Current state (by area)
 
 - **Data loading**: keys everything by `uid`, not `ward_name`; loads 3 static files from `public/data/` with no backend; PapaParse handles CSV parsing including quoted, comma-containing fields.
-- **Maps**: MapLibre GL JS (pinned `5.24.0` via CDN) across 3 map instances (home choropleth, find all-wards, ward detail); CARTO light/dark raster tiles swapped on theme change; feature-state hover, 800m geodesic walk buffers, and a seeded polling-booth scatter are all ported verbatim from the original prototype's algorithms.
+- **Maps**: MapLibre GL JS (pinned `5.24.0` via CDN) across 2 map instances (home choropleth, ward detail); CARTO light/dark raster tiles swapped on theme change; feature-state hover, 800m geodesic walk buffers, and a seeded polling-booth scatter are all ported verbatim from the original prototype's algorithms.
 - **Facts engine**: `buildFacts`/`suggestedQuestions` in `ward-view.js` use exact ground-truth thresholds (not invented), capped at 7 facts / 6 questions.
 - **Theming**: full Open City brand palette (light + dark), a 4pt spacing scale, and a 3-step elevation system in `tokens.css`; Poppins (headings/stat numbers) + PT Sans (body); theme toggle uses the View Transitions API with a circular ripple and a `prefers-reduced-motion`-respecting fallback.
 - **Map/legend colors**: `LAYER` (13 amenity types) and `CORP_COLORS` (5 corporations) use an 18-color palette derived from the brand's red/green/yellow arc plus one deliberate off-brand blue pair reserved for lake/pond (the brand palette has no blue, and this is the one intentional exception, agreed on for water-category legibility).
