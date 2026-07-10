@@ -97,7 +97,6 @@ mark {
   box-shadow: var(--shadow-s);
 }
 .map-corp { height: 260px; margin: 16px 0; }
-.map-find { height: 320px; margin: 12px 0; }
 .map-ward { height: 320px; margin: 10px 0; }
 
 .legend-chip {
@@ -135,8 +134,6 @@ mark {
 }
 .sub { color: var(--muted); font-size: 1rem; max-width: 46ch; }
 
-.cta-row { display: flex; gap: var(--space-3); flex-wrap: wrap; margin: var(--space-5) 0 var(--space-2); }
-
 .corp-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: var(--space-5); }
 
 .panel {
@@ -152,10 +149,9 @@ mark {
 .panel summary { cursor: pointer; font-weight: 600; min-height: 24px; }
 .panel p { margin: 10px 0 2px; color: var(--muted); }
 
-/* -- find view -- */
+/* -- ward search & list (home view) -- */
 
-.find-head { padding-top: 20px; }
-.find-controls { display: flex; gap: var(--space-2); margin: var(--space-4) 0; flex-wrap: wrap; }
+.find-controls { display: flex; gap: var(--space-2); margin: var(--space-5) 0 var(--space-2); flex-wrap: wrap; }
 .find-controls input {
   flex: 1;
   min-width: 180px;
@@ -287,12 +283,11 @@ mark {
 
 @media (max-width: 520px) {
   .cover { padding: 24px 0 40px; }
-  .cta-row .btn { flex: 1 1 100%; }
   .find-controls { flex-direction: column; }
   .find-controls input, #findLocate { width: 100%; }
   .navrow .nav-btn { flex: 1 1 100%; }
   .map-corp { height: 200px; }
-  .map-find, .map-ward { height: 260px; }
+  .map-ward { height: 260px; }
 }
 
 @media (max-width: 380px) {

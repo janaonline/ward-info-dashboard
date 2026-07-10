@@ -13,7 +13,7 @@ Do not run this skill's doc-update step speculatively "to save time." If a gate 
 
 ## 0. Scope the change
 
-Identify exactly which files changed and which area(s) of the app they touch: data loading (`src/js/data-loader.js`), map/geometry logic (`src/js/maps.js`), the facts engine (`src/js/ward-view.js`), a specific view module (`home-view.js`/`find-view.js`/`ward-view.js`/`methodology-view.js`/`main.js`), or styling (`src/styles/*.css`). This determines which gates below actually apply — a CSS-only change doesn't need a JS syntax check, and a JS-only change with no markup/CSS touched doesn't need a full visual walkthrough (though a quick smoke check of the affected view is still worth doing).
+Identify exactly which files changed and which area(s) of the app they touch: data loading (`src/js/data-loader.js`), map/geometry logic (`src/js/maps.js`), the facts engine (`src/js/ward-view.js`), a specific view module (`home-view.js`/`ward-view.js`/`methodology-view.js`/`main.js`), or styling (`src/styles/*.css`). This determines which gates below actually apply — a CSS-only change doesn't need a JS syntax check, and a JS-only change with no markup/CSS touched doesn't need a full visual walkthrough (though a quick smoke check of the affected view is still worth doing).
 
 ## 1. Static verification gates (always required)
 
@@ -40,7 +40,7 @@ Required whenever `index.html`, any file in `src/styles/`, or a view-render func
 
 1. Serve the repo (`npx serve .` or `python -m http.server`) — `file://` won't work since the app `fetch()`es local data.
 2. Toggle both themes and confirm the ripple transition still runs.
-3. Walk all 4 views: Home (choropleth map + geolocation CTA), Find (search, geolocation, map, capped list), Ward (map + legend + amenities grid + facts + N/E/S/W nav + ask/share + copy-link/WhatsApp), Methodology (back button restores the correct prior view).
+3. Walk all 3 views: Home (search, geolocation, choropleth map, capped ward list), Ward (map + legend + amenities grid + facts + N/E/S/W nav + ask/share + copy-link/WhatsApp), Methodology (back button restores the correct prior view).
 4. If the change touched anything in the "must-preserve selectors" list, specifically click/interact with that exact control (e.g. a legend chip, an amenity row, a nav button) rather than just eyeballing it — a renamed class can look fine visually while silently breaking a click handler.
 5. Spot-check responsiveness at a couple of widths (e.g. ~375px and ~1024px) if the change touched layout/spacing.
 

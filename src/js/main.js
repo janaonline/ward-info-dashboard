@@ -1,7 +1,6 @@
 import { loadData } from './data-loader.js';
 import { initTheme } from './theme.js';
 import { initHomeView, resizeHomeMap } from './home-view.js';
-import { initFindView, resizeFindMap } from './find-view.js';
 import { initWardView, openWard, resizeWardMap } from './ward-view.js';
 import { initMethodologyView } from './methodology-view.js';
 
@@ -15,7 +14,6 @@ function showView(name) {
   currentView = name;
 
   if (name === 'home') resizeHomeMap();
-  if (name === 'find') resizeFindMap();
   if (name === 'ward') resizeWardMap();
 }
 
@@ -31,19 +29,14 @@ async function boot() {
     throw err;
   }
 
-  const { W, nameIndex, A, meta } = data;
+  const { W, A, meta } = data;
 
   const handleOpenWard = (uid) => {
-    openWard(uid, { onOpenWard: handleOpenWard, onBack: () => showView(previousView === 'ward' ? 'find' : previousView) });
+    openWard(uid, { onOpenWard: handleOpenWard, onBack: () => showView(previousView === 'ward' ? 'home' : previousView) });
     showView('ward');
   };
 
-  initHomeView({ W, meta }, {
-    onFindWard: () => showView('find'),
-    onOpenWard: handleOpenWard,
-  });
-
-  initFindView({ W, nameIndex }, { onOpenWard: handleOpenWard });
+  initHomeView({ W, meta }, { onOpenWard: handleOpenWard });
 
   initWardView({ W, A });
 
