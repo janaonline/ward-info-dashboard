@@ -76,25 +76,6 @@ export function nearbyWards(uid, W, k = 6) {
   return arr.slice(0, k).map(x => x[0]);
 }
 
-export function dirNeighbors(uid, W) {
-  const c = centroid(uid, W);
-  const out = { N: null, E: null, S: null, W: null };
-  const best = { N: 1e9, E: 1e9, S: 1e9, W: 1e9 };
-  for (const k in W) {
-    if (k === uid) continue;
-    const cc = centroid(k, W), dx = cc[0] - c[0], dy = cc[1] - c[1], d = dx * dx + dy * dy;
-    if (!d) continue;
-    if (Math.abs(dy) >= Math.abs(dx)) {
-      if (dy > 0) { if (d < best.N) { best.N = d; out.N = k; } }
-      else { if (d < best.S) { best.S = d; out.S = k; } }
-    } else {
-      if (dx > 0) { if (d < best.E) { best.E = d; out.E = k; } }
-      else { if (d < best.W) { best.W = d; out.W = k; } }
-    }
-  }
-  return out;
-}
-
 // ---- seeded polling-booth scatter ----
 
 export function hashStr(s) {

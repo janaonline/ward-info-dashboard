@@ -136,6 +136,7 @@ mark {
   width: 7px; height: 7px; border-radius: 50%; background: var(--green);
   animation: pulse 2s ease-in-out infinite;
 }
+[data-theme="dark"] .eyebrow-dot { background: var(--lime); }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 
 .headline {
@@ -187,6 +188,7 @@ mark {
   transition: border-color var(--dur) ease, box-shadow var(--dur) ease;
 }
 .find-controls input:focus-visible { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-ring); outline: none; }
+[data-theme="dark"] .find-controls input:focus-visible { border-color: var(--lime); box-shadow: 0 0 0 3px color-mix(in srgb, var(--lime) 35%, transparent); }
 .find-count { color: var(--hint); font-size: 0.85rem; margin: var(--space-2) 0; }
 
 .ward-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
@@ -217,8 +219,12 @@ mark {
 .whead h2 { font-family: var(--font-display); font-weight: 700; margin: 4px 0 2px; font-size: 1.6rem; }
 .whead .kn { color: var(--muted); font-weight: 400; font-size: 1rem; }
 .whead-meta { color: var(--muted); font-size: 0.88rem; margin: 0 0 12px; }
-.whead-contact { display: flex; flex-direction: column; gap: 4px; font-size: 0.9rem; }
-.whead-contact .k { color: var(--hint); margin-right: 6px; }
+.whead-origin { display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-2); }
+.whead-origin-block .label {
+  display: block; text-transform: uppercase; font-size: 0.7rem; letter-spacing: .05em;
+  color: var(--hint); margin-bottom: 3px;
+}
+.whead-origin-block p { margin: 0; font-size: 0.9rem; }
 
 .candgrid-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--space-3); }
 .candcard {
@@ -281,16 +287,6 @@ mark {
 .fact.warn { border-left-color: var(--yellow); }
 .fact.bad { border-left-color: var(--red); }
 
-.navrow { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: var(--space-5) 0; }
-.nav-btn {
-  background: var(--surface); border: 1px solid var(--line2); border-radius: var(--radius-s);
-  min-height: 40px;
-  padding: 10px 14px; cursor: pointer; font-size: 0.85rem;
-  box-shadow: var(--shadow-1);
-  transition: background-color var(--dur) ease, transform var(--dur) var(--ease-out), box-shadow var(--dur) ease;
-}
-.nav-btn:hover { background: var(--surface-2); transform: translateY(-1px); box-shadow: var(--shadow-2); }
-
 .tabpane { display: flex; flex-direction: column; gap: var(--space-6); }
 .qlist { padding-left: 18px; display: flex; flex-direction: column; gap: var(--space-2); color: var(--ink); }
 .tab-share { display: flex; gap: var(--space-3); flex-wrap: wrap; align-items: center; }
@@ -306,7 +302,6 @@ mark {
   .cover { padding: 24px 0 40px; }
   .find-controls { flex-direction: column; }
   .find-controls input, #findLocate { width: 100%; }
-  .navrow .nav-btn { flex: 1 1 100%; }
   .map-corp { height: 200px; }
   .map-ward { height: 260px; }
 }

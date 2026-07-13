@@ -19,8 +19,8 @@ src/js/maps.js                    all MapLibre + geometry helpers: LAYER, CORP_C
                                    seeded polling scatter, walk buffers, feature-state hover tracking
 src/js/home-view.js               cover/landing view: search, geolocation, corp choropleth map,
                                    capped/sorted all-ward list
-src/js/ward-view.js               ward detail: head block, map+legend, amenities grid, facts engine,
-                                   N/E/S/W nav, ask/share panels — the largest view module
+src/js/ward-view.js               ward detail: head block (formed-from-old-wards + key-areas), map+legend,
+                                   amenities grid, facts engine, ask/share panels — the largest view module
 src/js/methodology-view.js        static content + "return to previous view"
 src/js/main.js                    composition root: loads data, inits theme, owns the view router
 
@@ -37,7 +37,7 @@ src/styles/transition.css         theme-ripple + eyebrow-pulse keyframes only
 - `W` (in `data-loader.js`) is keyed by **`uid`** (`{corporation}-{ward_id}`, e.g. `"West-25"`), never by `ward_name`. `ward_name` is incidentally unique in the current dataset but not structurally guaranteed across the 5 corporations.
 - `nameIndex` maps a lowercased `ward_name` to its `uid`, for search/display only. Any new lookup/navigation code should resolve to `uid` and use `ward_name` only for rendering.
 - CSV parsing uses PapaParse with `dynamicTyping: true`; blank cells become `null` (confirmed empirically), not `""` or `0` — don't add redundant empty-string guards to threshold logic that already checks `== null`.
-- `neighbourhoods` and `old_wards` CSV columns are semicolon-joined free text and are parsed into arrays in `data-loader.js` (`parseNeighbourhoods`, `parseOldWards`) — don't re-split them elsewhere.
+- `neighbourhoods` and `old_wards` CSV columns are semicolon-joined free text and are parsed into arrays in `data-loader.js` (`parseNeighbourhoods`, `parseOldWards`) — don't re-split them elsewhere. `ward-view.js`'s head block renders these directly: `old_wards` (`[{name, pct}]`) under "Formed from old wards", `neighbourhoods` (`string[]`) under "Key areas" — both fall back to "Not available" when empty (`neighbourhoods` is blank for ~56 wards; `old_wards` is never blank in the current dataset).
 
 ## Map Rules (`src/js/maps.js`)
 
@@ -61,15 +61,16 @@ src/styles/transition.css         theme-ripple + eyebrow-pulse keyframes only
 - All brand colors, spacing, and elevation values live only in `src/styles/tokens.css` as named custom properties (Open City brand palette: green primary, red alert, yellow highlight, a 4pt spacing scale `--space-1`..`--space-7`, and a 3-step elevation scale `--shadow-1`/`--shadow-2`/`--shadow-3`). Components consume tokens (`var(--...)`) — never hardcode a brand hex value in `components.css` or in JS-rendered markup.
 - `:root` (light) and `[data-theme="dark"]` in `tokens.css` must always be updated together — this project has no separate "light-only" or "dark-only" component file.
 - `LAYER`/`CORP_COLORS` hexes in `maps.js` are intentionally theme-agnostic (chosen to read on both the light and dark CARTO basemaps) — don't add a per-theme marker color override unless a real contrast problem is found during manual verification.
-- Fonts: Poppins (`--font-display`/`--font-stat`, headings and stat numbers) and PT Sans (`--font-body`, body text) — do not reintroduce Inter, Inter Tight, Playfair Display, or Plus Jakarta Sans.
-- Touch targets on interactive elements (`.btn`, `.ward-row`, `.amrow`, `.legend-btn`, `.nav-btn`, `.icon-btn`) are `min-height: 44px` — preserve this on any further edits.
+- Fonts: Manrope (`--font-display`/`--font-stat`, headings and stat numbers) and PT Sans (`--font-body`, body text) — do not reintroduce Poppins, Inter, Inter Tight, Playfair Display, or Plus Jakarta Sans. Manrope is the deliberate substitute for the brand guideline's Aileron, which is not on Google Fonts — don't "fix" it in either direction.
+- `--lime` (`#c8e537`, the Open City accent) is dark-background-only — it is near-invisible on white (~1.4:1 contrast). It appears in exactly two places, both scoped under `[data-theme="dark"]`: the home search input's `:focus-visible` ring and the eyebrow dot. Do not use it in the light theme, for text, or as a general highlight.
+- Touch targets on interactive elements (`.btn`, `.ward-row`, `.amrow`, `.legend-btn`, `.icon-btn`) are `min-height: 44px` — preserve this on any further edits.
 
 ## Must-preserve selectors
 
 The view JS modules build their markup via template strings and re-query the DOM by these exact IDs/classes. CSS or markup changes must never rename or remove them without updating every JS reference:
 
 - **IDs**: `findList`, `findCount`, `findSearch`, `findLocate` (all rendered by `home-view.js`), `homeContainer`, `homeCorpMap`, `loadingIndicator`, `methodologyLink`, `methodologyContainer`, `methBack`, `themeToggle`, `bufferToggle`, `wardContainer`, `wardBack`, `copyLinkBtn`, `wardMap`, `view-home`/`view-ward`/`view-methodology`.
-- **Classes**: `.view`, `.view--active`, `.ward-row` (carries `data-uid`), `.legend-btn` (carries `.active` + `data-layer`), `.amrow` (carries `data-layer`), `.nav-btn` (carries `data-uid`), `.map`, `.map-tip` (Popup `className` set in `home-view.js`, styled in `components.css`).
+- **Classes**: `.view`, `.view--active`, `.ward-row` (carries `data-uid`), `.legend-btn` (carries `.active` + `data-layer`), `.amrow` (carries `data-layer`), `.map`, `.map-tip` (Popup `className` set in `home-view.js`, styled in `components.css`).
 
 ## Verification Rules
 
@@ -83,7 +84,7 @@ UI/CSS changes additionally require a manual browser walk of all 3 views (home, 
 
 ## Do Not
 
-- Do not add Chart.js, Leaflet, Plus Jakarta Sans, Inter, Inter Tight, or Playfair Display back into the project.
+- Do not add Chart.js, Leaflet, Plus Jakarta Sans, Inter, Inter Tight, Playfair Display, or Poppins back into the project (Poppins was intentionally replaced by Manrope, the closest Google-Fonts match to the brand's Aileron).
 - Do not add a bundler, package.json, or any npm dependency without discussing it first — the zero-build static-site architecture is intentional.
 - Do not key ward data by `ward_name` — always `uid`.
 - Do not invent commands, scripts, env vars, or file paths that don't exist in this repo when writing docs or instructions.
@@ -93,7 +94,8 @@ UI/CSS changes additionally require a manual browser walk of all 3 views (home, 
 - **Data loading**: keys everything by `uid`, not `ward_name`; loads 3 static files from `public/data/` with no backend; PapaParse handles CSV parsing including quoted, comma-containing fields.
 - **Maps**: MapLibre GL JS (pinned `5.24.0` via CDN) across 2 map instances (home choropleth, ward detail); CARTO light/dark raster tiles swapped on theme change; feature-state hover, 800m geodesic walk buffers, and a seeded polling-booth scatter are all ported verbatim from the original prototype's algorithms. Hovering a ward on the home choropleth shows a cursor-following `maplibregl.Popup` tooltip ("Ward N · name · corporation", class `.map-tip`, theme-aware via tokens) and outlines the hovered ward in black via the feature-state-driven `wards-line-hover` layer — the fill is constant and does not change on hover.
 - **Facts engine**: `buildFacts`/`suggestedQuestions` in `ward-view.js` use exact ground-truth thresholds (not invented), capped at 7 facts / 6 questions.
-- **Theming**: full Open City brand palette (light + dark), a 4pt spacing scale, and a 3-step elevation system in `tokens.css`; Poppins (headings/stat numbers) + PT Sans (body); theme toggle uses the View Transitions API with a circular ripple and a `prefers-reduced-motion`-respecting fallback.
+- **Ward head block**: shows "Formed from old wards" (predecessor wards + % overlap from delimitation) and "Key areas" (localities), sourced from the `old_wards`/`neighbourhoods` CSV columns; there is no Corporator/AEE contact display or N/E/S/W neighbour-navigation row on the ward detail page.
+- **Theming**: full Open City brand palette (light + dark), a 4pt spacing scale, and a 3-step elevation system in `tokens.css`; Manrope (headings/stat numbers, standing in for the brand's Aileron) + PT Sans (body); the brand's lime accent (`--lime`) is used sparingly in the dark theme only (search focus ring, eyebrow dot); theme toggle uses the View Transitions API with a circular ripple and a `prefers-reduced-motion`-respecting fallback.
 - **Map/legend colors**: `LAYER` (13 amenity types) and `CORP_COLORS` (5 corporations) use an 18-color palette derived from the brand's red/green/yellow arc plus one deliberate off-brand blue pair reserved for lake/pond (the brand palette has no blue, and this is the one intentional exception, agreed on for water-category legibility).
 - **Responsiveness**: 44px minimum touch targets across interactive elements; breakpoints at 520px and 380px; fixed theme-toggle/methodology-link clusters respect `env(safe-area-inset-*)`.
 - **Verification**: no test framework or lint/build tooling exists; verification is `node --check` per changed JS file, targeted `grep` sweeps, and manual browser walkthroughs — see the `verify-and-update-docs` skill.

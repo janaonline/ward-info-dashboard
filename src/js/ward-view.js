@@ -1,9 +1,9 @@
 import {
   createMap, buildWardPolygonsGeoJSON, addWardBoundaryLayer, LAYER, LAYER_ORDER,
   amenityRows, defaultLayer, layerPoints, setActiveAmenityLayer, setWalkBufferLayer,
-  dirNeighbors, nearbyWards, resizeMap,
+  nearbyWards, resizeMap,
 } from './maps.js';
-import { esc, fmt, cov100, tc } from './format.js';
+import { esc, fmt, cov100 } from './format.js';
 
 let wardMap = null;
 let currentLayer = null;
@@ -88,15 +88,31 @@ function suggestedQuestions(w) {
 
 // ---- render pieces ----
 
+function oldWardsText(w) {
+  if (!w.old_wards || !w.old_wards.length) return 'Not available';
+  return w.old_wards.map(o => o.pct != null ? `${esc(o.name)} (${o.pct}%)` : esc(o.name)).join(', ');
+}
+
+function neighbourhoodsText(w) {
+  if (!w.neighbourhoods || !w.neighbourhoods.length) return 'Not available';
+  return w.neighbourhoods.map(esc).join(', ');
+}
+
 function renderHead(w) {
   return `
     <div class="whead">
       <button class="back-link" id="wardBack" type="button">&larr; Back</button>
       <h2>${esc(w.ward_name)}${w.ward_name_kn ? ` <span class="kn">${esc(w.ward_name_kn)}</span>` : ''}</h2>
       <p class="whead-meta">Ward ${fmt(w.ward_id)} &middot; ${esc(w.corporation)} &middot; ${esc(w.zone_name || w.zone)} &middot; ${esc(w.assembly)}</p>
-      <div class="whead-contact">
-        <div><span class="k">Corporator</span> ${esc(tc(w.contact_corporator) || 'Not available')}${w.contact_party ? ` (${esc(w.contact_party)})` : ''}</div>
-        <div><span class="k">AEE</span> ${esc(tc(w.contact_aee) || 'Not available')}${w.contact_aee_phone ? ` &middot; ${esc(w.contact_aee_phone)}` : ''}</div>
+      <div class="whead-origin">
+        <div class="whead-origin-block">
+          <span class="label">Formed from old wards</span>
+          <p>${oldWardsText(w)}</p>
+        </div>
+        <div class="whead-origin-block">
+          <span class="label">Key areas</span>
+          <p>${neighbourhoodsText(w)}</p>
+        </div>
       </div>
     </div>
   `;
@@ -162,16 +178,6 @@ function renderFacts(w, A) {
         ${facts.map(f => `<div class="fact ${f.tone || ''}"><span class="k">${esc(f.t)}</span>${f.h}</div>`).join('')}
       </div>
     </section>
-  `;
-}
-
-function renderNav(uid, W) {
-  const dirs = dirNeighbors(uid, W);
-  const label = { N: '↑ North', E: '→ East', S: '↓ South', W: '← West' };
-  return `
-    <div class="navrow">
-      ${['N', 'E', 'S', 'W'].map(d => dirs[d] ? `<button class="nav-btn" data-uid="${esc(dirs[d])}" type="button">${label[d]}: ${esc(W[dirs[d]].ward_name)}</button>` : '').join('')}
-    </div>
   `;
 }
 
@@ -255,14 +261,10 @@ export function openWard(uid, { onOpenWard, onBack } = {}) {
     </section>
     ${renderAmenities(w)}
     ${renderFacts(w, A)}
-    ${renderNav(uid, W)}
     ${renderAskShare(w)}
   `;
 
   document.getElementById('wardBack').addEventListener('click', () => onBack());
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => onOpenWard(btn.dataset.uid));
-  });
   const copyBtn = document.getElementById('copyLinkBtn');
   if (copyBtn) {
     copyBtn.addEventListener('click', () => {
