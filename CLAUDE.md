@@ -1,32 +1,35 @@
 # CLAUDE.md
 
-Agent-facing rules for **Know Your Ward** — a static, no-build Bengaluru civic ward-information site. MapLibre GL JS for maps, vanilla ES modules (no framework, no bundler), data loaded client-side from local CSV/JSON files. There is no backend and no build step by design; the repo is deployed to Vercel (and is portable to any static host) exactly as committed.
+Agent-facing rules for **Know Your Ward** — a static, no-build Bengaluru civic ward-information site. MapLibre GL JS for maps, vanilla ES modules (no framework, no bundler), data loaded client-side from local CSV/JSON files. There is no backend and no build step by design; the repo is deployed to Vercel (and is portable to any static host) exactly as committed. "Know Your Ward" is this project's engineering-facing name; the site's visitor-facing name (page `<title>`, meta description, eyebrow, share text) is currently **"Nimma Ward, Nimma Vote."**
 
 ## File map
 
 ```
-index.html                        3-view shell, CDN tags (MapLibre, PapaParse, Google Fonts), theme toggle, methodology link
+index.html                        3-view shell + <footer id="siteFooter">, CDN tags (MapLibre, PapaParse, Google Fonts), theme toggle
 vercel.json                       Cache-Control headers for /public/data/*
 favicon.svg                       site icon
 
 public/data/wards.csv             369 rows, one per ward — the only tabular data source, keyed by uid
 public/data/wards-geometry.json   ward polygons + amenity point coordinates, keyed by the same uid
 public/data/meta.json             citywide averages (meta.avg) used by the facts engine + generation metadata
+public/logos/                     org logo images for the footer (janaagraha-logo.svg, oorvani-logo.svg) — not yet supplied
 
 src/js/data-loader.js             loadData() -> { W, nameIndex, A, meta } — the only module that fetches data
 src/js/theme.js                   theme persistence, View-Transitions ripple toggle, theme-change pub/sub
-src/js/maps.js                    all MapLibre + geometry helpers: LAYER, CORP_COLORS, tile URLs, ray-casting,
-                                   seeded polling scatter, walk buffers, feature-state hover tracking
-src/js/home-view.js               cover/landing view: search, geolocation, corp choropleth map,
-                                   capped/sorted all-ward list
-src/js/ward-view.js               ward detail: head block (formed-from-old-wards + key-areas), map+legend,
-                                   amenities grid, facts engine, ask/share panels — the largest view module
+src/js/footer.js                  global site footer: Methodology link, per-ward Share/WhatsApp/Copy-link row
+                                   (hidden outside the ward view), org attribution + social links
+src/js/maps.js                    all MapLibre + geometry helpers: LAYER (color + icon per amenity), CORP_COLORS,
+                                   tile URLs, ray-casting, seeded polling scatter, walk buffers, hover tracking
+src/js/home-view.js               cover/landing view: search, geolocation, corp choropleth map, ward-definition
+                                   copy, GBA/ward-councillor + how-this-works/about-data panels, ward list
+src/js/ward-view.js               ward detail: head block (formed-from-old-wards + key-areas), candidates,
+                                   map+legend, amenities grid, facts engine, ask/why-vote panels — the largest view module
 src/js/methodology-view.js        static content + "return to previous view"
-src/js/main.js                    composition root: loads data, inits theme, owns the view router
+src/js/main.js                    composition root: loads data, inits theme, owns the view router + footer state
 
 src/styles/tokens.css             design tokens only (colors, spacing, elevation, fonts) — light + [data-theme="dark"]
 src/styles/base.css               resets, view show/hide scaffold, fixed-position clusters
-src/styles/components.css         every component/view style (buttons, cards, legend, amenity grid, facts, nav, tabs...)
+src/styles/components.css         every component/view style (buttons, cards, legend, amenity grid, facts, footer...)
 src/styles/transition.css         theme-ripple + eyebrow-pulse keyframes only
 
 .claude/skills/verify-and-update-docs/SKILL.md   verification-before-documentation workflow for this repo
@@ -44,6 +47,7 @@ src/styles/transition.css         theme-ripple + eyebrow-pulse keyframes only
 - MapLibre GL JS only — this project does not use Leaflet.
 - Basemap tiles are CARTO `light_nolabels` / `dark_nolabels` raster tiles. MapLibre does not support Leaflet's `{s}` subdomain placeholder — subdomains (`a`-`d`) must stay expanded into a literal array (`tileUrlForTheme`).
 - `LAYER` and `CORP_COLORS` are the single source of truth for every legend chip and every map fill/marker color in the app. Never hardcode a color for an amenity/corporation anywhere else — change it here and both the legend and the map update together.
+- `LAYER[key].icon` is a hand-coded, `currentColor`-based inline-SVG string (one per amenity type) rendered in `ward-view.js`'s `.amrow` list — it is a visual pictogram only, unrelated to `color`/`walk`/`ptkey`. Legend chips intentionally keep the plain color dot instead of this icon (the 13 amenity colors are already tuned for single-dot legend legibility, per the rule below) — don't add icons to `.legend-btn`.
 - The ward map renders only **one** amenity layer at a time (`setActiveAmenityLayer`) — the 13 amenity colors are chosen for legend-row + single-dot legibility, not for simultaneous mutual distinction. Only the 5 `CORP_COLORS` are shown together and must stay mutually distinct.
 - Feature-state hover (`makeHoverTracker`) must always clear the previously-hovered feature id before setting a new one — a stuck highlight means this bookkeeping broke.
 - The 800m walk buffer (`buildWalkBuffer`) uses a latitude-adjusted geodesic formula (`dLng = meters / (111320 * cos(lat))`) — Bengaluru sits at ~13°N, so a flat degree offset produces a visibly non-circular buffer. Don't simplify this back to a fixed offset.
@@ -64,12 +68,13 @@ src/styles/transition.css         theme-ripple + eyebrow-pulse keyframes only
 - Fonts: Manrope (`--font-display`/`--font-stat`, headings and stat numbers) and PT Sans (`--font-body`, body text) — do not reintroduce Poppins, Inter, Inter Tight, Playfair Display, or Plus Jakarta Sans. Manrope is the deliberate substitute for the brand guideline's Aileron, which is not on Google Fonts — don't "fix" it in either direction.
 - `--lime` (`#c8e537`, the Open City accent) is dark-background-only — it is near-invisible on white (~1.4:1 contrast). It appears in exactly two places, both scoped under `[data-theme="dark"]`: the home search input's `:focus-visible` ring and the eyebrow dot. Do not use it in the light theme, for text, or as a general highlight.
 - Touch targets on interactive elements (`.btn`, `.ward-row`, `.amrow`, `.legend-btn`, `.icon-btn`) are `min-height: 44px` — preserve this on any further edits.
+- Text color follows a 3-tier hierarchy: body/description-length copy uses `--ink` (full contrast — e.g. `.panel p`, `.ward-def`, `.cand-intro`), inline metadata uses `--muted` (e.g. `.ward-row-meta`, `.whead-meta`, `.candparty`), and uppercase captions/labels use `--hint` (e.g. `.fact .k`, `.map-caption`, `.find-count`, `.whead-origin-block .label`). Don't put sentence-length text on `--muted`/`--hint` — those tones are for short secondary labels, not paragraphs.
 
 ## Must-preserve selectors
 
 The view JS modules build their markup via template strings and re-query the DOM by these exact IDs/classes. CSS or markup changes must never rename or remove them without updating every JS reference:
 
-- **IDs**: `findList`, `findCount`, `findSearch`, `findLocate` (all rendered by `home-view.js`), `homeContainer`, `homeCorpMap`, `loadingIndicator`, `methodologyLink`, `methodologyContainer`, `methBack`, `themeToggle`, `bufferToggle`, `wardContainer`, `wardBack`, `copyLinkBtn`, `wardMap`, `view-home`/`view-ward`/`view-methodology`.
+- **IDs**: `findList`, `findCount`, `findSearch`, `findLocate` (all rendered by `home-view.js`), `homeContainer`, `homeCorpMap`, `loadingIndicator`, `siteFooter`, `methodologyLink` and `copyLinkBtn` (both now rendered and wired by `footer.js`, not `main.js`/`ward-view.js`), `footerShare`, `footerWhatsapp`, `methodologyContainer`, `methBack`, `themeToggle`, `bufferToggle`, `wardContainer`, `wardBack`, `wardMap`, `view-home`/`view-ward`/`view-methodology`.
 - **Classes**: `.view`, `.view--active`, `.ward-row` (carries `data-uid`), `.legend-btn` (carries `.active` + `data-layer`), `.amrow` (carries `data-layer`), `.map`, `.map-tip` (Popup `className` set in `home-view.js`, styled in `components.css`).
 
 ## Verification Rules
@@ -95,7 +100,13 @@ UI/CSS changes additionally require a manual browser walk of all 3 views (home, 
 - **Maps**: MapLibre GL JS (pinned `5.24.0` via CDN) across 2 map instances (home choropleth, ward detail); CARTO light/dark raster tiles swapped on theme change; feature-state hover, 800m geodesic walk buffers, and a seeded polling-booth scatter are all ported verbatim from the original prototype's algorithms. Hovering a ward on the home choropleth shows a cursor-following `maplibregl.Popup` tooltip ("Ward N · name · corporation", class `.map-tip`, theme-aware via tokens) and outlines the hovered ward in black via the feature-state-driven `wards-line-hover` layer — the fill is constant and does not change on hover.
 - **Facts engine**: `buildFacts`/`suggestedQuestions` in `ward-view.js` use exact ground-truth thresholds (not invented), capped at 7 facts / 6 questions.
 - **Ward head block**: shows "Formed from old wards" (predecessor wards + % overlap from delimitation) and "Key areas" (localities), sourced from the `old_wards`/`neighbourhoods` CSV columns; there is no Corporator/AEE contact display or N/E/S/W neighbour-navigation row on the ward detail page.
-- **Theming**: full Open City brand palette (light + dark), a 4pt spacing scale, and a 3-step elevation system in `tokens.css`; Manrope (headings/stat numbers, standing in for the brand's Aileron) + PT Sans (body); the brand's lime accent (`--lime`) is used sparingly in the dark theme only (search focus ring, eyebrow dot); theme toggle uses the View Transitions API with a circular ripple and a `prefers-reduced-motion`-respecting fallback.
+- **Candidates**: `renderCandidates()` in `ward-view.js` is a "Coming soon" placeholder — heading "Who is contesting the election in your ward?", an intro sentence, and per-candidate placeholder Affidavit (assets/cases/education) and Manifesto fields. No real candidate data is wired up.
+- **Why vote**: a placeholder `renderWhyVote()` section sits at the very end of the ward detail page (after the questions/Sahaaya block) with static explanatory copy and a "Video explainer · Coming soon" pill — no video is wired up.
+- **Amenity icons**: every `.amrow` on the ward page renders a small `currentColor` inline-SVG pictogram from `LAYER[key].icon` (maps.js), one per amenity type; legend chips keep their plain color dot, unchanged.
+- **Site footer**: a persistent `<footer>` (`src/js/footer.js`) renders on all 3 views — a Methodology link (no longer a fixed floating button), a Share-this-ward/WhatsApp/Copy-link row shown only on the ward view (`setFooterView`/`setFooterWard`, driven by `main.js`'s router), an org-attribution line ("Made with ❤️ for Bengaluru by:" Janaagraha + Oorvani Foundation, logo `<img>`s falling back to text wordmarks via `onerror` until `public/logos/*.svg` are supplied), and a social-icon row built from a `SOCIAL_LINKS` config at the top of `footer.js`. Janaagraha's LinkedIn URL is still a `null` placeholder pending that specific link — the icon is omitted (not a dead link) until it's filled in.
+- **Site name**: the visitor-facing name is "Nimma Ward, Nimma Vote" (page `<title>`, meta description, home eyebrow "Make an informed choice", WhatsApp share text) — see the top of this file.
+- **Home view extras**: a ward-definition paragraph and a "Know your ward before you vote." transition line sit between the search controls and the choropleth map; two `<details class="panel">` accordions ("What is the Greater Bengaluru Authority?", "What is a ward councillor?") sit above the existing "How this works"/"About the data" panels.
+- **Theming**: full Open City brand palette (light + dark), a 4pt spacing scale, and a 3-step elevation system in `tokens.css`; Manrope (headings/stat numbers, standing in for the brand's Aileron) + PT Sans (body); the brand's lime accent (`--lime`) is used sparingly in the dark theme only (search focus ring, eyebrow dot); theme toggle uses the View Transitions API with a circular ripple and a `prefers-reduced-motion`-respecting fallback. Body-length text uses `--ink`, metadata uses `--muted`, captions/labels use `--hint` (see Styling & Theming Rules above).
 - **Map/legend colors**: `LAYER` (13 amenity types) and `CORP_COLORS` (5 corporations) use an 18-color palette derived from the brand's red/green/yellow arc plus one deliberate off-brand blue pair reserved for lake/pond (the brand palette has no blue, and this is the one intentional exception, agreed on for water-category legibility).
-- **Responsiveness**: 44px minimum touch targets across interactive elements; breakpoints at 520px and 380px; fixed theme-toggle/methodology-link clusters respect `env(safe-area-inset-*)`.
+- **Responsiveness**: 44px minimum touch targets across interactive elements; breakpoints at 520px/380px (narrow) and 900px (wide — `.container` widens to 960px and `.amgrid`/`.factslist` reflow into multi-column grids); the theme-toggle cluster respects `env(safe-area-inset-*)`.
 - **Verification**: no test framework or lint/build tooling exists; verification is `node --check` per changed JS file, targeted `grep` sweeps, and manual browser walkthroughs — see the `verify-and-update-docs` skill.

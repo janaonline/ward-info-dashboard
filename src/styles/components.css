@@ -64,22 +64,6 @@ mark {
 [data-theme="dark"] .icon-sun { display: none; }
 [data-theme="dark"] .icon-moon { display: block; }
 
-.methodology-link {
-  font-size: 0.85rem;
-  color: var(--muted);
-  background: var(--surface);
-  border: 1px solid var(--line2);
-  padding: 10px 16px;
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  text-decoration: none;
-  box-shadow: var(--shadow-1);
-  transition: box-shadow var(--dur) ease, background-color var(--dur) ease, transform var(--dur) var(--ease-out);
-}
-.methodology-link:hover { background: var(--surface-2); box-shadow: var(--shadow-2); transform: translateY(-1px); }
-
 .loading-spinner {
   width: 28px; height: 28px;
   border-radius: 50%;
@@ -146,6 +130,8 @@ mark {
   line-height: 1.15;
   margin: 12px 0;
 }
+.headline mark { white-space: nowrap; }
+.ward-def { color: var(--ink); font-size: 0.95rem; margin: var(--space-3) 0; }
 .hero-kicker {
   font-family: var(--font-display);
   font-weight: 700;
@@ -169,7 +155,7 @@ mark {
 }
 .panel:hover, .panel[open] { box-shadow: var(--shadow-2); }
 .panel summary { cursor: pointer; font-weight: 600; min-height: 24px; }
-.panel p { margin: 10px 0 2px; color: var(--muted); }
+.panel p { margin: 10px 0 2px; color: var(--ink); }
 
 /* -- ward search & list (home view) -- */
 
@@ -226,7 +212,10 @@ mark {
 }
 .whead-origin-block p { margin: 0; font-size: 0.9rem; }
 
-.candgrid-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--space-3); }
+.candgrid h3 { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.pill-soon { background: var(--yellow-soft); color: var(--yellow-ink); }
+.cand-intro { color: var(--ink); font-size: 0.9rem; margin: 0 0 var(--space-3); }
+.candgrid-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-3); }
 .candcard {
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m);
   padding: var(--space-4); text-align: center;
@@ -240,6 +229,8 @@ mark {
 }
 .candname { font-weight: 600; font-family: var(--font-stat); }
 .candparty { color: var(--muted); font-size: 0.82rem; margin: 2px 0 8px; }
+.cand-detail { text-align: left; font-size: 0.8rem; color: var(--muted); margin-top: 6px; }
+.cand-detail .k { display: block; text-transform: uppercase; font-size: 0.68rem; letter-spacing: .05em; color: var(--hint); }
 
 .legend {
   display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
@@ -260,7 +251,7 @@ mark {
 
 .amgrid { display: flex; flex-direction: column; }
 .amrow {
-  display: grid; grid-template-columns: 1fr auto 80px; align-items: center; gap: 10px;
+  display: grid; grid-template-columns: auto 1fr auto 80px; align-items: center; gap: 10px;
   min-height: 44px;
   padding: 10px var(--space-2); border-bottom: 1px solid var(--line);
   border-left: 3px solid transparent;
@@ -268,6 +259,8 @@ mark {
   transition: background-color var(--dur) ease, border-color var(--dur) ease;
 }
 .amrow:hover { background: var(--surface-2); border-left-color: var(--green); }
+.am-icon { display: flex; color: var(--muted); }
+.am-icon svg { width: 18px; height: 18px; }
 .cnt { font-family: var(--font-stat); font-weight: 700; }
 .am-bar { display: block; height: 5px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
 .am-bar-fill { display: block; height: 100%; background: var(--green); }
@@ -289,13 +282,52 @@ mark {
 
 .tabpane { display: flex; flex-direction: column; gap: var(--space-6); }
 .qlist { padding-left: 18px; display: flex; flex-direction: column; gap: var(--space-2); color: var(--ink); }
-.tab-share { display: flex; gap: var(--space-3); flex-wrap: wrap; align-items: center; }
 .sahaaya-cats { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-top: var(--space-2); }
+
+.whyvote-sub { color: var(--muted); font-size: 0.9rem; margin: 4px 0 10px; }
+.whyvote-video { margin-top: var(--space-3); }
+
+/* -- footer -- */
+
+.site-footer { margin-top: var(--space-7); border-top: 1px solid var(--line); background: var(--surface); }
+.footer-inner { padding-top: var(--space-5); padding-bottom: var(--space-5); display: flex; flex-direction: column; gap: var(--space-4); }
+.footer-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.footer-utility { justify-content: space-between; }
+.footer-link {
+  font-size: 0.85rem; color: var(--muted); text-decoration: none; font-weight: 600;
+  min-height: 44px; display: inline-flex; align-items: center;
+}
+.footer-link:hover { color: var(--green-d); }
+.footer-share { align-items: center; gap: var(--space-2); }
+.footer-share[hidden] { display: none; }
+.footer-share-label { font-size: 0.85rem; color: var(--hint); }
+.btn-sm { min-height: 36px; padding: 7px 14px; font-size: 0.85rem; }
+.footer-heart-line { color: var(--muted); font-size: 0.88rem; }
+.footer-heart { font-size: 0.9em; }
+.footer-orgs { display: flex; align-items: center; gap: var(--space-3); }
+.footer-and { color: var(--hint); font-size: 0.85rem; }
+.footer-logo { height: 22px; width: auto; }
+.footer-org-fallback {
+  display: none; font-family: var(--font-display); font-weight: 700; font-size: 0.85rem; color: var(--ink);
+}
+.footer-social { gap: var(--space-3); }
+.footer-social-link {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 50%; color: var(--muted);
+  transition: color var(--dur) ease, background-color var(--dur) ease;
+}
+.footer-social-link:hover { color: var(--green-d); background: var(--surface-2); }
 
 /* -- responsive -- */
 
 @media (min-width: 640px) {
   .whead h2 { font-size: 1.9rem; }
+}
+
+@media (min-width: 900px) {
+  .container { max-width: 960px; }
+  .amgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0 var(--space-5); }
+  .factslist { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
 }
 
 @media (max-width: 520px) {

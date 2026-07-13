@@ -48,15 +48,16 @@ export function initHomeView({ W, meta }, { onOpenWard }) {
 
   container.innerHTML = `
     <div class="cover">
-      <div class="eyebrow"><span class="eyebrow-dot"></span> Greater Bengaluru &middot; Ward Guide</div>
+      <div class="eyebrow"><span class="eyebrow-dot"></span> Make an informed choice</div>
       <h1 class="headline">Bengaluru is choosing its <mark>ward councillor</mark> for the first time in years.</h1>
-      <p class="hero-kicker">Know your ward before you vote.</p>
       <div class="find-controls">
         <input id="findSearch" type="search" placeholder="Search by ward, area, or constituency" autocomplete="off">
         <button id="findLocate" class="btn btn-secondary" type="button">Use my location</button>
       </div>
+      <p class="ward-def">A ward is the smallest electoral unit in a city. It is the neighbourhood or group of neighbourhoods you live in. Every ward elects one councillor who works on local civic issues such as roads, parks, sanitation, drainage, streetlights, and neighbourhood infrastructure.</p>
+      <p class="hero-kicker">Know your ward before you vote.</p>
       <div id="homeCorpMap" class="map map-corp" aria-label="Map of Bengaluru's civic corporations"></div>
-      <p class="map-caption">Greater Bengaluru Authority boundary &middot; ${fmt(nCorps)} corporations &middot; ${fmt(meta.n_wards)} wards</p>
+      <p class="map-caption">Greater Bengaluru Authority has ${fmt(nCorps)} Municipal Corporations and ${fmt(meta.n_wards)} wards</p>
       <div class="corp-legend">
         ${Object.entries(CORP_COLORS).map(([name, color]) => `
           <span class="legend-chip"><span class="chip-dot" style="background:${color}"></span>${name}</span>
@@ -64,6 +65,14 @@ export function initHomeView({ W, meta }, { onOpenWard }) {
       </div>
       <p id="findCount" class="find-count"></p>
       <ul id="findList" class="ward-list"></ul>
+      <details class="panel">
+        <summary>What is the Greater Bengaluru Authority?</summary>
+        <p>The Greater Bengaluru Authority (GBA) is the apex civic body for the Bengaluru metropolitan region. It coordinates planning, infrastructure and governance across the city. Established in 2025, it replaced the Bruhat Bengaluru Mahanagara Palike (BBMP) as Bengaluru's primary urban governance institution.</p>
+      </details>
+      <details class="panel">
+        <summary>What is a ward councillor?</summary>
+        <p>A ward councillor is your elected representative in local government. They represent your neighbourhood, raise local issues, oversee civic works, and help ensure municipal services respond to residents' needs.</p>
+      </details>
       <details class="panel">
         <summary>How this works</summary>
         <p>We combine ward boundaries with open civic datasets on buses, metro, schools, parks, lakes, and more to show how well-served your neighbourhood is.</p>

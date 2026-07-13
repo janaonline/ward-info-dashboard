@@ -1,6 +1,6 @@
 # Know Your Ward
 
-A mobile-first, static website that helps Bengaluru residents understand their own civic ward — amenities, coverage gaps, flood risk, and how the ward was formed — for all 369 wards across the city's 5 civic corporations.
+A mobile-first, static website that helps Bengaluru residents understand their own civic ward — amenities, coverage gaps, flood risk, and how the ward was formed — for all 369 wards across the city's 5 civic corporations. The site's visitor-facing name is "Nimma Ward, Nimma Vote."
 
 There's no backend and no build step. It's plain HTML, CSS, and vanilla ES modules, with [MapLibre GL JS](https://maplibre.org/) for maps and [PapaParse](https://www.papaparse.com/) for CSV parsing, both loaded from a CDN. All ward data ships as static files in the repo.
 
@@ -22,11 +22,13 @@ The site deploys to [Vercel](https://vercel.com) as a static project — no fram
 
 ## Features
 
-**Home** — the landing view and the single place to find your ward: a search box covering all 369 wards (by name, ward number, corporation, or assembly constituency), a "use my location" button that geolocates you straight into your ward, a choropleth map of Bengaluru's 5 civic corporations (hovering a ward outlines it and shows its number, name, and corporation in a tooltip), and a browsable list of every ward that opens the ward detail on tap.
+**Home** — the landing view and the single place to find your ward: a search box covering all 369 wards (by name, ward number, corporation, or assembly constituency), a "use my location" button that geolocates you straight into your ward, a plain-language explainer of what a ward is, a choropleth map of Bengaluru's 5 civic corporations (hovering a ward outlines it and shows its number, name, and corporation in a tooltip), a browsable list of every ward that opens the ward detail on tap, and accordion panels explaining the Greater Bengaluru Authority (GBA), the ward councillor role, and how the site's data works.
 
-**Ward detail** — the core of the app for a single ward: which predecessor wards it was formed from (with % overlap) and its key areas/localities, a map with a legend of amenity types (buses, metro, schools, parks, lakes, toilets, police, fire, flood spots, polling booths — with an optional 800m walking-distance overlay for the walkable amenity types), an amenities grid with coverage bars, a "did you know?" facts panel (e.g. walking-distance coverage vs. the WHO open-space benchmark, flood risk, schools-per-resident), suggested questions to ask your candidates, and a WhatsApp share link + copy-link button.
+**Ward detail** — the core of the app for a single ward: which predecessor wards it was formed from (with % overlap) and its key areas/localities, a "coming soon" candidates placeholder (photo/party/affidavit/manifesto fields, pending the next election cycle), a map with a legend of amenity types (buses, metro, schools, parks, lakes, toilets, police, fire, flood spots, polling booths — each with its own small icon, and an optional 800m walking-distance overlay for the walkable amenity types), an amenities grid with coverage bars, a "did you know?" facts panel (e.g. walking-distance coverage vs. the WHO open-space benchmark, flood risk, schools-per-resident), suggested questions to ask your candidates, a "report a civic issue" pointer to BBMP Sahaaya, and a placeholder "why vote?" explainer.
 
 **Methodology** — data sourcing, what "within walking distance" means, and known data-quality caveats, with a back button that returns you to whichever view you came from.
+
+**Footer** — present on all 3 views: a Methodology link, a Share this ward/WhatsApp/copy-link row (shown only while viewing a ward), and an attribution line crediting Janaagraha and Oorvani Foundation with links to their social profiles.
 
 ## Data sources
 
@@ -42,7 +44,9 @@ Every record is joined on **`uid`** (`{corporation}-{ward_id}`, e.g. `West-25`),
 
 ## Design system
 
-Colors, typography, and spacing follow Open City's brand guidelines: a green/red/yellow palette (plus one deliberate off-brand blue reserved for lake/pond markers, since the brand palette has no blue), the brand's lime accent used sparingly on dark surfaces only (the dark theme's search focus ring and eyebrow dot — lime is nearly invisible on white), Manrope for headings and stat numbers (the closest Google Fonts match to the brand's Aileron, which isn't freely hosted), PT Sans for body text, a 4pt spacing scale, and a 3-step material-style elevation system. Both a light and a dark theme are fully supported, toggled with a circular reveal animation (the View Transitions API, with a plain fallback for browsers that don't support it) and persisted across visits. There is no external UI/component framework — every component is hand-styled in `src/styles/`.
+Colors, typography, and spacing follow Open City's brand guidelines: a green/red/yellow palette (plus one deliberate off-brand blue reserved for lake/pond markers, since the brand palette has no blue), the brand's lime accent used sparingly on dark surfaces only (the dark theme's search focus ring and eyebrow dot — lime is nearly invisible on white), Manrope for headings and stat numbers (the closest Google Fonts match to the brand's Aileron, which isn't freely hosted), PT Sans for body text, a 4pt spacing scale, and a 3-step material-style elevation system. Body-length text uses full-contrast ink, short metadata uses a muted tone, and captions/labels use the lightest hint tone — a deliberate 3-tier hierarchy, not an accident. Both a light and a dark theme are fully supported, toggled with a circular reveal animation (the View Transitions API, with a plain fallback for browsers that don't support it) and persisted across visits. Amenity types each get a small hand-coded, currentColor SVG icon (no icon font or library). There is no external UI/component framework — every component is hand-styled in `src/styles/`.
+
+The footer's Janaagraha/Oorvani logo images are expected at `public/logos/janaagraha-logo.svg` and `public/logos/oorvani-logo.svg`; until those files are added, the footer falls back to plain text wordmarks automatically.
 
 ## Contributing / verification
 

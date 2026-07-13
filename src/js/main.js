@@ -3,6 +3,7 @@ import { initTheme } from './theme.js';
 import { initHomeView, resizeHomeMap } from './home-view.js';
 import { initWardView, openWard, resizeWardMap } from './ward-view.js';
 import { initMethodologyView } from './methodology-view.js';
+import { initFooter, setFooterView, setFooterWard } from './footer.js';
 
 let currentView = 'home';
 let previousView = 'home';
@@ -15,6 +16,7 @@ function showView(name) {
 
   if (name === 'home') resizeHomeMap();
   if (name === 'ward') resizeWardMap();
+  setFooterView(name);
 }
 
 async function boot() {
@@ -33,6 +35,7 @@ async function boot() {
 
   const handleOpenWard = (uid) => {
     openWard(uid, { onOpenWard: handleOpenWard, onBack: () => showView(previousView === 'ward' ? 'home' : previousView) });
+    setFooterWard(uid, W[uid].ward_name);
     showView('ward');
   };
 
@@ -45,10 +48,7 @@ async function boot() {
     onBack: (target) => showView(target),
   });
 
-  document.getElementById('methodologyLink').addEventListener('click', (e) => {
-    e.preventDefault();
-    showView('methodology');
-  });
+  initFooter({ onMethodology: () => showView('methodology') });
 
   loadingIndicator.setAttribute('hidden', '');
 

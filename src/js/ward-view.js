@@ -118,17 +118,19 @@ function renderHead(w) {
   `;
 }
 
-function renderCandidates() {
+function renderCandidates(w) {
   return `
     <section class="sec candgrid">
-      <h3>Candidates</h3>
+      <h3>Who is contesting the election in your ward? <span class="pill pill-soon">Coming soon</span></h3>
+      <p class="cand-intro">Placeholders for Ward ${fmt(w.ward_id)}. Photo, party, symbol, affidavit and manifesto will load here once candidates are declared.</p>
       <div class="candgrid-row">
         ${[1, 2, 3].map(n => `
           <div class="candcard">
             <div class="candphoto"></div>
             <div class="candname">Candidate ${n}</div>
             <div class="candparty">Party</div>
-            <span class="pill">Info coming soon</span>
+            <div class="cand-detail"><span class="k">Affidavit</span> assets, cases, education</div>
+            <div class="cand-detail"><span class="k">Manifesto</span> stated priorities for the ward</div>
           </div>
         `).join('')}
       </div>
@@ -159,6 +161,7 @@ function renderAmenities(w) {
       <div class="amgrid">
         ${rows.map(([key, label, count, cov]) => `
           <div class="amrow" data-layer="${key}">
+            <span class="am-icon" aria-hidden="true">${LAYER[key].icon}</span>
             <span class="am-label">${esc(label)}</span>
             <span class="cnt">${fmt(count || 0)}</span>
             ${cov != null ? `<span class="am-bar"><span class="am-bar-fill" style="width:${Math.max(0, Math.min(100, cov))}%"></span></span>` : ''}
@@ -181,20 +184,13 @@ function renderFacts(w, A) {
   `;
 }
 
-function renderAskShare(w) {
+function renderAsk(w) {
   const questions = suggestedQuestions(w);
-  const shareText = encodeURIComponent(`Check out ward info for ${w.ward_name} on Know Your Ward: `);
-  const shareUrl = encodeURIComponent(`${location.origin}${location.pathname}#ward=${w.uid}`);
   return `
     <section class="sec tabpane">
       <div class="tab-ask">
         <h3>Questions to ask your candidates</h3>
         <ul class="qlist">${questions.map(q => `<li>${q}</li>`).join('')}</ul>
-      </div>
-      <div class="tab-share">
-        <h3>Share this ward</h3>
-        <a class="btn btn-whatsapp" target="_blank" rel="noopener" href="https://wa.me/?text=${shareText}${shareUrl}">Share on WhatsApp</a>
-        <button class="btn btn-secondary" id="copyLinkBtn" type="button">Copy link</button>
       </div>
       <div class="sahaaya">
         <h3>Report a civic issue (BBMP Sahaaya)</h3>
@@ -202,6 +198,21 @@ function renderAskShare(w) {
           <span class="pill">Roads &amp; potholes</span>
           <span class="pill">Garbage &amp; sanitation</span>
           <span class="pill">Water / drains / flooding</span>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderWhyVote() {
+  return `
+    <section class="sec">
+      <div class="panel whyvote">
+        <h3>Why vote?</h3>
+        <p class="whyvote-sub">Why your vote in the ward election matters.</p>
+        <p>This section is a placeholder. It will explain, in plain language, what a ward councillor decides, how the ward election shapes everyday services where you live, and why voting gives residents a real say in how the ward is run.</p>
+        <div class="whyvote-video">
+          <span class="pill">Video explainer &middot; Coming soon</span>
         </div>
       </div>
     </section>
@@ -253,7 +264,7 @@ export function openWard(uid, { onOpenWard, onBack } = {}) {
   const container = document.getElementById('wardContainer');
   container.innerHTML = `
     ${renderHead(w)}
-    ${renderCandidates()}
+    ${renderCandidates(w)}
     <section class="sec">
       <h3>Ward map</h3>
       ${renderLegend(uid, W)}
@@ -261,20 +272,11 @@ export function openWard(uid, { onOpenWard, onBack } = {}) {
     </section>
     ${renderAmenities(w)}
     ${renderFacts(w, A)}
-    ${renderAskShare(w)}
+    ${renderAsk(w)}
+    ${renderWhyVote()}
   `;
 
   document.getElementById('wardBack').addEventListener('click', () => onBack());
-  const copyBtn = document.getElementById('copyLinkBtn');
-  if (copyBtn) {
-    copyBtn.addEventListener('click', () => {
-      const url = `${location.origin}${location.pathname}#ward=${uid}`;
-      navigator.clipboard.writeText(url).then(() => {
-        copyBtn.textContent = 'Copied!';
-        setTimeout(() => { copyBtn.textContent = 'Copy link'; }, 1500);
-      });
-    });
-  }
 
   if (wardMap) {
     wardMap.remove();
