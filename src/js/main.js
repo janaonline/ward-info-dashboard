@@ -6,17 +6,26 @@ import { initMethodologyView } from './methodology-view.js';
 import { initFooter, setFooterView, setFooterWard } from './footer.js';
 
 let currentView = 'home';
-let previousView = 'home';
+const viewStack = [];
 
 function showView(name) {
   document.querySelectorAll('.view').forEach(el => el.classList.remove('view--active'));
   document.getElementById(`view-${name}`).classList.add('view--active');
-  previousView = currentView;
   currentView = name;
 
   if (name === 'home') resizeHomeMap();
   if (name === 'ward') resizeWardMap();
   setFooterView(name);
+}
+
+function navigateTo(name) {
+  if (name === currentView) return;
+  viewStack.push(currentView);
+  showView(name);
+}
+
+function goBack() {
+  showView(viewStack.pop() || 'home');
 }
 
 async function boot() {
@@ -34,21 +43,18 @@ async function boot() {
   const { W, A, meta } = data;
 
   const handleOpenWard = (uid) => {
-    openWard(uid, { onOpenWard: handleOpenWard, onBack: () => showView(previousView === 'ward' ? 'home' : previousView) });
+    openWard(uid, { onOpenWard: handleOpenWard, onBack: goBack });
     setFooterWard(uid, W[uid].ward_name);
-    showView('ward');
+    navigateTo('ward');
   };
 
   initHomeView({ W, meta }, { onOpenWard: handleOpenWard });
 
   initWardView({ W, A });
 
-  initMethodologyView({ meta }, {
-    getPreviousView: () => previousView,
-    onBack: (target) => showView(target),
-  });
+  initMethodologyView({ meta }, { onBack: goBack });
 
-  initFooter({ onMethodology: () => showView('methodology') });
+  initFooter({ onMethodology: () => navigateTo('methodology') });
 
   loadingIndicator.setAttribute('hidden', '');
 

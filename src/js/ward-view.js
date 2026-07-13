@@ -193,26 +193,12 @@ function renderAsk(w) {
         <ul class="qlist">${questions.map(q => `<li>${q}</li>`).join('')}</ul>
       </div>
       <div class="sahaaya">
-        <h3>Report a civic issue (BBMP Sahaaya)</h3>
+        <h3>BBMP Sahaaya &mdash; Top Grievances</h3>
+        <p class="sahaaya-sub">Most-reported civic complaints in this ward</p>
         <div class="sahaaya-cats">
           <span class="pill">Roads &amp; potholes</span>
           <span class="pill">Garbage &amp; sanitation</span>
           <span class="pill">Water / drains / flooding</span>
-        </div>
-      </div>
-    </section>
-  `;
-}
-
-function renderWhyVote() {
-  return `
-    <section class="sec">
-      <div class="panel whyvote">
-        <h3>Why vote?</h3>
-        <p class="whyvote-sub">Why your vote in the ward election matters.</p>
-        <p>This section is a placeholder. It will explain, in plain language, what a ward councillor decides, how the ward election shapes everyday services where you live, and why voting gives residents a real say in how the ward is run.</p>
-        <div class="whyvote-video">
-          <span class="pill">Video explainer &middot; Coming soon</span>
         </div>
       </div>
     </section>
@@ -273,7 +259,6 @@ export function openWard(uid, { onOpenWard, onBack } = {}) {
     ${renderAmenities(w)}
     ${renderFacts(w, A)}
     ${renderAsk(w)}
-    ${renderWhyVote()}
   `;
 
   document.getElementById('wardBack').addEventListener('click', () => onBack());
