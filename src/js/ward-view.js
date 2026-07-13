@@ -187,19 +187,17 @@ function renderFacts(w, A) {
 function renderAsk(w) {
   const questions = suggestedQuestions(w);
   return `
-    <section class="sec tabpane">
-      <div class="tab-ask">
-        <h3>Questions to ask your candidates</h3>
-        <ul class="qlist">${questions.map(q => `<li>${q}</li>`).join('')}</ul>
-      </div>
-      <div class="sahaaya">
-        <h3>BBMP Sahaaya &mdash; Top Grievances</h3>
-        <p class="sahaaya-sub">Most-reported civic complaints in this ward</p>
-        <div class="sahaaya-cats">
-          <span class="pill">Roads &amp; potholes</span>
-          <span class="pill">Garbage &amp; sanitation</span>
-          <span class="pill">Water / drains / flooding</span>
-        </div>
+    <section class="sec">
+      <h3>Questions to ask your candidates</h3>
+      <ul class="qlist">${questions.map(q => `<li>${q}</li>`).join('')}</ul>
+    </section>
+    <section class="sec">
+      <h3>BBMP Sahaaya &mdash; Top Grievances</h3>
+      <p class="sahaaya-sub">Most-reported civic complaints in this ward</p>
+      <div class="sahaaya-cats">
+        <span class="pill">Roads &amp; potholes</span>
+        <span class="pill">Garbage &amp; sanitation</span>
+        <span class="pill">Water / drains / flooding</span>
       </div>
     </section>
   `;

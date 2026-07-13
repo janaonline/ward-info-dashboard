@@ -43,7 +43,7 @@ mark {
   display: inline-block;
   padding: 3px 10px;
   border-radius: 999px;
-  background: var(--surface-2);
+  background: var(--surface);
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 500;
@@ -105,7 +105,14 @@ mark {
 }
 .chip-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 
-.sec { margin: var(--space-6) 0; }
+.sec, .whead {
+  margin: var(--space-6) 0;
+  padding: var(--space-5);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  box-shadow: var(--shadow-1);
+}
 .sec h3 { font-family: var(--font-display); font-weight: 600; font-size: 1.05rem; margin-bottom: var(--space-3); }
 
 /* -- cover / home view -- */
@@ -206,6 +213,7 @@ mark {
   transition: color var(--dur) ease;
 }
 .back-link:hover { color: var(--green-d); }
+.whead .back-link { padding-top: 0; }
 .whead h2 { font-family: var(--font-display); font-weight: 700; margin: 4px 0 2px; font-size: 1.6rem; }
 .whead .kn { color: var(--muted); font-weight: 400; font-size: 1rem; }
 .whead-meta { color: var(--muted); font-size: 0.88rem; margin: 0 0 12px; }
@@ -262,7 +270,7 @@ mark {
   cursor: pointer;
   transition: background-color var(--dur) ease, border-color var(--dur) ease;
 }
-.amrow:hover { background: var(--surface-2); border-left-color: var(--green); }
+.amrow:hover { background: var(--surface); border-left-color: var(--green); }
 .am-icon { display: flex; color: var(--muted); }
 .am-icon svg { width: 18px; height: 18px; }
 .cnt { font-family: var(--font-stat); font-weight: 700; }
@@ -284,7 +292,6 @@ mark {
 .fact.warn { border-left-color: var(--yellow); }
 .fact.bad { border-left-color: var(--red); }
 
-.tabpane { display: flex; flex-direction: column; gap: var(--space-6); }
 .qlist { padding-left: 18px; display: flex; flex-direction: column; gap: var(--space-2); color: var(--ink); }
 .sahaaya-sub { color: var(--muted); font-size: 0.9rem; margin: 4px 0 10px; }
 .sahaaya-cats { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-top: var(--space-2); }
@@ -367,6 +374,7 @@ mark {
   .amgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0 var(--space-5); }
   .factslist { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
   .ward-list { max-height: 480px; }
+  .sec, .whead { padding: var(--space-6); }
 }
 
 @media (max-width: 520px) {

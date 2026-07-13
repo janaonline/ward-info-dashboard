@@ -26,7 +26,7 @@
   /* kept for back-compat, no longer brand-critical */
   --blue:#2563c9; --violet:#6d4bd6;
 
-  --radius:14px; --radius-m:11px; --radius-s:8px;
+  --radius:14px; --radius-m:11px; --radius-s:8px; --radius-l:18px;
 
   /* elevation scale (material) */
   --shadow-1:0 1px 2px rgba(27,36,16,.06), 0 1px 3px rgba(27,36,16,.10);
