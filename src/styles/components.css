@@ -244,14 +244,20 @@ mark {
 .cand-detail { text-align: left; font-size: 0.8rem; color: var(--muted); margin-top: 6px; }
 .cand-detail .k { display: block; text-transform: uppercase; font-size: 0.68rem; letter-spacing: .05em; color: var(--hint); }
 
-.legend {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
-  margin-bottom: var(--space-3);
+.wardmap-toolbar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: var(--space-3); margin: var(--space-3) 0;
+}
+.buffer-toggle { font-size: 0.82rem; color: var(--muted); display: inline-flex; align-items: center; gap: 5px; min-height: 36px; }
+
+.amenity-filters {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2) var(--space-3);
 }
 .legend-btn {
-  background: var(--surface); border: 1px solid var(--line2); border-radius: 999px;
-  min-height: 36px;
-  padding: 8px 14px; cursor: pointer; color: var(--muted);
+  display: flex; align-items: center; gap: var(--space-2); text-align: left;
+  background: var(--surface); border: 1px solid var(--line2); border-radius: var(--radius-m);
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3); cursor: pointer; color: var(--muted);
   box-shadow: var(--shadow-1);
   transition: background-color var(--dur) ease, color var(--dur) ease, border-color var(--dur) ease,
               transform var(--dur) var(--ease-out), box-shadow var(--dur) ease;
@@ -259,7 +265,28 @@ mark {
 .legend-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-2); border-color: var(--green-ring); }
 .legend-btn.active { background: var(--green-soft); color: var(--green-d); border-color: var(--green-ring); }
 [data-theme="dark"] .legend-btn.active { color: var(--green); }
-.buffer-toggle { font-size: 0.82rem; color: var(--muted); display: inline-flex; align-items: center; gap: 5px; min-height: 36px; }
+.amenity-card-icon {
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 28px; height: 28px; border-radius: var(--radius-s);
+  background: var(--surface-2);
+}
+.amenity-card-icon svg { width: 16px; height: 16px; }
+.amenity-card-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.amenity-card-name { font-size: 0.72rem; }
+.amenity-card-count { font-family: var(--font-stat); font-weight: 700; font-size: 0.95rem; color: var(--ink); }
+.legend-btn.active .amenity-card-count { color: var(--green-d); }
+[data-theme="dark"] .legend-btn.active .amenity-card-count { color: var(--green); }
+
+.wardmap-frame { position: relative; }
+.wardmap-badge {
+  position: absolute; top: var(--space-3); right: var(--space-3);
+  display: inline-flex; align-items: center; gap: 6px; max-width: calc(100% - var(--space-5));
+  background: var(--surface); border: 1px solid var(--line); border-radius: 999px;
+  padding: 6px 12px; font-size: 0.8rem; font-weight: 600; color: var(--ink);
+  box-shadow: var(--shadow-2);
+  pointer-events: none;
+}
+.wardmap-badge-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
 .amgrid { display: flex; flex-direction: column; }
 .amrow {
@@ -392,6 +419,12 @@ mark {
   .map-corp { height: 200px; }
   .map-ward { height: 260px; }
   .ward-list { max-height: 320px; }
+  .amenity-filters { gap: var(--space-1) var(--space-2); }
+  .legend-btn { padding: var(--space-1) var(--space-2); gap: var(--space-1); }
+  .amenity-card-icon { width: 24px; height: 24px; }
+  .amenity-card-icon svg { width: 14px; height: 14px; }
+  .amenity-card-name { font-size: 0.68rem; }
+  .amenity-card-count { font-size: 0.85rem; }
 }
 
 @media (max-width: 380px) {
