@@ -133,46 +133,6 @@ export function nearbyWards(uid, W, k = 6) {
   return arr.slice(0, k).map(x => x[0]);
 }
 
-// ---- seeded polling-booth scatter ----
-
-export function hashStr(s) {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
-  return h >>> 0;
-}
-
-export function mulberry32(a) {
-  return function () {
-    a |= 0; a = a + 0x6D2B79F5 | 0;
-    let t = Math.imul(a ^ a >>> 15, 1 | a);
-    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
-  };
-}
-
-const _scatterCache = {};
-
-export function pollingPts(uid, W) {
-  if (_scatterCache[uid]) return _scatterCache[uid];
-  const w = W[uid], n = w.polling || 0;
-  let minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9;
-  forEachWardCoordinate(w, (p) => {
-    if (p[0] < minx) minx = p[0]; if (p[0] > maxx) maxx = p[0];
-    if (p[1] < miny) miny = p[1]; if (p[1] > maxy) maxy = p[1];
-  });
-  const rnd = mulberry32(hashStr(uid + '|' + n));
-  const pts = [];
-  let tries = 0;
-  const cap = n * 500 + 3000;
-  while (pts.length < n && tries < cap) {
-    tries++;
-    const x = minx + (maxx - minx) * rnd(), y = miny + (maxy - miny) * rnd();
-    if (pointInWard(x, y, uid, W)) pts.push([x, y]);
-  }
-  _scatterCache[uid] = pts;
-  return pts;
-}
-
 // ---- amenity point/row helpers ----
 
 export function layerPoints(uid, type, W) {
@@ -189,7 +149,7 @@ export function layerPoints(uid, type, W) {
 }
 
 export function defaultLayer(uid, W) {
-  for (const type of LAYER_ORDER) {
+  for (const type of LAYER_ORDER.concat(['polling'])) {
     if (layerPoints(uid, type, W).length > 0) return type;
   }
   return null;

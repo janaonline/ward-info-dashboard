@@ -23,6 +23,10 @@ async function fetchJSON(path) {
   return res.json();
 }
 
+const POINT_SOURCES = {
+  polling: 'public/data/Polling_Booths_with_GBA_369_Ward_Information.geojson',
+};
+
 function numberOr(value, fallback = null) {
   if (value == null || value === '') return fallback;
   const n = Number(value);
@@ -43,6 +47,53 @@ function stripWardPrefix(name) {
 
 function makeUid(props) {
   return `${props.Corporation}-${Number(props.ward_id)}`;
+}
+
+function geometryPolygons(geometry) {
+  if (!geometry) return [];
+  if (geometry.type === 'Polygon') return [geometry.coordinates];
+  if (geometry.type === 'MultiPolygon') return geometry.coordinates;
+  return [];
+}
+
+function pipRing(x, y, ring) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1];
+    if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / ((yj - yi) || 1e-12) + xi)) inside = !inside;
+  }
+  return inside;
+}
+
+function pointInPolygon(x, y, polygon) {
+  if (!polygon.length || !pipRing(x, y, polygon[0])) return false;
+  for (let i = 1; i < polygon.length; i++) {
+    if (pipRing(x, y, polygon[i])) return false;
+  }
+  return true;
+}
+
+function pointInGeometry(x, y, geometry) {
+  return geometryPolygons(geometry).some(polygon => pointInPolygon(x, y, polygon));
+}
+
+function geometryBbox(geometry) {
+  const bbox = { minx: Infinity, miny: Infinity, maxx: -Infinity, maxy: -Infinity };
+  for (const polygon of geometryPolygons(geometry)) {
+    for (const ring of polygon) {
+      for (const point of ring) {
+        bbox.minx = Math.min(bbox.minx, point[0]);
+        bbox.miny = Math.min(bbox.miny, point[1]);
+        bbox.maxx = Math.max(bbox.maxx, point[0]);
+        bbox.maxy = Math.max(bbox.maxy, point[1]);
+      }
+    }
+  }
+  return Number.isFinite(bbox.minx) ? bbox : null;
+}
+
+function bboxContains(bbox, x, y) {
+  return bbox && x >= bbox.minx && x <= bbox.maxx && y >= bbox.miny && y <= bbox.maxy;
 }
 
 function average(wards, selector) {
@@ -81,10 +132,31 @@ function buildAverages(wards) {
   };
 }
 
+function assignPointSource(W, sourceGeoJSON, pointKey) {
+  const wards = Object.values(W).map(ward => ({
+    ward,
+    bbox: geometryBbox(ward.geometry),
+  }));
+
+  for (const feature of sourceGeoJSON.features || []) {
+    if (feature.properties?.ward_join_status !== 'matched') continue;
+    if (feature.geometry?.type !== 'Point') continue;
+
+    const [x, y] = feature.geometry.coordinates || [];
+    if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+
+    const matched = wards.find(({ ward, bbox }) => (
+      bboxContains(bbox, x, y) && pointInGeometry(x, y, ward.geometry)
+    ));
+    if (matched) matched.ward.points[pointKey].push([x, y]);
+  }
+}
+
 export async function loadData() {
-  const [csvText, enrichedGeoJSON] = await Promise.all([
+  const [csvText, enrichedGeoJSON, pollingGeoJSON] = await Promise.all([
     fetchText('public/data/wards.csv'),
     fetchJSON('public/data/GBA_369_Wards_Enriched.geojson'),
+    fetchJSON(POINT_SOURCES.polling),
   ]);
 
   const parsed = Papa.parse(csvText, { header: true, dynamicTyping: true, skipEmptyLines: true });
@@ -107,7 +179,7 @@ export async function loadData() {
     const ward = Object.assign({}, row, {
       uid,
       geometry: feature.geometry,
-      points: {},
+      points: { polling: [] },
       ward_id: numberOr(props.ward_id, row.ward_id),
       ward_name: wardName || row.ward_name || props.ward_name,
       ward_name_kn: props.ward_name_kn || row.ward_name_kn,
@@ -164,6 +236,11 @@ export async function loadData() {
     W[uid] = ward;
     nameIndex[String(ward.ward_name).toLowerCase()] = uid;
     if (props.ward_name) nameIndex[String(props.ward_name).toLowerCase()] = uid;
+  }
+
+  assignPointSource(W, pollingGeoJSON, 'polling');
+  for (const ward of Object.values(W)) {
+    ward.polling = ward.points.polling.length;
   }
 
   const wards = Object.values(W);
