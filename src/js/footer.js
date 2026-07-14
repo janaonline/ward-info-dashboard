@@ -105,8 +105,10 @@ export function initFooter({ onMethodology }) {
         </a>
         <div class="footer-share" id="footerShare" hidden>
           <span class="footer-share-label">Share this ward</span>
-          <a class="btn btn-whatsapp btn-sm" id="footerWhatsapp" target="_blank" rel="noopener" href="#"><span aria-hidden="true">${WHATSAPP_ICON}</span>Share on WhatsApp</a>
-          <button class="btn btn-secondary btn-sm" id="copyLinkBtn" type="button"><span aria-hidden="true">${COPY_ICON}</span><span class="btn-label">Copy link</span></button>
+          <div class="footer-share-actions">
+            <a class="btn btn-whatsapp btn-sm" id="footerWhatsapp" target="_blank" rel="noopener" href="#"><span aria-hidden="true">${WHATSAPP_ICON}</span>Share on WhatsApp</a>
+            <button class="btn btn-secondary btn-sm" id="copyLinkBtn" type="button"><span aria-hidden="true">${COPY_ICON}</span><span class="btn-label">Copy link</span></button>
+          </div>
         </div>
       </div>
       <div class="footer-row footer-attribution">

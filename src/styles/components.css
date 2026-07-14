@@ -349,9 +349,11 @@ mark {
 .footer-methodology-title { font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; color: var(--ink); }
 .footer-methodology-desc { font-size: 0.82rem; color: var(--muted); }
 
-.footer-share { align-items: center; gap: var(--space-2); }
+.footer-share { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); }
 .footer-share[hidden] { display: none; }
 .footer-share-label { font-size: 0.85rem; color: var(--hint); }
+.footer-share-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.footer-share-actions .btn { flex-shrink: 0; }
 .btn-sm { min-height: 36px; padding: 7px 14px; font-size: 0.85rem; }
 .btn-sm svg { flex-shrink: 0; }
 .footer-heart-line { color: var(--muted); font-size: 0.88rem; }
@@ -387,7 +389,7 @@ mark {
   .footer-orgs { flex-direction: column; align-items: flex-start; gap: var(--space-4); }
   .footer-org-divider { width: 100%; height: 1px; }
   .footer-methodology { width: 100%; }
-  .footer-share { width: 100%; justify-content: space-between; }
+  .footer-share { width: 100%; }
 }
 
 /* -- responsive -- */
