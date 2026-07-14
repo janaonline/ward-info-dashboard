@@ -1,19 +1,39 @@
 import { onThemeChange, getCurrentTheme } from './theme.js';
 
+const SVG_OPEN = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">';
+
+// simple, unambiguous line pictograms — one per amenity type (CLAUDE.md: LAYER is the
+// single source of truth for amenity visuals, so icons live here alongside color/label)
+const ICONS = {
+  bus: `${SVG_OPEN}<rect x="3" y="6" width="18" height="10" rx="2"/><path d="M3 12h18"/><circle cx="7.5" cy="18" r="1.3"/><circle cx="16.5" cy="18" r="1.3"/></svg>`,
+  metro: `${SVG_OPEN}<rect x="5" y="4" width="14" height="13" rx="3"/><path d="M5 13h14"/><circle cx="9" cy="16.5" r="1"/><circle cx="15" cy="16.5" r="1"/><path d="M8 20l-2 2M16 20l2 2"/></svg>`,
+  school: `${SVG_OPEN}<path d="M12 4L2 9l10 5 10-5-10-5z"/><path d="M6 11v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg>`,
+  anganwadi: `${SVG_OPEN}<path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/><path d="M9.5 14.5c1-1 2.5-.7 2.5.7 0-1.4 1.5-1.7 2.5-.7.9.9-.3 2.3-2.5 3.8-2.2-1.5-3.4-2.9-2.5-3.8z"/></svg>`,
+  park: `${SVG_OPEN}<circle cx="12" cy="9" r="5"/><path d="M12 14v6"/></svg>`,
+  playground: `${SVG_OPEN}<path d="M4 3v18M20 3v18M4 4h16"/><path d="M9 4v6a3 3 0 0 0 6 0V4"/></svg>`,
+  lake: `${SVG_OPEN}<path d="M2 9c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M2 15c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/></svg>`,
+  pond: `${SVG_OPEN}<path d="M12 3c4 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2-6 6-11z"/></svg>`,
+  police: `${SVG_OPEN}<path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/></svg>`,
+  fire: `${SVG_OPEN}<path d="M12 2c1 3-2 4-2 7a2 2 0 0 0 4 0c0-1-.5-1.5-.5-1.5.3 1.5-1.5 1.8-1.5 0"/><path d="M8 14a4 4 0 0 0 8 0c0-2.5-1.5-3.5-1.5-3.5.5 2.5-1 3.5-2.5 3.5s-3-1-3-3c0 0-1 1-1 3z"/></svg>`,
+  toilet: `${SVG_OPEN}<circle cx="9" cy="5" r="2"/><path d="M6 20l1-9h4l1 9M6 13h6"/><path d="M16 4v16M19 4v6a3 3 0 0 1-3 3"/></svg>`,
+  flood: `${SVG_OPEN}<path d="M12 3l9 16H3z"/><path d="M12 10v4"/><circle cx="12" cy="16.5" r="0.6" fill="currentColor"/></svg>`,
+  polling: `${SVG_OPEN}<rect x="4" y="9" width="16" height="11" rx="1"/><path d="M4 13h16"/><path d="M12 4v9M9 7l3-3 3 3"/></svg>`,
+};
+
 export const LAYER = {
-  polling:   { label: 'Polling booth',  color: '#a89a86', walk: false, indicative: true },
-  bus:       { label: 'Bus stop',       color: '#3f7d34', walk: true,  ptkey: 'bus' },
-  metro:     { label: 'Metro station',  color: '#1f7a5c', walk: true,  ptkey: 'metro' },
-  school:    { label: 'School',         color: '#c8890a', walk: false, ptkey: 'school' },
-  anganwadi: { label: 'Anganwadi',      color: '#eab308', walk: false, ptkey: 'anganwadi' },
-  park:      { label: 'Park',           color: '#5e9b48', walk: true,  ptkey: 'park' },
-  playground:{ label: 'Playground',     color: '#8fae14', walk: false, ptkey: 'playground' },
-  lake:      { label: 'Lake',           color: '#2f7fb0', walk: true,  ptkey: 'lake' },
-  pond:      { label: 'Pond / tank',    color: '#6bb3d9', walk: false, ptkey: 'pond' },
-  police:    { label: 'Police station', color: '#616161', walk: false, ptkey: 'police' },
-  fire:      { label: 'Fire station',   color: '#d33a4c', walk: false, ptkey: 'fire' },
-  toilet:    { label: 'Public toilet',  color: '#9a6b3f', walk: true,  ptkey: 'toilet' },
-  flood:     { label: 'Flood spot',     color: '#e05a2f', walk: false, flood: true },
+  polling:   { label: 'Polling booth',  color: '#a89a86', walk: false, indicative: true, icon: ICONS.polling },
+  bus:       { label: 'Bus stop',       color: '#3f7d34', walk: true,  ptkey: 'bus', icon: ICONS.bus },
+  metro:     { label: 'Metro station',  color: '#1f7a5c', walk: true,  ptkey: 'metro', icon: ICONS.metro },
+  school:    { label: 'School',         color: '#c8890a', walk: false, ptkey: 'school', icon: ICONS.school },
+  anganwadi: { label: 'Anganwadi',      color: '#eab308', walk: false, ptkey: 'anganwadi', icon: ICONS.anganwadi },
+  park:      { label: 'Park',           color: '#5e9b48', walk: true,  ptkey: 'park', icon: ICONS.park },
+  playground:{ label: 'Playground',     color: '#8fae14', walk: false, ptkey: 'playground', icon: ICONS.playground },
+  lake:      { label: 'Lake',           color: '#2f7fb0', walk: true,  ptkey: 'lake', icon: ICONS.lake },
+  pond:      { label: 'Pond / tank',    color: '#6bb3d9', walk: false, ptkey: 'pond', icon: ICONS.pond },
+  police:    { label: 'Police station', color: '#616161', walk: false, ptkey: 'police', icon: ICONS.police },
+  fire:      { label: 'Fire station',   color: '#d33a4c', walk: false, ptkey: 'fire', icon: ICONS.fire },
+  toilet:    { label: 'Public toilet',  color: '#9a6b3f', walk: true,  ptkey: 'toilet', icon: ICONS.toilet },
+  flood:     { label: 'Flood spot',     color: '#e05a2f', walk: false, flood: true, icon: ICONS.flood },
 };
 
 export const LAYER_ORDER = ['bus','park','school','metro','toilet','anganwadi','playground','lake','pond','police','fire','flood'];
@@ -74,25 +94,6 @@ export function nearbyWards(uid, W, k = 6) {
   }
   arr.sort((a, b) => a[1] - b[1]);
   return arr.slice(0, k).map(x => x[0]);
-}
-
-export function dirNeighbors(uid, W) {
-  const c = centroid(uid, W);
-  const out = { N: null, E: null, S: null, W: null };
-  const best = { N: 1e9, E: 1e9, S: 1e9, W: 1e9 };
-  for (const k in W) {
-    if (k === uid) continue;
-    const cc = centroid(k, W), dx = cc[0] - c[0], dy = cc[1] - c[1], d = dx * dx + dy * dy;
-    if (!d) continue;
-    if (Math.abs(dy) >= Math.abs(dx)) {
-      if (dy > 0) { if (d < best.N) { best.N = d; out.N = k; } }
-      else { if (d < best.S) { best.S = d; out.S = k; } }
-    } else {
-      if (dx > 0) { if (d < best.E) { best.E = d; out.E = k; } }
-      else { if (d < best.W) { best.W = d; out.W = k; } }
-    }
-  }
-  return out;
 }
 
 // ---- seeded polling-booth scatter ----

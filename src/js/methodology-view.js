@@ -1,4 +1,4 @@
-export function initMethodologyView({ meta }, { getPreviousView, onBack }) {
+export function initMethodologyView({ meta }, { onBack }) {
   const container = document.getElementById('methodologyContainer');
 
   container.innerHTML = `
@@ -13,5 +13,5 @@ export function initMethodologyView({ meta }, { getPreviousView, onBack }) {
     <p>Ward centroids used for nearest-neighbour comparisons are a simple average of boundary points, not a true geometric centroid, and may fall slightly off-center for irregularly shaped wards.</p>
   `;
 
-  document.getElementById('methBack').addEventListener('click', () => onBack(getPreviousView()));
+  document.getElementById('methBack').addEventListener('click', () => onBack());
 }

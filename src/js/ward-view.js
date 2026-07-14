@@ -1,9 +1,9 @@
 import {
   createMap, buildWardPolygonsGeoJSON, addWardBoundaryLayer, LAYER, LAYER_ORDER,
   amenityRows, defaultLayer, layerPoints, setActiveAmenityLayer, setWalkBufferLayer,
-  dirNeighbors, nearbyWards, resizeMap,
+  nearbyWards, resizeMap,
 } from './maps.js';
-import { esc, fmt, cov100, tc } from './format.js';
+import { esc, fmt, cov100 } from './format.js';
 
 let wardMap = null;
 let currentLayer = null;
@@ -88,31 +88,49 @@ function suggestedQuestions(w) {
 
 // ---- render pieces ----
 
+function oldWardsText(w) {
+  if (!w.old_wards || !w.old_wards.length) return 'Not available';
+  return w.old_wards.map(o => o.pct != null ? `${esc(o.name)} (${o.pct}%)` : esc(o.name)).join(', ');
+}
+
+function neighbourhoodsText(w) {
+  if (!w.neighbourhoods || !w.neighbourhoods.length) return 'Not available';
+  return w.neighbourhoods.map(esc).join(', ');
+}
+
 function renderHead(w) {
   return `
     <div class="whead">
       <button class="back-link" id="wardBack" type="button">&larr; Back</button>
       <h2>${esc(w.ward_name)}${w.ward_name_kn ? ` <span class="kn">${esc(w.ward_name_kn)}</span>` : ''}</h2>
       <p class="whead-meta">Ward ${fmt(w.ward_id)} &middot; ${esc(w.corporation)} &middot; ${esc(w.zone_name || w.zone)} &middot; ${esc(w.assembly)}</p>
-      <div class="whead-contact">
-        <div><span class="k">Corporator</span> ${esc(tc(w.contact_corporator) || 'Not available')}${w.contact_party ? ` (${esc(w.contact_party)})` : ''}</div>
-        <div><span class="k">AEE</span> ${esc(tc(w.contact_aee) || 'Not available')}${w.contact_aee_phone ? ` &middot; ${esc(w.contact_aee_phone)}` : ''}</div>
+      <div class="whead-origin">
+        <div class="whead-origin-block">
+          <span class="label">Formed from old wards</span>
+          <p>${oldWardsText(w)}</p>
+        </div>
+        <div class="whead-origin-block">
+          <span class="label">Key areas</span>
+          <p>${neighbourhoodsText(w)}</p>
+        </div>
       </div>
     </div>
   `;
 }
 
-function renderCandidates() {
+function renderCandidates(w) {
   return `
     <section class="sec candgrid">
-      <h3>Candidates</h3>
+      <h3>Who is contesting the election in your ward? <span class="pill pill-soon">Coming soon</span></h3>
+      <p class="cand-intro">Placeholders for Ward ${fmt(w.ward_id)}. Photo, party, symbol, affidavit and manifesto will load here once candidates are declared.</p>
       <div class="candgrid-row">
         ${[1, 2, 3].map(n => `
           <div class="candcard">
             <div class="candphoto"></div>
             <div class="candname">Candidate ${n}</div>
             <div class="candparty">Party</div>
-            <span class="pill">Info coming soon</span>
+            <div class="cand-detail"><span class="k">Affidavit</span> assets, cases, education</div>
+            <div class="cand-detail"><span class="k">Manifesto</span> stated priorities for the ward</div>
           </div>
         `).join('')}
       </div>
@@ -120,18 +138,50 @@ function renderCandidates() {
   `;
 }
 
-function renderLegend(uid, W) {
+const RESET_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>';
+
+function amenityLabel(type, w) {
+  if (type === 'polling') return 'Polling booths';
+  const row = amenityRows(w).find(r => r[0] === type);
+  return row ? row[1] : LAYER[type].label;
+}
+
+function renderAmenityFilters(uid, W, w) {
+  return LAYER_ORDER.concat(['polling']).map(key => {
+    const count = layerPoints(uid, key, W).length;
+    if (!count) return '';
+    return `
+      <button class="legend-btn amenity-card ${key === currentLayer ? 'active' : ''}" data-layer="${key}" type="button">
+        <span class="amenity-card-icon" style="color:${LAYER[key].color}" aria-hidden="true">${LAYER[key].icon}</span>
+        <span class="amenity-card-text">
+          <span class="amenity-card-name">${esc(amenityLabel(key, w))}</span>
+          <span class="amenity-card-count">${fmt(count)}</span>
+        </span>
+      </button>
+    `;
+  }).join('');
+}
+
+function renderWardMap(uid, W, w) {
+  const initialCount = layerPoints(uid, currentLayer, W).length;
   return `
-    <div class="legend">
-      ${LAYER_ORDER.concat(['polling']).map(key => {
-        const has = layerPoints(uid, key, W).length > 0;
-        if (!has) return '';
-        return `<button class="legend-chip legend-btn ${key === currentLayer ? 'active' : ''}" data-layer="${key}" type="button">
-          <span class="chip-dot" style="background:${LAYER[key].color}"></span>${LAYER[key].label}
-        </button>`;
-      }).join('')}
-      <label class="buffer-toggle"><input type="checkbox" id="bufferToggle" ${bufferOn ? 'checked' : ''}> Show 800m walk reach</label>
-    </div>
+    <section class="sec">
+      <h3>Ward map</h3>
+      <div class="wardmap-frame">
+        <div id="wardMap" class="map map-ward" aria-label="Map of ${esc(w.ward_name)}"></div>
+        <div class="wardmap-badge" id="wardMapBadge">
+          <span class="wardmap-badge-dot" style="background:${LAYER[currentLayer].color}" aria-hidden="true"></span>
+          <span id="wardMapBadgeLabel">Showing: ${esc(amenityLabel(currentLayer, w))} (${fmt(initialCount)})</span>
+        </div>
+      </div>
+      <div class="wardmap-toolbar">
+        <label class="buffer-toggle"><input type="checkbox" id="bufferToggle" ${bufferOn ? 'checked' : ''}> Show 800m walk reach</label>
+        <button class="btn btn-secondary btn-sm" id="wardMapReset" type="button"><span aria-hidden="true">${RESET_ICON}</span>Reset</button>
+      </div>
+      <div class="amenity-filters">
+        ${renderAmenityFilters(uid, W, w)}
+      </div>
+    </section>
   `;
 }
 
@@ -143,6 +193,7 @@ function renderAmenities(w) {
       <div class="amgrid">
         ${rows.map(([key, label, count, cov]) => `
           <div class="amrow" data-layer="${key}">
+            <span class="am-icon" aria-hidden="true">${LAYER[key].icon}</span>
             <span class="am-label">${esc(label)}</span>
             <span class="cnt">${fmt(count || 0)}</span>
             ${cov != null ? `<span class="am-bar"><span class="am-bar-fill" style="width:${Math.max(0, Math.min(100, cov))}%"></span></span>` : ''}
@@ -165,38 +216,20 @@ function renderFacts(w, A) {
   `;
 }
 
-function renderNav(uid, W) {
-  const dirs = dirNeighbors(uid, W);
-  const label = { N: '↑ North', E: '→ East', S: '↓ South', W: '← West' };
-  return `
-    <div class="navrow">
-      ${['N', 'E', 'S', 'W'].map(d => dirs[d] ? `<button class="nav-btn" data-uid="${esc(dirs[d])}" type="button">${label[d]}: ${esc(W[dirs[d]].ward_name)}</button>` : '').join('')}
-    </div>
-  `;
-}
-
-function renderAskShare(w) {
+function renderAsk(w) {
   const questions = suggestedQuestions(w);
-  const shareText = encodeURIComponent(`Check out ward info for ${w.ward_name} on Know Your Ward: `);
-  const shareUrl = encodeURIComponent(`${location.origin}${location.pathname}#ward=${w.uid}`);
   return `
-    <section class="sec tabpane">
-      <div class="tab-ask">
-        <h3>Questions to ask your candidates</h3>
-        <ul class="qlist">${questions.map(q => `<li>${q}</li>`).join('')}</ul>
-      </div>
-      <div class="tab-share">
-        <h3>Share this ward</h3>
-        <a class="btn btn-whatsapp" target="_blank" rel="noopener" href="https://wa.me/?text=${shareText}${shareUrl}">Share on WhatsApp</a>
-        <button class="btn btn-secondary" id="copyLinkBtn" type="button">Copy link</button>
-      </div>
-      <div class="sahaaya">
-        <h3>Report a civic issue (BBMP Sahaaya)</h3>
-        <div class="sahaaya-cats">
-          <span class="pill">Roads &amp; potholes</span>
-          <span class="pill">Garbage &amp; sanitation</span>
-          <span class="pill">Water / drains / flooding</span>
-        </div>
+    <section class="sec">
+      <h3>Questions to ask your candidates</h3>
+      <ul class="qlist">${questions.map(q => `<li>${q}</li>`).join('')}</ul>
+    </section>
+    <section class="sec">
+      <h3>BBMP Sahaaya &mdash; Top Grievances</h3>
+      <p class="sahaaya-sub">Most-reported civic complaints in this ward</p>
+      <div class="sahaaya-cats">
+        <span class="pill">Roads &amp; potholes</span>
+        <span class="pill">Garbage &amp; sanitation</span>
+        <span class="pill">Water / drains / flooding</span>
       </div>
     </section>
   `;
@@ -212,6 +245,12 @@ function setLayer(uid, W, type) {
   document.querySelectorAll('.legend-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.layer === type);
   });
+  const badgeDot = document.querySelector('.wardmap-badge-dot');
+  const badgeLabel = document.getElementById('wardMapBadgeLabel');
+  if (badgeDot && badgeLabel) {
+    badgeDot.style.background = LAYER[type].color;
+    badgeLabel.textContent = `Showing: ${amenityLabel(type, W[uid])} (${points.length})`;
+  }
 }
 
 function wireLayerClicks(uid, W) {
@@ -226,6 +265,14 @@ function wireLayerClicks(uid, W) {
     bufferToggle.addEventListener('change', (e) => {
       bufferOn = e.target.checked;
       setLayer(uid, W, currentLayer);
+    });
+  }
+  const resetBtn = document.getElementById('wardMapReset');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      bufferOn = false;
+      if (bufferToggle) bufferToggle.checked = false;
+      setLayer(uid, W, defaultLayer(uid, W));
     });
   }
 }
@@ -247,32 +294,14 @@ export function openWard(uid, { onOpenWard, onBack } = {}) {
   const container = document.getElementById('wardContainer');
   container.innerHTML = `
     ${renderHead(w)}
-    ${renderCandidates()}
-    <section class="sec">
-      <h3>Ward map</h3>
-      ${renderLegend(uid, W)}
-      <div id="wardMap" class="map map-ward" aria-label="Map of ${esc(w.ward_name)}"></div>
-    </section>
+    ${renderCandidates(w)}
+    ${renderWardMap(uid, W, w)}
     ${renderAmenities(w)}
     ${renderFacts(w, A)}
-    ${renderNav(uid, W)}
-    ${renderAskShare(w)}
+    ${renderAsk(w)}
   `;
 
   document.getElementById('wardBack').addEventListener('click', () => onBack());
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => onOpenWard(btn.dataset.uid));
-  });
-  const copyBtn = document.getElementById('copyLinkBtn');
-  if (copyBtn) {
-    copyBtn.addEventListener('click', () => {
-      const url = `${location.origin}${location.pathname}#ward=${uid}`;
-      navigator.clipboard.writeText(url).then(() => {
-        copyBtn.textContent = 'Copied!';
-        setTimeout(() => { copyBtn.textContent = 'Copy link'; }, 1500);
-      });
-    });
-  }
 
   if (wardMap) {
     wardMap.remove();
