@@ -132,6 +132,30 @@ function buildAverages(wards) {
   };
 }
 
+// Some polling booths share the exact same lat/lng (multiple numbered booths at one
+// school), which would otherwise render as a single stacked marker on the ward map.
+// Spread exact-duplicate points a few meters apart so every booth stays individually
+// visible/clickable, using the same lat-adjusted geodesic conversion as maps.js's
+// buildWalkBuffer (Bengaluru ~13N: a flat degree offset would be non-circular).
+function spreadCoincidentPoints(points, radiusMeters = 15) {
+  const groups = new Map();
+  points.forEach((p, i) => {
+    const key = `${p[0]},${p[1]}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(i);
+  });
+  for (const idxs of groups.values()) {
+    if (idxs.length < 2) continue;
+    const [lng, lat] = points[idxs[0]];
+    const dLat = radiusMeters / 111320;
+    const dLng = radiusMeters / (111320 * Math.cos(lat * Math.PI / 180));
+    idxs.forEach((idx, k) => {
+      const angle = (2 * Math.PI * k) / idxs.length;
+      points[idx] = [lng + dLng * Math.cos(angle), lat + dLat * Math.sin(angle)];
+    });
+  }
+}
+
 function assignPointSource(W, sourceGeoJSON, pointKey) {
   const wards = Object.values(W).map(ward => ({
     ward,
@@ -240,7 +264,8 @@ export async function loadData() {
 
   assignPointSource(W, pollingGeoJSON, 'polling');
   for (const ward of Object.values(W)) {
-    ward.polling = ward.points.polling.length;
+    spreadCoincidentPoints(ward.points.polling);
+    if (ward.polling == null) ward.polling = ward.points.polling.length;
   }
 
   const wards = Object.values(W);

@@ -35,7 +35,7 @@ The site deploys to [Vercel](https://vercel.com) as a static project — no fram
 All display data lives in `public/data/` and is loaded once at startup by `src/js/data-loader.js`:
 
 - **`GBA_369_Wards_Enriched.geojson`** — canonical ward boundaries plus ward-level amenity counts and coverage percentages. Ward boundary display and Amenities counts come from this file.
-- **`Polling_Booths_with_GBA_369_Ward_Information.geojson`** — the only active point-marker source. Matched point features are assigned to enriched ward boundaries spatially; unmatched features and points outside all wards are ignored. Polling booths appear only in the Ward Map filter cards, not in the separate Amenities grid.
+- **`Polling_Booths_with_GBA_369_Ward_Information.geojson`** — the only active point-marker source. Matched point features are assigned to enriched ward boundaries spatially; unmatched features and points outside all wards are ignored. Polling booths appear only in the Ward Map filter cards, not in the separate Amenities grid. The displayed polling-booth count always comes from the enriched GeoJSON's `Num_Polling_Stations` (never recomputed from the marker match), and booths that share the exact same coordinates as another booth in the same ward — common where one school hosts several numbered booths — are nudged a few meters apart so every one still shows up as its own marker on the map.
 - **`wards.csv`** — supplemental text and fact fields not present in the enriched GeoJSON, including old-ward overlap, neighbourhood lists, open-space-per-person, and contact/admin fields.
 
 Other `*_with_GBA_369_Ward_Information.geojson` files in `public/data/` are placeholder copies for future amenity point data and are not fetched by the app yet.
