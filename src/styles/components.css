@@ -323,6 +323,33 @@ mark {
 .sahaaya-sub { color: var(--muted); font-size: 0.9rem; margin: 4px 0 10px; }
 .sahaaya-cats { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-top: var(--space-2); }
 
+/* -- methodology view -- */
+
+.callout {
+  display: flex; align-items: flex-start; gap: var(--space-3);
+  margin: var(--space-4) 0 var(--space-6);
+  padding: var(--space-4) var(--space-5);
+  background: var(--yellow-soft); color: var(--yellow-ink);
+  border: 1px solid var(--yellow-line); border-radius: var(--radius-m);
+  box-shadow: var(--shadow-1);
+}
+.callout-icon { flex-shrink: 0; margin-top: 2px; }
+.callout p { margin: 0; font-size: 0.92rem; line-height: 1.55; }
+
+.meth-list {
+  display: flex; flex-direction: column; gap: var(--space-3);
+  padding-left: 20px; margin: 0; color: var(--ink);
+  font-size: 0.95rem; line-height: 1.6;
+}
+.meth-list a { color: var(--green-d); overflow-wrap: anywhere; }
+.meth-list a:hover { color: var(--green); }
+[data-theme="dark"] .meth-list a { color: var(--green); }
+
+#methodologyContainer .sec { margin: var(--space-4) 0; padding-top: var(--space-3); padding-bottom: var(--space-3); }
+#methodologyContainer .sec h3 { margin-bottom: var(--space-2); }
+#methodologyContainer .callout { margin: var(--space-3) 0 var(--space-4); padding-top: var(--space-3); padding-bottom: var(--space-3); }
+#methodologyContainer .meth-list { gap: var(--space-2); }
+
 /* -- footer -- */
 
 .site-footer { margin-top: var(--space-7); border-top: 1px solid var(--line); background: var(--surface); }
@@ -349,9 +376,11 @@ mark {
 .footer-methodology-title { font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; color: var(--ink); }
 .footer-methodology-desc { font-size: 0.82rem; color: var(--muted); }
 
-.footer-share { align-items: center; gap: var(--space-2); }
+.footer-share { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); }
 .footer-share[hidden] { display: none; }
 .footer-share-label { font-size: 0.85rem; color: var(--hint); }
+.footer-share-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.footer-share-actions .btn { flex-shrink: 0; }
 .btn-sm { min-height: 36px; padding: 7px 14px; font-size: 0.85rem; }
 .btn-sm svg { flex-shrink: 0; }
 .footer-heart-line { color: var(--muted); font-size: 0.88rem; }
@@ -387,7 +416,7 @@ mark {
   .footer-orgs { flex-direction: column; align-items: flex-start; gap: var(--space-4); }
   .footer-org-divider { width: 100%; height: 1px; }
   .footer-methodology { width: 100%; }
-  .footer-share { width: 100%; justify-content: space-between; }
+  .footer-share { width: 100%; }
 }
 
 /* -- responsive -- */

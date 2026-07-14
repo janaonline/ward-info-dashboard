@@ -26,7 +26,7 @@ The site deploys to [Vercel](https://vercel.com) as a static project — no fram
 
 **Ward detail** — the core of the app for a single ward: which predecessor wards it was formed from (with % overlap) and its key areas/localities, a "coming soon" candidates placeholder (photo/party/affidavit/manifesto fields, pending the next election cycle), a map with a row of clickable amenity filter cards (buses, metro, schools, parks, lakes, toilets, police, fire, flood spots, polling booths — each showing its icon, name, and live point count, plus an optional 800m walking-distance overlay for the walkable amenity types), a status badge on the map showing the amenity type currently selected, and a Reset button that restores the ward's default view, an amenities grid with coverage bars, a "did you know?" facts panel (e.g. walking-distance coverage vs. the WHO open-space benchmark, flood risk, schools-per-resident), suggested questions to ask your candidates, and a "BBMP Sahaaya — Top Grievances" panel listing the most-reported civic complaint categories for the ward.
 
-**Methodology** — data sourcing, what "within walking distance" means, and known data-quality caveats, with a back button that returns you to whichever view you actually came from — navigation is tracked as a history stack, so this stays correct across multiple hops (e.g. ward → methodology → back → back lands on home, not back on methodology).
+**Methodology** — an AI-assisted-GIS-workflow disclosure note, followed by three sections covering where the underlying civic data comes from (KGIS/OpenCity), how it's turned into per-ward "15-minute walk" coverage percentages, and the current scope and what's planned next — with a back button that returns you to whichever view you actually came from — navigation is tracked as a history stack, so this stays correct across multiple hops (e.g. ward → methodology → back → back lands on home, not back on methodology).
 
 **Footer** — present on all 3 views: a Methodology feature card (icon, title, and description), a Share this ward/WhatsApp/copy-link row (shown only while viewing a ward), and an attribution line crediting Janaagraha and Oorvani Foundation, each in its own logo card followed by that org's own social icons.
 
@@ -40,7 +40,7 @@ All data lives in `public/data/` and is loaded once at startup by `src/js/data-l
 
 Every record is joined on **`uid`** (`{corporation}-{ward_id}`, e.g. `West-25`), not on ward name — a few ward names are similar enough across corporations that name-based joins would be unreliable.
 
-**Known data caveat**: corporator and engineering-division contact fields (`contact_corporator`, `contact_aee_phone`, `contact_aro_phone`) repeat across many wards, suggesting they reflect an AC/AEE administrative division rather than a verified per-ward contact. This is surfaced on the Methodology page rather than silently cleaned up.
+**Known data caveat**: corporator and engineering-division contact fields (`contact_corporator`, `contact_aee_phone`, `contact_aro_phone`) repeat across many wards, suggesting they reflect an AC/AEE administrative division rather than a verified per-ward contact.
 
 ## Design system
 
