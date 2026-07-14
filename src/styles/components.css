@@ -294,7 +294,7 @@ mark {
   min-height: 44px;
   padding: 10px var(--space-2); border-bottom: 1px solid var(--line);
   border-left: 3px solid transparent;
-  cursor: pointer;
+  cursor: default;
   transition: background-color var(--dur) ease, border-color var(--dur) ease;
 }
 .amrow:hover { background: var(--surface); border-left-color: var(--green); }

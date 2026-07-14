@@ -53,7 +53,7 @@ export function tileUrlForTheme(theme) {
   return CARTO_SUBDOMAINS.map(s => `https://${s}.basemaps.cartocdn.com/${variant}/{z}/{x}/{y}.png`);
 }
 
-// ---- geometry helpers (ground-truth ported from the original prototype, keyed by uid) ----
+// ---- geometry helpers (keyed by uid; supports GeoJSON Polygon and MultiPolygon) ----
 
 export function pipRing(x, y, ring) {
   let inside = false;
@@ -64,25 +64,62 @@ export function pipRing(x, y, ring) {
   return inside;
 }
 
+function wardGeometry(w) {
+  if (!w) return null;
+  if (w.geometry) return w.geometry;
+  if (w.geom) return { type: 'Polygon', coordinates: w.geom };
+  return null;
+}
+
+function geometryPolygons(geometry) {
+  if (!geometry) return [];
+  if (geometry.type === 'Polygon') return [geometry.coordinates];
+  if (geometry.type === 'MultiPolygon') return geometry.coordinates;
+  return [];
+}
+
+function pointInPolygon(x, y, polygon) {
+  if (!polygon.length || !pipRing(x, y, polygon[0])) return false;
+  for (let i = 1; i < polygon.length; i++) {
+    if (pipRing(x, y, polygon[i])) return false;
+  }
+  return true;
+}
+
+export function forEachWardCoordinate(w, cb) {
+  for (const polygon of geometryPolygons(wardGeometry(w))) {
+    for (const ring of polygon) {
+      for (const point of ring) cb(point);
+    }
+  }
+}
+
+function forEachWardOuterCoordinate(w, cb) {
+  for (const polygon of geometryPolygons(wardGeometry(w))) {
+    const outer = polygon[0] || [];
+    for (const point of outer) cb(point);
+  }
+}
+
 export function pointInWard(x, y, uid, W) {
-  const g = W[uid].geom;
-  for (let i = 0; i < g.length; i++) if (pipRing(x, y, g[i])) return true;
-  return false;
+  return geometryPolygons(wardGeometry(W[uid])).some(polygon => pointInPolygon(x, y, polygon));
 }
 
 export function wardAt(lng, lat, W) {
   for (const k in W) {
-    const g = W[k].geom;
-    for (let i = 0; i < g.length; i++) if (pipRing(lng, lat, g[i])) return k;
+    if (pointInWard(lng, lat, k, W)) return k;
   }
   return null;
 }
 
 export function centroid(uid, W) {
-  const g = W[uid].geom[0], n = g.length;
-  let sx = 0, sy = 0;
-  for (let i = 0; i < n; i++) { sx += g[i][0]; sy += g[i][1]; }
-  return [sx / n, sy / n];
+  let sx = 0, sy = 0, n = 0;
+  forEachWardOuterCoordinate(W[uid], (point) => {
+    sx += point[0];
+    sy += point[1];
+    n++;
+  });
+  return n ? [sx / n, sy / n] : [0, 0];
 }
 
 export function nearbyWards(uid, W, k = 6) {
@@ -117,12 +154,12 @@ const _scatterCache = {};
 
 export function pollingPts(uid, W) {
   if (_scatterCache[uid]) return _scatterCache[uid];
-  const w = W[uid], n = w.polling || 0, g = w.geom;
+  const w = W[uid], n = w.polling || 0;
   let minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9;
-  g.forEach(r => r.forEach(p => {
+  forEachWardCoordinate(w, (p) => {
     if (p[0] < minx) minx = p[0]; if (p[0] > maxx) maxx = p[0];
     if (p[1] < miny) miny = p[1]; if (p[1] > maxy) maxy = p[1];
-  }));
+  });
   const rnd = mulberry32(hashStr(uid + '|' + n));
   const pts = [];
   let tries = 0;
@@ -136,11 +173,12 @@ export function pollingPts(uid, W) {
   return pts;
 }
 
-// ---- amenity point/row helpers (flood = floodvuln + floodprone combined) ----
+// ---- amenity point/row helpers ----
 
 export function layerPoints(uid, type, W) {
   const w = W[uid];
-  if (type === 'polling') return pollingPts(uid, W);
+  if (!w || !w.points) return [];
+  if (type === 'polling') return w.points.polling || [];
   if (type === 'flood') {
     const a = (w.points && w.points.floodvuln) || [];
     const b = (w.points && w.points.floodprone) || [];
@@ -154,7 +192,7 @@ export function defaultLayer(uid, W) {
   for (const type of LAYER_ORDER) {
     if (layerPoints(uid, type, W).length > 0) return type;
   }
-  return 'polling';
+  return null;
 }
 
 export function amenityRows(w) {
@@ -195,7 +233,7 @@ export function buildWardPolygonsGeoJSON(W, { filterUids } = {}) {
     type: 'Feature',
     id: i,
     properties: { uid, name: W[uid].ward_name, corporation: W[uid].corporation, ward_id: W[uid].ward_id },
-    geometry: { type: 'Polygon', coordinates: W[uid].geom },
+    geometry: wardGeometry(W[uid]) || { type: 'Polygon', coordinates: [] },
   }));
   return { type: 'FeatureCollection', features };
 }

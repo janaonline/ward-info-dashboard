@@ -1,13 +1,10 @@
 import {
-  createMap, buildWardPolygonsGeoJSON, addWardBoundaryLayer, LAYER, LAYER_ORDER,
-  amenityRows, defaultLayer, layerPoints, setActiveAmenityLayer, setWalkBufferLayer,
-  nearbyWards, resizeMap,
+  createMap, buildWardPolygonsGeoJSON, addWardBoundaryLayer, LAYER,
+  amenityRows, nearbyWards, resizeMap, forEachWardCoordinate,
 } from './maps.js';
 import { esc, fmt, cov100 } from './format.js';
 
 let wardMap = null;
-let currentLayer = null;
-let bufferOn = false;
 let dataRef = null;
 let avgRef = null;
 
@@ -138,48 +135,12 @@ function renderCandidates(w) {
   `;
 }
 
-const RESET_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>';
-
-function amenityLabel(type, w) {
-  if (type === 'polling') return 'Polling booths';
-  const row = amenityRows(w).find(r => r[0] === type);
-  return row ? row[1] : LAYER[type].label;
-}
-
-function renderAmenityFilters(uid, W, w) {
-  return LAYER_ORDER.concat(['polling']).map(key => {
-    const count = layerPoints(uid, key, W).length;
-    if (!count) return '';
-    return `
-      <button class="legend-btn amenity-card ${key === currentLayer ? 'active' : ''}" data-layer="${key}" type="button">
-        <span class="amenity-card-icon" style="color:${LAYER[key].color}" aria-hidden="true">${LAYER[key].icon}</span>
-        <span class="amenity-card-text">
-          <span class="amenity-card-name">${esc(amenityLabel(key, w))}</span>
-          <span class="amenity-card-count">${fmt(count)}</span>
-        </span>
-      </button>
-    `;
-  }).join('');
-}
-
-function renderWardMap(uid, W, w) {
-  const initialCount = layerPoints(uid, currentLayer, W).length;
+function renderWardMap(w) {
   return `
     <section class="sec">
       <h3>Ward map</h3>
       <div class="wardmap-frame">
         <div id="wardMap" class="map map-ward" aria-label="Map of ${esc(w.ward_name)}"></div>
-        <div class="wardmap-badge" id="wardMapBadge">
-          <span class="wardmap-badge-dot" style="background:${LAYER[currentLayer].color}" aria-hidden="true"></span>
-          <span id="wardMapBadgeLabel">Showing: ${esc(amenityLabel(currentLayer, w))} (${fmt(initialCount)})</span>
-        </div>
-      </div>
-      <div class="wardmap-toolbar">
-        <label class="buffer-toggle"><input type="checkbox" id="bufferToggle" ${bufferOn ? 'checked' : ''}> Show 800m walk reach</label>
-        <button class="btn btn-secondary btn-sm" id="wardMapReset" type="button"><span aria-hidden="true">${RESET_ICON}</span>Reset</button>
-      </div>
-      <div class="amenity-filters">
-        ${renderAmenityFilters(uid, W, w)}
       </div>
     </section>
   `;
@@ -235,48 +196,6 @@ function renderAsk(w) {
   `;
 }
 
-// ---- map wiring ----
-
-function setLayer(uid, W, type) {
-  currentLayer = type;
-  const points = setActiveAmenityLayer(wardMap, type, uid, W);
-  const walkEligible = LAYER[type].walk;
-  setWalkBufferLayer(wardMap, walkEligible ? points : [], bufferOn && walkEligible);
-  document.querySelectorAll('.legend-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.layer === type);
-  });
-  const badgeDot = document.querySelector('.wardmap-badge-dot');
-  const badgeLabel = document.getElementById('wardMapBadgeLabel');
-  if (badgeDot && badgeLabel) {
-    badgeDot.style.background = LAYER[type].color;
-    badgeLabel.textContent = `Showing: ${amenityLabel(type, W[uid])} (${points.length})`;
-  }
-}
-
-function wireLayerClicks(uid, W) {
-  document.querySelectorAll('.legend-btn').forEach(btn => {
-    btn.addEventListener('click', () => setLayer(uid, W, btn.dataset.layer));
-  });
-  document.querySelectorAll('.amrow').forEach(row => {
-    row.addEventListener('click', () => setLayer(uid, W, row.dataset.layer));
-  });
-  const bufferToggle = document.getElementById('bufferToggle');
-  if (bufferToggle) {
-    bufferToggle.addEventListener('change', (e) => {
-      bufferOn = e.target.checked;
-      setLayer(uid, W, currentLayer);
-    });
-  }
-  const resetBtn = document.getElementById('wardMapReset');
-  if (resetBtn) {
-    resetBtn.addEventListener('click', () => {
-      bufferOn = false;
-      if (bufferToggle) bufferToggle.checked = false;
-      setLayer(uid, W, defaultLayer(uid, W));
-    });
-  }
-}
-
 // ---- entry point ----
 
 export function initWardView({ W, A }) {
@@ -288,14 +207,12 @@ export function openWard(uid, { onOpenWard, onBack } = {}) {
   const W = dataRef;
   const A = avgRef;
   const w = W[uid];
-  currentLayer = defaultLayer(uid, W);
-  bufferOn = false;
 
   const container = document.getElementById('wardContainer');
   container.innerHTML = `
     ${renderHead(w)}
     ${renderCandidates(w)}
-    ${renderWardMap(uid, W, w)}
+    ${renderWardMap(w)}
     ${renderAmenities(w)}
     ${renderFacts(w, A)}
     ${renderAsk(w)}
@@ -326,11 +243,12 @@ export function openWard(uid, { onOpenWard, onBack } = {}) {
     });
 
     const bounds = new maplibregl.LngLatBounds();
-    w.geom.forEach(ring => ring.forEach(pt => bounds.extend(pt)));
-    wardMap.fitBounds(bounds, { padding: 40, duration: 0 });
-
-    setLayer(uid, W, currentLayer);
-    wireLayerClicks(uid, W);
+    let boundCount = 0;
+    forEachWardCoordinate(w, (pt) => {
+      bounds.extend(pt);
+      boundCount++;
+    });
+    if (boundCount) wardMap.fitBounds(bounds, { padding: 40, duration: 0 });
   });
 }
 

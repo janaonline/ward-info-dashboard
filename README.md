@@ -24,7 +24,7 @@ The site deploys to [Vercel](https://vercel.com) as a static project — no fram
 
 **Home** — the landing view and the single place to find your ward: a search box covering all 369 wards (by name, ward number, corporation, or assembly constituency), a "use my location" button that geolocates you straight into your ward, a plain-language explainer of what a ward is, a choropleth map of Bengaluru's 5 civic corporations (hovering a ward outlines it and shows its number, name, and corporation in a tooltip), a browsable list of every ward — housed in a fixed-height, internally scrolling box so a full 369-ward result set doesn't stretch the page — that opens the ward detail on tap, and accordion panels explaining the Greater Bengaluru Authority (GBA), the ward councillor role, and how the site's data works.
 
-**Ward detail** — the core of the app for a single ward: which predecessor wards it was formed from (with % overlap) and its key areas/localities, a "coming soon" candidates placeholder (photo/party/affidavit/manifesto fields, pending the next election cycle), a map with a row of clickable amenity filter cards (buses, metro, schools, parks, lakes, toilets, police, fire, flood spots, polling booths — each showing its icon, name, and live point count, plus an optional 800m walking-distance overlay for the walkable amenity types), a status badge on the map showing the amenity type currently selected, and a Reset button that restores the ward's default view, an amenities grid with coverage bars, a "did you know?" facts panel (e.g. walking-distance coverage vs. the WHO open-space benchmark, flood risk, schools-per-resident), suggested questions to ask your candidates, and a "BBMP Sahaaya — Top Grievances" panel listing the most-reported civic complaint categories for the ward.
+**Ward detail** — the core of the app for a single ward: which predecessor wards it was formed from (with % overlap) and its key areas/localities, a "coming soon" candidates placeholder (photo/party/affidavit/manifesto fields, pending the next election cycle), a boundary-only ward map, an amenities grid with counts and coverage bars sourced from the enriched ward GeoJSON, a "did you know?" facts panel (e.g. walking-distance coverage vs. the WHO open-space benchmark, flood risk, schools-per-resident), suggested questions to ask your candidates, and a "BBMP Sahaaya — Top Grievances" panel listing the most-reported civic complaint categories for the ward.
 
 **Methodology** — an AI-assisted-GIS-workflow disclosure note, followed by three sections covering where the underlying civic data comes from (KGIS/OpenCity), how it's turned into per-ward "15-minute walk" coverage percentages, and the current scope and what's planned next — with a back button that returns you to whichever view you actually came from — navigation is tracked as a history stack, so this stays correct across multiple hops (e.g. ward → methodology → back → back lands on home, not back on methodology).
 
@@ -32,13 +32,12 @@ The site deploys to [Vercel](https://vercel.com) as a static project — no fram
 
 ## Data sources
 
-All data lives in `public/data/` and is loaded once at startup by `src/js/data-loader.js`:
+All display data lives in `public/data/` and is loaded once at startup by `src/js/data-loader.js`:
 
-- **`wards.csv`** — one row per ward: identity (`uid`, `ward_id`, `ward_name`, corporation/zone/assembly), population, amenity counts and walking-distance coverage percentages, flood risk, drainage, and corporator/AEE contact details.
-- **`wards-geometry.json`** — ward boundary polygons and amenity point coordinates, keyed by the same `uid` as the CSV.
-- **`meta.json`** — citywide average values (used by the ward-detail facts panel to say things like "your ward has more lakes than the city average").
+- **`GBA_369_Wards_Enriched.geojson`** — canonical ward boundaries plus ward-level amenity counts and coverage percentages. Ward boundary display and Amenities counts come from this file.
+- **`wards.csv`** — supplemental text and fact fields not present in the enriched GeoJSON, including old-ward overlap, neighbourhood lists, open-space-per-person, and contact/admin fields.
 
-Every record is joined on **`uid`** (`{corporation}-{ward_id}`, e.g. `West-25`), not on ward name — a few ward names are similar enough across corporations that name-based joins would be unreliable.
+Every record is keyed by **`uid`** (`{Corporation}-{ward_id}`, e.g. `West-25`), derived from the enriched GeoJSON and never by ward name — a few ward names are similar enough across corporations that name-based joins would be unreliable.
 
 **Known data caveat**: corporator and engineering-division contact fields (`contact_corporator`, `contact_aee_phone`, `contact_aro_phone`) repeat across many wards, suggesting they reflect an AC/AEE administrative division rather than a verified per-ward contact.
 
