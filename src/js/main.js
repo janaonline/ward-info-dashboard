@@ -12,6 +12,7 @@ function showView(name) {
   document.querySelectorAll('.view').forEach(el => el.classList.remove('view--active'));
   document.getElementById(`view-${name}`).classList.add('view--active');
   currentView = name;
+  window.scrollTo(0, 0);
 
   if (name === 'home') resizeHomeMap();
   if (name === 'ward') resizeWardMap();
