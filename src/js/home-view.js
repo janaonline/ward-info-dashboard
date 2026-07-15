@@ -61,6 +61,22 @@ function computeLocalMatches(W, query) {
   return matches.slice(0, SUGGEST_CAP).map(w => w.uid);
 }
 
+function findWardNameTextMatch(text, W) {
+  const t = text.toLowerCase();
+  let best = null;
+  let bestLen = -1;
+  for (const w of Object.values(W)) {
+    const name = String(w.ward_name).toLowerCase();
+    if (t.includes(name) || name.includes(t)) {
+      if (name.length > bestLen || (name.length === bestLen && w.ward_name < W[best].ward_name)) {
+        best = w.uid;
+        bestLen = name.length;
+      }
+    }
+  }
+  return best;
+}
+
 async function resolveLandmarkMatches(query, W) {
   if (suggestAbortController) suggestAbortController.abort();
   suggestAbortController = new AbortController();
@@ -89,8 +105,20 @@ async function resolveLandmarkMatches(query, W) {
     const lon = parseFloat(result.lon);
     const lat = parseFloat(result.lat);
     if (Number.isNaN(lon) || Number.isNaN(lat)) continue;
-    const uid = wardAt(lon, lat, W);
-    if (!uid || seen.has(uid)) continue;
+
+    const geometryUid = wardAt(lon, lat, W);
+    const textUid = findWardNameTextMatch(`${result.name || ''} ${result.display_name || ''}`, W);
+
+    let uid;
+    if (textUid) {
+      if (textUid !== geometryUid) continue;
+      uid = textUid;
+    } else {
+      if (!geometryUid) continue;
+      uid = geometryUid;
+    }
+    if (seen.has(uid)) continue;
+
     const landmark = result.name || (result.display_name ? result.display_name.split(',')[0].trim() : '');
     if (!landmark) continue;
     seen.add(uid);
