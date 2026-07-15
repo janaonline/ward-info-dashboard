@@ -290,7 +290,7 @@ mark {
 
 .amgrid { display: flex; flex-direction: column; }
 .amrow {
-  display: grid; grid-template-columns: auto 1fr auto 80px; align-items: center; gap: 10px;
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px;
   min-height: 44px;
   padding: 10px var(--space-2); border-bottom: 1px solid var(--line);
   border-left: 3px solid transparent;
@@ -302,8 +302,6 @@ mark {
 .am-icon { display: flex; color: var(--muted); }
 .am-icon svg { width: 18px; height: 18px; }
 .cnt { font-family: var(--font-stat); font-weight: 700; }
-.am-bar { display: block; height: 5px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
-.am-bar-fill { display: block; height: 100%; background: var(--green); }
 
 .factslist { display: flex; flex-direction: column; gap: var(--space-2); }
 .fact {

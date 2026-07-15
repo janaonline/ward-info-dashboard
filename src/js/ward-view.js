@@ -195,12 +195,11 @@ function renderAmenities(uid, W, w) {
     <section class="sec">
       <h3>Amenities</h3>
       <div class="amgrid">
-        ${rows.map(([key, label, count, cov]) => `
+        ${rows.map(([key, label, count]) => `
           <div class="amrow" data-layer="${key}">
             <span class="am-icon" aria-hidden="true">${LAYER[key].icon}</span>
             <span class="am-label">${esc(label)}</span>
             <span class="cnt">${fmt(count || 0)}</span>
-            ${cov != null ? `<span class="am-bar"><span class="am-bar-fill" style="width:${Math.max(0, Math.min(100, cov))}%"></span></span>` : ''}
           </div>
         `).join('')}
       </div>
