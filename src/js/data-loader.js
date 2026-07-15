@@ -25,6 +25,31 @@ async function fetchJSON(path) {
 
 const POINT_SOURCES = {
   polling: 'public/data/Polling_Booths_with_GBA_369_Ward_Information.geojson',
+  bus: 'public/data/bmtc_bus_stops.geojson',
+  metro: 'public/data/Bengaluru_Metro_Stations.geojson',
+  school: 'public/data/BBMP_Schools_Map.geojson',
+  anganwadi: 'public/data/Bengaluru_Urban_Anganwadis_Map.geojson',
+  toilet: 'public/data/BBMP_Public_Toilets_Map.geojson',
+  lake: 'public/data/BBMP_Lakes_Map.geojson',
+  flood_prone: 'public/data/Flood_Prone_Locations_Map.geojson',
+  flood_vuln: 'public/data/Map_of_Locations_Vulnerable_to_Flooding_in.geojson',
+  police: 'public/data/Bengaluru_Urban_Police_Station_Locations.geojson',
+  police_outpost: 'public/data/Bengaluru_Urban_Police_Outpost_Locations_Map.geojson',
+  railway_police: 'public/data/Bengaluru_Urban_Railway_Police_Stations_Map.geojson',
+  fire: 'public/data/Bengaluru_Fire_Stations_Locations.geojson',
+};
+
+// Which raw GeoJSON property holds a point type's real display name (and, for
+// polling only, a secondary booth-number field). Only types with a real per-feature
+// name belong here — every other point source's Name property is a uniform literal
+// "Placemark" placeholder (verified empirically), so pushing it would show garbage
+// tooltips; those types are deliberately left out so their pointMeta stays empty and
+// the hover tooltip no-ops.
+const POINT_NAME_FIELDS = {
+  polling: { name: 'POLIN_STATN_NAME', num: 'POLIN_STATN_NUM' },
+  school: { name: 'Name' },
+  metro: { name: 'Name' },
+  flood_prone: { name: 'Name' },
 };
 
 function numberOr(value, fallback = null) {
@@ -161,6 +186,7 @@ function assignPointSource(W, sourceGeoJSON, pointKey) {
     ward,
     bbox: geometryBbox(ward.geometry),
   }));
+  const nameFields = POINT_NAME_FIELDS[pointKey];
 
   for (const feature of sourceGeoJSON.features || []) {
     if (feature.properties?.ward_join_status !== 'matched') continue;
@@ -174,22 +200,23 @@ function assignPointSource(W, sourceGeoJSON, pointKey) {
     ));
     if (matched) {
       matched.ward.points[pointKey].push([x, y]);
-      if (pointKey === 'polling') {
-        matched.ward.pointMeta.polling.push({
-          name: feature.properties.POLIN_STATN_NAME || '',
-          num: feature.properties.POLIN_STATN_NUM || '',
-        });
+      if (nameFields) {
+        const entry = { name: feature.properties[nameFields.name] || '' };
+        if (nameFields.num) entry.num = feature.properties[nameFields.num] || '';
+        matched.ward.pointMeta[pointKey].push(entry);
       }
     }
   }
 }
 
 export async function loadData() {
-  const [csvText, enrichedGeoJSON, pollingGeoJSON] = await Promise.all([
+  const pointKeys = Object.keys(POINT_SOURCES);
+  const [csvText, enrichedGeoJSON, ...pointGeoJSONs] = await Promise.all([
     fetchText('public/data/wards.csv'),
     fetchJSON('public/data/GBA_369_Wards_Enriched.geojson'),
-    fetchJSON(POINT_SOURCES.polling),
+    ...pointKeys.map(key => fetchJSON(POINT_SOURCES[key])),
   ]);
+  const pointGeoJSONByKey = Object.fromEntries(pointKeys.map((key, i) => [key, pointGeoJSONs[i]]));
 
   const parsed = Papa.parse(csvText, { header: true, dynamicTyping: true, skipEmptyLines: true });
   const csvByUid = {};
@@ -211,8 +238,8 @@ export async function loadData() {
     const ward = Object.assign({}, row, {
       uid,
       geometry: feature.geometry,
-      points: { polling: [] },
-      pointMeta: { polling: [] },
+      points: Object.fromEntries(pointKeys.map(key => [key, []])),
+      pointMeta: Object.fromEntries(pointKeys.map(key => [key, []])),
       ward_id: numberOr(props.ward_id, row.ward_id),
       ward_name: wardName || row.ward_name || props.ward_name,
       ward_name_kn: props.ward_name_kn || row.ward_name_kn,
@@ -271,9 +298,13 @@ export async function loadData() {
     if (props.ward_name) nameIndex[String(props.ward_name).toLowerCase()] = uid;
   }
 
-  assignPointSource(W, pollingGeoJSON, 'polling');
+  for (const key of pointKeys) {
+    assignPointSource(W, pointGeoJSONByKey[key], key);
+  }
   for (const ward of Object.values(W)) {
-    spreadCoincidentPoints(ward.points.polling);
+    for (const key of pointKeys) {
+      spreadCoincidentPoints(ward.points[key]);
+    }
     if (ward.polling == null) ward.polling = ward.points.polling.length;
   }
 

@@ -140,9 +140,9 @@ function renderCandidates(w) {
 
 const RESET_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>';
 
-function amenityLabel(type, w) {
+function amenityLabel(type, uid, W, w) {
   if (type === 'polling') return 'Polling booths';
-  const row = amenityRows(w).find(r => r[0] === type);
+  const row = amenityRows(uid, W, w).find(r => r[0] === type);
   return row ? row[1] : LAYER[type].label;
 }
 
@@ -154,7 +154,7 @@ function renderAmenityFilters(uid, W, w) {
       <button class="legend-btn amenity-card ${key === currentLayer ? 'active' : ''}" data-layer="${key}" type="button">
         <span class="amenity-card-icon" style="color:${LAYER[key].color}" aria-hidden="true">${LAYER[key].icon}</span>
         <span class="amenity-card-text">
-          <span class="amenity-card-name">${esc(amenityLabel(key, w))}</span>
+          <span class="amenity-card-name">${esc(amenityLabel(key, uid, W, w))}</span>
           <span class="amenity-card-count">${fmt(count)}</span>
         </span>
       </button>
@@ -174,7 +174,7 @@ function renderWardMap(uid, W, w) {
         ${activeLayer ? `
           <div class="wardmap-badge" id="wardMapBadge">
             <span class="wardmap-badge-dot" style="background:${LAYER[activeLayer].color}" aria-hidden="true"></span>
-            <span id="wardMapBadgeLabel">Showing: ${esc(amenityLabel(activeLayer, w))} (${fmt(initialCount)})</span>
+            <span id="wardMapBadgeLabel">Showing: ${esc(amenityLabel(activeLayer, uid, W, w))} (${fmt(initialCount)})</span>
           </div>
         ` : ''}
       </div>
@@ -189,8 +189,8 @@ function renderWardMap(uid, W, w) {
   `;
 }
 
-function renderAmenities(w) {
-  const rows = amenityRows(w);
+function renderAmenities(uid, W, w) {
+  const rows = amenityRows(uid, W, w);
   return `
     <section class="sec">
       <h3>Amenities</h3>
@@ -262,7 +262,7 @@ function setLayer(uid, W, type) {
   const badgeLabel = document.getElementById('wardMapBadgeLabel');
   if (badgeDot && badgeLabel) {
     badgeDot.style.background = LAYER[type].color;
-    badgeLabel.textContent = `Showing: ${amenityLabel(type, W[uid])} (${fmt(points.length)})`;
+    badgeLabel.textContent = `Showing: ${amenityLabel(type, uid, W, W[uid])} (${fmt(points.length)})`;
   }
 }
 
@@ -312,7 +312,7 @@ export function openWard(uid, { onOpenWard, onBack } = {}) {
     ${renderHead(w)}
     ${renderCandidates(w)}
     ${renderWardMap(uid, W, w)}
-    ${renderAmenities(w)}
+    ${renderAmenities(uid, W, w)}
     ${renderFacts(w, A)}
     ${renderAsk(w)}
   `;
