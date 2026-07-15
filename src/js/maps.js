@@ -18,6 +18,10 @@ const ICONS = {
   toilet: `${SVG_OPEN}<circle cx="9" cy="5" r="2"/><path d="M6 20l1-9h4l1 9M6 13h6"/><path d="M16 4v16M19 4v6a3 3 0 0 1-3 3"/></svg>`,
   flood: `${SVG_OPEN}<path d="M12 3l9 16H3z"/><path d="M12 10v4"/><circle cx="12" cy="16.5" r="0.6" fill="currentColor"/></svg>`,
   polling: `${SVG_OPEN}<rect x="4" y="9" width="16" height="11" rx="1"/><path d="M4 13h16"/><path d="M12 4v9M9 7l3-3 3 3"/></svg>`,
+  flood_prone: `${SVG_OPEN}<path d="M12 3c4 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2-6 6-11z" fill="currentColor"/><path d="M6.5 14.5h11"/></svg>`,
+  flood_vuln: `${SVG_OPEN}<path d="M12 3c4 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2-6 6-11z"/></svg>`,
+  police_outpost: `${SVG_OPEN}<path d="M6 21v-8l6-3 6 3v8z"/><path d="M9 21v-5h6v5"/></svg>`,
+  railway_police: `${SVG_OPEN}<path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M8.5 12h7M8.5 15h7"/><path d="M10 12v3M14 12v3"/></svg>`,
 };
 
 export const LAYER = {
@@ -31,12 +35,16 @@ export const LAYER = {
   lake:      { label: 'Lake',           color: '#2f7fb0', walk: true,  ptkey: 'lake', icon: ICONS.lake },
   pond:      { label: 'Pond / tank',    color: '#6bb3d9', walk: false, ptkey: 'pond', icon: ICONS.pond },
   police:    { label: 'Police station', color: '#616161', walk: false, ptkey: 'police', icon: ICONS.police },
+  police_outpost: { label: 'Police outpost', color: '#8f8f8f', walk: false, ptkey: 'police_outpost', icon: ICONS.police_outpost },
+  railway_police: { label: 'Railway police', color: '#42576b', walk: false, ptkey: 'railway_police', icon: ICONS.railway_police },
   fire:      { label: 'Fire station',   color: '#d33a4c', walk: false, ptkey: 'fire', icon: ICONS.fire },
   toilet:    { label: 'Public toilet',  color: '#9a6b3f', walk: true,  ptkey: 'toilet', icon: ICONS.toilet },
   flood:     { label: 'Flood spot',     color: '#e05a2f', walk: false, flood: true, icon: ICONS.flood },
+  flood_prone: { label: 'Flood-prone spot', color: '#b3401f', walk: false, ptkey: 'flood_prone', icon: ICONS.flood_prone },
+  flood_vuln: { label: 'Flood-vulnerable spot', color: '#e88b4b', walk: false, ptkey: 'flood_vuln', icon: ICONS.flood_vuln },
 };
 
-export const LAYER_ORDER = ['bus','park','school','metro','toilet','anganwadi','playground','lake','pond','police','fire','flood'];
+export const LAYER_ORDER = ['bus','park','school','metro','toilet','anganwadi','playground','lake','pond','police','police_outpost','railway_police','fire','flood_prone','flood_vuln'];
 
 export const CORP_COLORS = {
   North: '#d33a4c',
@@ -53,7 +61,7 @@ export function tileUrlForTheme(theme) {
   return CARTO_SUBDOMAINS.map(s => `https://${s}.basemaps.cartocdn.com/${variant}/{z}/{x}/{y}.png`);
 }
 
-// ---- geometry helpers (ground-truth ported from the original prototype, keyed by uid) ----
+// ---- geometry helpers (keyed by uid; supports GeoJSON Polygon and MultiPolygon) ----
 
 export function pipRing(x, y, ring) {
   let inside = false;
@@ -64,25 +72,62 @@ export function pipRing(x, y, ring) {
   return inside;
 }
 
+function wardGeometry(w) {
+  if (!w) return null;
+  if (w.geometry) return w.geometry;
+  if (w.geom) return { type: 'Polygon', coordinates: w.geom };
+  return null;
+}
+
+function geometryPolygons(geometry) {
+  if (!geometry) return [];
+  if (geometry.type === 'Polygon') return [geometry.coordinates];
+  if (geometry.type === 'MultiPolygon') return geometry.coordinates;
+  return [];
+}
+
+function pointInPolygon(x, y, polygon) {
+  if (!polygon.length || !pipRing(x, y, polygon[0])) return false;
+  for (let i = 1; i < polygon.length; i++) {
+    if (pipRing(x, y, polygon[i])) return false;
+  }
+  return true;
+}
+
+export function forEachWardCoordinate(w, cb) {
+  for (const polygon of geometryPolygons(wardGeometry(w))) {
+    for (const ring of polygon) {
+      for (const point of ring) cb(point);
+    }
+  }
+}
+
+function forEachWardOuterCoordinate(w, cb) {
+  for (const polygon of geometryPolygons(wardGeometry(w))) {
+    const outer = polygon[0] || [];
+    for (const point of outer) cb(point);
+  }
+}
+
 export function pointInWard(x, y, uid, W) {
-  const g = W[uid].geom;
-  for (let i = 0; i < g.length; i++) if (pipRing(x, y, g[i])) return true;
-  return false;
+  return geometryPolygons(wardGeometry(W[uid])).some(polygon => pointInPolygon(x, y, polygon));
 }
 
 export function wardAt(lng, lat, W) {
   for (const k in W) {
-    const g = W[k].geom;
-    for (let i = 0; i < g.length; i++) if (pipRing(lng, lat, g[i])) return k;
+    if (pointInWard(lng, lat, k, W)) return k;
   }
   return null;
 }
 
 export function centroid(uid, W) {
-  const g = W[uid].geom[0], n = g.length;
-  let sx = 0, sy = 0;
-  for (let i = 0; i < n; i++) { sx += g[i][0]; sy += g[i][1]; }
-  return [sx / n, sy / n];
+  let sx = 0, sy = 0, n = 0;
+  forEachWardOuterCoordinate(W[uid], (point) => {
+    sx += point[0];
+    sy += point[1];
+    n++;
+  });
+  return n ? [sx / n, sy / n] : [0, 0];
 }
 
 export function nearbyWards(uid, W, k = 6) {
@@ -96,81 +141,47 @@ export function nearbyWards(uid, W, k = 6) {
   return arr.slice(0, k).map(x => x[0]);
 }
 
-// ---- seeded polling-booth scatter ----
-
-export function hashStr(s) {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
-  return h >>> 0;
-}
-
-export function mulberry32(a) {
-  return function () {
-    a |= 0; a = a + 0x6D2B79F5 | 0;
-    let t = Math.imul(a ^ a >>> 15, 1 | a);
-    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
-  };
-}
-
-const _scatterCache = {};
-
-export function pollingPts(uid, W) {
-  if (_scatterCache[uid]) return _scatterCache[uid];
-  const w = W[uid], n = w.polling || 0, g = w.geom;
-  let minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9;
-  g.forEach(r => r.forEach(p => {
-    if (p[0] < minx) minx = p[0]; if (p[0] > maxx) maxx = p[0];
-    if (p[1] < miny) miny = p[1]; if (p[1] > maxy) maxy = p[1];
-  }));
-  const rnd = mulberry32(hashStr(uid + '|' + n));
-  const pts = [];
-  let tries = 0;
-  const cap = n * 500 + 3000;
-  while (pts.length < n && tries < cap) {
-    tries++;
-    const x = minx + (maxx - minx) * rnd(), y = miny + (maxy - miny) * rnd();
-    if (pointInWard(x, y, uid, W)) pts.push([x, y]);
-  }
-  _scatterCache[uid] = pts;
-  return pts;
-}
-
-// ---- amenity point/row helpers (flood = floodvuln + floodprone combined) ----
+// ---- amenity point/row helpers ----
 
 export function layerPoints(uid, type, W) {
   const w = W[uid];
-  if (type === 'polling') return pollingPts(uid, W);
-  if (type === 'flood') {
-    const a = (w.points && w.points.floodvuln) || [];
-    const b = (w.points && w.points.floodprone) || [];
-    return a.concat(b);
-  }
+  if (!w || !w.points) return [];
+  if (type === 'polling') return w.points.polling || [];
   const k = LAYER[type].ptkey;
   return (w.points && w.points[k]) || [];
 }
 
-export function defaultLayer(uid, W) {
-  for (const type of LAYER_ORDER) {
-    if (layerPoints(uid, type, W).length > 0) return type;
-  }
-  return 'polling';
+const TYPES_WITH_META = ['polling', 'school', 'metro', 'flood_prone'];
+
+export function layerPointMeta(uid, type, W) {
+  if (!TYPES_WITH_META.includes(type)) return [];
+  const w = W[uid];
+  const k = type === 'polling' ? 'polling' : LAYER[type].ptkey;
+  return (w && w.pointMeta && w.pointMeta[k]) || [];
 }
 
-export function amenityRows(w) {
+export function defaultLayer(uid, W) {
+  for (const type of LAYER_ORDER.concat(['polling'])) {
+    if (layerPoints(uid, type, W).length > 0) return type;
+  }
+  return null;
+}
+
+export function amenityRows(uid, W, w) {
   return [
-    ['bus', 'Bus stops', w.bus, w.bus_cov],
-    ['metro', 'Metro stations', w.metro, w.metro_cov],
-    ['park', 'Parks', w.parks, w.parks_cov],
-    ['school', 'Schools', w.schools, null],
-    ['anganwadi', 'Anganwadis', w.anganwadi, null],
-    ['playground', 'Playgrounds', w.playgrounds, null],
-    ['toilet', 'Public toilets', w.toilets, w.toilet_cov],
-    ['lake', 'Lakes', w.lakes, w.lake_cov],
-    ['pond', 'Ponds / tanks', w.ponds, null],
-    ['police', 'Police stations', w.police, null],
-    ['fire', 'Fire stations', w.fire, null],
-    ['flood', 'Flood-prone spots', (w.flood_vuln || 0) + (w.flood_prone || 0), null],
+    ['bus', 'Bus stops', layerPoints(uid, 'bus', W).length, w.bus_cov],
+    ['metro', 'Metro stations', layerPoints(uid, 'metro', W).length, w.metro_cov],
+    ['park', 'Parks', layerPoints(uid, 'park', W).length, w.parks_cov],
+    ['school', 'Schools', layerPoints(uid, 'school', W).length, null],
+    ['anganwadi', 'Anganwadis', layerPoints(uid, 'anganwadi', W).length, null],
+    ['playground', 'Playgrounds', layerPoints(uid, 'playground', W).length, null],
+    ['toilet', 'Public toilets', layerPoints(uid, 'toilet', W).length, w.toilet_cov],
+    ['lake', 'Lakes', layerPoints(uid, 'lake', W).length, w.lake_cov],
+    ['pond', 'Ponds / tanks', layerPoints(uid, 'pond', W).length, null],
+    ['police', 'Police stations', layerPoints(uid, 'police', W).length, null],
+    ['fire', 'Fire stations', layerPoints(uid, 'fire', W).length, null],
+    ['flood_prone', 'Flood-prone spots', layerPoints(uid, 'flood_prone', W).length, null],
+    ['flood_vuln', 'Flood-vulnerable spots', layerPoints(uid, 'flood_vuln', W).length, null],
   ];
 }
 
@@ -195,7 +206,7 @@ export function buildWardPolygonsGeoJSON(W, { filterUids } = {}) {
     type: 'Feature',
     id: i,
     properties: { uid, name: W[uid].ward_name, corporation: W[uid].corporation, ward_id: W[uid].ward_id },
-    geometry: { type: 'Polygon', coordinates: W[uid].geom },
+    geometry: wardGeometry(W[uid]) || { type: 'Polygon', coordinates: [] },
   }));
   return { type: 'FeatureCollection', features };
 }
@@ -314,10 +325,14 @@ export function addWardBoundaryLayer(map, geojson, { fillColor = '#2f8f66', hove
   return makeHoverTracker(map, 'ward-boundaries');
 }
 
-export function addAmenityPointsLayer(map, points, color) {
+export function addAmenityPointsLayer(map, points, color, meta) {
   const geojson = {
     type: 'FeatureCollection',
-    features: points.map(p => ({ type: 'Feature', geometry: { type: 'Point', coordinates: p }, properties: {} })),
+    features: points.map((p, i) => ({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: p },
+      properties: (meta && meta[i]) || {},
+    })),
   };
   if (map.getSource('amenity-points')) {
     map.getSource('amenity-points').setData(geojson);
@@ -340,7 +355,8 @@ export function addAmenityPointsLayer(map, points, color) {
 
 export function setActiveAmenityLayer(map, type, uid, W) {
   const points = layerPoints(uid, type, W);
-  addAmenityPointsLayer(map, points, LAYER[type].color);
+  const meta = layerPointMeta(uid, type, W);
+  addAmenityPointsLayer(map, points, LAYER[type].color, meta);
   return points;
 }
 

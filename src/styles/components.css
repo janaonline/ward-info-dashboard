@@ -294,10 +294,11 @@ mark {
   min-height: 44px;
   padding: 10px var(--space-2); border-bottom: 1px solid var(--line);
   border-left: 3px solid transparent;
-  cursor: pointer;
+  cursor: default;
   transition: background-color var(--dur) ease, border-color var(--dur) ease;
 }
-.amrow:hover { background: var(--surface); border-left-color: var(--green); }
+.amrow.is-clickable { cursor: pointer; }
+.amrow.is-clickable:hover { background: var(--surface); border-left-color: var(--green); }
 .am-icon { display: flex; color: var(--muted); }
 .am-icon svg { width: 18px; height: 18px; }
 .cnt { font-family: var(--font-stat); font-weight: 700; }
