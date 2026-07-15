@@ -349,7 +349,18 @@ export function openWard(uid, { onOpenWard, onBack } = {}) {
     });
     if (boundCount) wardMap.fitBounds(bounds, { padding: 40, duration: 0 });
 
-    if (currentLayer) setLayer(uid, W, currentLayer);
+    if (currentLayer) {
+      setLayer(uid, W, currentLayer);
+      const amenityTip = new maplibregl.Popup({ closeButton: false, closeOnClick: false, className: 'map-tip', offset: 12 });
+      wardMap.on('mousemove', 'amenity-points-circle', (e) => {
+        if (!e.features.length) return;
+        const { name, num } = e.features[0].properties;
+        if (!name) { amenityTip.remove(); return; }
+        const html = num ? `${esc(name)} &middot; Booth ${esc(num)}` : esc(name);
+        amenityTip.setLngLat(e.lngLat).setHTML(html).addTo(wardMap);
+      });
+      wardMap.on('mouseleave', 'amenity-points-circle', () => amenityTip.remove());
+    }
     wireLayerClicks(uid, W);
   });
 }

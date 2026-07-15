@@ -172,7 +172,15 @@ function assignPointSource(W, sourceGeoJSON, pointKey) {
     const matched = wards.find(({ ward, bbox }) => (
       bboxContains(bbox, x, y) && pointInGeometry(x, y, ward.geometry)
     ));
-    if (matched) matched.ward.points[pointKey].push([x, y]);
+    if (matched) {
+      matched.ward.points[pointKey].push([x, y]);
+      if (pointKey === 'polling') {
+        matched.ward.pointMeta.polling.push({
+          name: feature.properties.POLIN_STATN_NAME || '',
+          num: feature.properties.POLIN_STATN_NUM || '',
+        });
+      }
+    }
   }
 }
 
@@ -204,6 +212,7 @@ export async function loadData() {
       uid,
       geometry: feature.geometry,
       points: { polling: [] },
+      pointMeta: { polling: [] },
       ward_id: numberOr(props.ward_id, row.ward_id),
       ward_name: wardName || row.ward_name || props.ward_name,
       ward_name_kn: props.ward_name_kn || row.ward_name_kn,

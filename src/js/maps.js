@@ -148,6 +148,12 @@ export function layerPoints(uid, type, W) {
   return (w.points && w.points[k]) || [];
 }
 
+export function layerPointMeta(uid, type, W) {
+  const w = W[uid];
+  if (type === 'polling') return (w && w.pointMeta && w.pointMeta.polling) || [];
+  return [];
+}
+
 export function defaultLayer(uid, W) {
   for (const type of LAYER_ORDER.concat(['polling'])) {
     if (layerPoints(uid, type, W).length > 0) return type;
@@ -312,10 +318,14 @@ export function addWardBoundaryLayer(map, geojson, { fillColor = '#2f8f66', hove
   return makeHoverTracker(map, 'ward-boundaries');
 }
 
-export function addAmenityPointsLayer(map, points, color) {
+export function addAmenityPointsLayer(map, points, color, meta) {
   const geojson = {
     type: 'FeatureCollection',
-    features: points.map(p => ({ type: 'Feature', geometry: { type: 'Point', coordinates: p }, properties: {} })),
+    features: points.map((p, i) => ({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: p },
+      properties: (meta && meta[i]) || {},
+    })),
   };
   if (map.getSource('amenity-points')) {
     map.getSource('amenity-points').setData(geojson);
@@ -338,7 +348,8 @@ export function addAmenityPointsLayer(map, points, color) {
 
 export function setActiveAmenityLayer(map, type, uid, W) {
   const points = layerPoints(uid, type, W);
-  addAmenityPointsLayer(map, points, LAYER[type].color);
+  const meta = layerPointMeta(uid, type, W);
+  addAmenityPointsLayer(map, points, LAYER[type].color, meta);
   return points;
 }
 
