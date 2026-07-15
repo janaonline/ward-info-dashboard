@@ -3,6 +3,14 @@ import { esc, fmt } from './format.js';
 
 let corpMap = null;
 let onOpenWardRef = null;
+let suggestAbortController = null;
+let suggestRequestSeq = 0;
+
+const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
+const NOMINATIM_EMAIL = 'sss@gmail.com';
+const LANDMARK_MIN_LEN = 3;
+const LANDMARK_DEBOUNCE_MS = 400;
+const SUGGEST_CAP = 6;
 
 function debounce(fn, ms) {
   let t;
@@ -41,6 +49,92 @@ function renderList(W, query) {
   });
 }
 
+function computeLocalMatches(W, query) {
+  const s = query.toLowerCase();
+  const matches = Object.values(W).filter(w => String(w.ward_name).toLowerCase().includes(s));
+  matches.sort((a, b) => {
+    const aStarts = String(a.ward_name).toLowerCase().startsWith(s);
+    const bStarts = String(b.ward_name).toLowerCase().startsWith(s);
+    if (aStarts !== bStarts) return aStarts ? -1 : 1;
+    return String(a.ward_name).localeCompare(String(b.ward_name));
+  });
+  return matches.slice(0, SUGGEST_CAP).map(w => w.uid);
+}
+
+async function resolveLandmarkMatches(query, W) {
+  if (suggestAbortController) suggestAbortController.abort();
+  suggestAbortController = new AbortController();
+
+  const url = new URL(NOMINATIM_URL);
+  url.searchParams.set('amenity', query);
+  url.searchParams.set('country', 'india');
+  url.searchParams.set('city', 'bangalore');
+  url.searchParams.set('format', 'jsonv2');
+  url.searchParams.set('limit', '5');
+  url.searchParams.set('email', NOMINATIM_EMAIL);
+
+  let results;
+  try {
+    const res = await fetch(url, { signal: suggestAbortController.signal });
+    if (!res.ok) return [];
+    results = await res.json();
+  } catch (err) {
+    if (err.name === 'AbortError') return null;
+    return [];
+  }
+
+  const seen = new Set();
+  const matches = [];
+  for (const result of results) {
+    const lon = parseFloat(result.lon);
+    const lat = parseFloat(result.lat);
+    if (Number.isNaN(lon) || Number.isNaN(lat)) continue;
+    const uid = wardAt(lon, lat, W);
+    if (!uid || seen.has(uid)) continue;
+    const landmark = result.name || (result.display_name ? result.display_name.split(',')[0].trim() : '');
+    if (!landmark) continue;
+    seen.add(uid);
+    matches.push({ uid, landmark });
+  }
+  return matches;
+}
+
+function buildSuggestionRows(localUids, landmarkMatches) {
+  const rows = localUids.map(uid => ({ uid, subtext: null }));
+  const seen = new Set(localUids);
+  for (const { uid, landmark } of landmarkMatches) {
+    if (seen.has(uid)) continue;
+    seen.add(uid);
+    rows.push({ uid, subtext: `near ${landmark}` });
+    if (rows.length >= SUGGEST_CAP) break;
+  }
+  return rows.slice(0, SUGGEST_CAP);
+}
+
+function renderSuggestions(W, rows) {
+  const listEl = document.getElementById('wardSuggest');
+  if (!rows || !rows.length) {
+    listEl.innerHTML = '';
+    listEl.setAttribute('hidden', '');
+    return;
+  }
+
+  listEl.innerHTML = rows.map(({ uid, subtext }) => `
+    <li class="ward-suggest-row" data-uid="${esc(uid)}">
+      <span class="ward-row-name">${esc(W[uid].ward_name)}</span>
+      <span class="ward-row-meta">${subtext ? esc(subtext) : `Ward ${fmt(W[uid].ward_id)} &middot; ${esc(W[uid].corporation)}`}</span>
+    </li>
+  `).join('');
+  listEl.removeAttribute('hidden');
+
+  listEl.querySelectorAll('.ward-suggest-row').forEach(row => {
+    row.addEventListener('click', () => {
+      renderSuggestions(W, []);
+      onOpenWardRef(row.dataset.uid);
+    });
+  });
+}
+
 export function initHomeView({ W, meta }, { onOpenWard }) {
   onOpenWardRef = onOpenWard;
   const container = document.getElementById('homeContainer');
@@ -51,7 +145,10 @@ export function initHomeView({ W, meta }, { onOpenWard }) {
       <div class="eyebrow"><span class="eyebrow-dot"></span> Make an informed choice</div>
       <h1 class="headline">Bengaluru is choosing its <mark>ward councillor</mark> for the first time in years.</h1>
       <div class="find-controls">
-        <input id="findSearch" type="search" placeholder="Search by ward, area, or constituency" autocomplete="off">
+        <div class="find-search-wrap">
+          <input id="findSearch" type="search" placeholder="Search by ward, area, or constituency" autocomplete="off">
+          <ul id="wardSuggest" class="ward-suggest" hidden></ul>
+        </div>
         <button id="findLocate" class="btn btn-secondary" type="button">Use my location</button>
       </div>
       <p class="ward-def">A ward is the smallest electoral unit in a city. It is the neighbourhood or group of neighbourhoods you live in. Every ward elects one councillor who works on local civic issues such as roads, parks, sanitation, drainage, streetlights, and neighbourhood infrastructure.</p>
@@ -86,9 +183,31 @@ export function initHomeView({ W, meta }, { onOpenWard }) {
 
   renderList(W, '');
 
-  document.getElementById('findSearch').addEventListener('input', debounce((e) => {
-    renderList(W, e.target.value);
-  }, 120));
+  let latestLocalMatches = [];
+
+  const landmarkLookup = debounce(async (query, mySeq) => {
+    if (query.length < LANDMARK_MIN_LEN) return;
+    const landmarkMatches = await resolveLandmarkMatches(query, W);
+    if (landmarkMatches === null) return;
+    if (mySeq !== suggestRequestSeq) return;
+    renderSuggestions(W, buildSuggestionRows(latestLocalMatches, landmarkMatches));
+  }, LANDMARK_DEBOUNCE_MS);
+
+  document.getElementById('findSearch').addEventListener('input', (e) => {
+    const query = e.target.value.trim();
+    suggestRequestSeq += 1;
+    latestLocalMatches = query ? computeLocalMatches(W, query) : [];
+    renderSuggestions(W, buildSuggestionRows(latestLocalMatches, []));
+    landmarkLookup(query, suggestRequestSeq);
+  });
+
+  document.getElementById('findSearch').addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') renderSuggestions(W, []);
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.find-search-wrap')) renderSuggestions(W, []);
+  });
 
   document.getElementById('findLocate').addEventListener('click', () => {
     if (!navigator.geolocation) return;

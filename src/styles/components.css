@@ -167,9 +167,9 @@ mark {
 /* -- ward search & list (home view) -- */
 
 .find-controls { display: flex; gap: var(--space-2); margin: var(--space-5) 0 var(--space-2); flex-wrap: wrap; }
+.find-search-wrap { position: relative; flex: 1; min-width: 180px; }
 .find-controls input {
-  flex: 1;
-  min-width: 180px;
+  width: 100%;
   min-height: 44px;
   padding: 10px 14px;
   border-radius: var(--radius-m);
@@ -183,6 +183,23 @@ mark {
 .find-controls input:focus-visible { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-ring); outline: none; }
 [data-theme="dark"] .find-controls input:focus-visible { border-color: var(--lime); box-shadow: 0 0 0 3px color-mix(in srgb, var(--lime) 35%, transparent); }
 .find-count { color: var(--hint); font-size: 0.85rem; margin: var(--space-2) 0; }
+
+.ward-suggest {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 20;
+  list-style: none; margin: 0; padding: 4px;
+  max-height: 280px; overflow-y: auto; overscroll-behavior: contain;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m);
+  box-shadow: var(--shadow-2);
+}
+.ward-suggest-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  min-height: 44px;
+  padding: 10px var(--space-3);
+  border-radius: var(--radius-s);
+  cursor: pointer;
+  transition: background-color var(--dur) ease;
+}
+.ward-suggest-row:hover, .ward-suggest-row:focus-visible { background: var(--surface-2); }
 
 .ward-list {
   list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px;
@@ -443,7 +460,7 @@ mark {
 @media (max-width: 520px) {
   .cover { padding: 24px 0 40px; }
   .find-controls { flex-direction: column; }
-  .find-controls input, #findLocate { width: 100%; }
+  .find-search-wrap, #findLocate { width: 100%; }
   .map-corp { height: 200px; }
   .map-ward { height: 260px; }
   .ward-list { max-height: 320px; }
