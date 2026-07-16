@@ -105,7 +105,7 @@ mark {
 }
 .chip-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 
-.sec, .whead {
+.sec, .whead, .why-vote {
   margin: var(--space-6) 0;
   padding: var(--space-5);
   background: var(--surface-2);
@@ -138,6 +138,24 @@ mark {
   margin: 12px 0;
 }
 .headline mark { white-space: nowrap; }
+
+.why-vote {
+  display: flex; flex-direction: column;
+  padding: var(--space-3) var(--space-5);
+}
+.why-vote-head { display: flex; align-items: center; gap: var(--space-1); }
+.why-vote-icon {
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 40px; height: 40px; border-radius: var(--radius-s);
+  background: var(--surface); color: var(--green-d);
+}
+[data-theme="dark"] .why-vote-icon { color: var(--green); }
+.why-vote-title { font-family: var(--font-display); font-weight: 700; font-size: 1.2rem; color: var(--ink); }
+.why-vote-subtitle { font-weight: 600; font-size: 0.98rem; color: var(--green-d); margin-top: 2px; }
+[data-theme="dark"] .why-vote-subtitle { color: var(--green); }
+.why-vote-body { display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-1); }
+.why-vote-body p { margin: 0; color: var(--ink); font-size: 0.95rem; line-height: 1.6; }
+
 .ward-def { color: var(--ink); font-size: 0.95rem; margin: var(--space-3) 0; }
 .hero-kicker {
   font-family: var(--font-display);
@@ -596,6 +614,7 @@ mark {
 
 @media (max-width: 520px) {
   .cover { padding: 24px 0 40px; }
+  .why-vote { padding: var(--space-2) var(--space-4); }
   .find-controls { flex-direction: column; }
   .find-search-wrap, #findLocate { width: 100%; }
   .map-corp { height: 200px; }
