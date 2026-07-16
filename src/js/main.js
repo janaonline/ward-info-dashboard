@@ -3,6 +3,7 @@ import { initTheme } from './theme.js';
 import { initHomeView, resizeHomeMap } from './home-view.js';
 import { initWardView, openWard, resizeWardMap } from './ward-view.js';
 import { initMethodologyView } from './methodology-view.js';
+import { initVoterFaqView } from './voter-faq-view.js';
 import { initFooter, setFooterView, setFooterWard } from './footer.js';
 
 let currentView = 'home';
@@ -17,6 +18,9 @@ function showView(name) {
   if (name === 'home') resizeHomeMap();
   if (name === 'ward') resizeWardMap();
   setFooterView(name);
+
+  const fab = document.getElementById('voterFaqFab');
+  if (fab) fab.hidden = name === 'voter-faq';
 }
 
 function navigateTo(name) {
@@ -55,7 +59,26 @@ async function boot() {
 
   initMethodologyView({ meta }, { onBack: goBack });
 
+  initVoterFaqView({ onBack: goBack });
+
   initFooter({ onMethodology: () => navigateTo('methodology') });
+
+  const voterFaqFab = document.getElementById('voterFaqFab');
+  voterFaqFab.addEventListener('click', (e) => {
+    e.preventDefault();
+    navigateTo('voter-faq');
+  });
+
+  // The FAB is position:fixed, so without this it would sit pinned on top of
+  // whatever's in that bottom-right corner once a user scrolls to the bottom
+  // of any page — including the footer's own links. Fade it out whenever any
+  // part of the footer is in view, rather than a hard show/hide, so it
+  // reappears smoothly on scrolling back up.
+  const siteFooter = document.getElementById('siteFooter');
+  new IntersectionObserver(
+    (entries) => voterFaqFab.classList.toggle('voter-faq-fab--near-footer', entries[0].isIntersecting),
+    { rootMargin: '0px' }
+  ).observe(siteFooter);
 
   loadingIndicator.setAttribute('hidden', '');
 

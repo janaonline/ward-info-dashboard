@@ -33,6 +33,46 @@ a { color: inherit; }
   z-index: 40;
 }
 
+.voter-faq-fab {
+  /* Election portal primary CTA — reachable from anywhere, so it needs to
+     read clearly rather than blend into page chrome like .topcluster does. */
+  --fab-tint: var(--green-d);
+  position: fixed;
+  bottom: clamp(18px, 4vw, 28px);
+  right: clamp(18px, 4vw, 28px);
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 22px;
+  background: var(--green-d);
+  color: #fff;
+  border: none;
+  border-radius: 100px;
+  box-shadow: var(--shadow-2), 0 0 0 0 color-mix(in srgb, var(--fab-tint) 45%, transparent);
+  text-decoration: none;
+  font-family: var(--font-stat);
+  font-weight: 700;
+  font-size: 0.95rem;
+  min-height: 44px;
+  cursor: pointer;
+  animation: voterFaqPulse 2.5s ease-in-out infinite;
+  transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) ease, opacity var(--dur) ease;
+}
+[data-theme="dark"] .voter-faq-fab { --fab-tint: var(--green); background: var(--green); color: #10160b; }
+.voter-faq-fab:hover, .voter-faq-fab:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-3), 0 0 0 0 transparent;
+  animation-play-state: paused;
+}
+.voter-faq-fab[hidden] { display: none; }
+.voter-faq-fab--near-footer { opacity: 0; pointer-events: none; }
+
+@keyframes voterFaqPulse {
+  0%, 100% { box-shadow: var(--shadow-2), 0 0 0 0 color-mix(in srgb, var(--fab-tint) 45%, transparent); }
+  50% { box-shadow: var(--shadow-2), 0 0 0 9px color-mix(in srgb, var(--fab-tint) 0%, transparent); }
+}
+
 .loading-indicator {
   position: fixed;
   inset: 0;

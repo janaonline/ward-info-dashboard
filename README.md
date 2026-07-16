@@ -28,7 +28,9 @@ The site deploys to [Vercel](https://vercel.com) as a static project — no fram
 
 **Methodology** — an AI-assisted-GIS-workflow disclosure note, followed by three sections covering where the underlying civic data comes from (KGIS/OpenCity), how it's turned into per-ward "15-minute walk" coverage percentages, and the current scope and what's planned next — with a back button that returns you to whichever view you actually came from — navigation is tracked as a history stack, so this stays correct across multiple hops (e.g. ward → methodology → back → back lands on home, not back on methodology).
 
-**Footer** — present on all 3 views: a Methodology feature card (icon, title, and description), a Share this ward/WhatsApp/copy-link row (shown only while viewing a ward), and an attribution line crediting Janaagraha and Oorvani Foundation, each in its own logo card followed by that org's own social icons.
+**Voter FAQs** — a neutral, factual FAQ page on the GBA elections (what the GBA is, who you're voting for, key dates, registering, and how to cast your ballot), reachable from anywhere in the app via a prominent "🗳️ Voter FAQs" floating button fixed to the bottom-right of every view (it fades away near the footer so it never sits on top of it). Content is organized into 8 topic categories with a nav bar that docks to the top of the screen once you scroll past it — the same layout at every screen size, scrolling horizontally on narrow screens and wrapping onto extra rows on wide ones — highlighting the category currently in view as you scroll, and each question expands independently as an accordion row.
+
+**Footer** — present on all 4 views: a Methodology feature card (icon, title, and description), a Share this ward/WhatsApp/copy-link row (shown only while viewing a ward), and an attribution line crediting Janaagraha and Oorvani Foundation, each in its own logo card followed by that org's own social icons.
 
 ## Data sources
 
@@ -56,6 +58,6 @@ There's no lint, formatter, type checker, or bundler in this project by design �
 
 - Syntax-check any edited JS file: `node --input-type=module --check < src/js/<file>.js`
 - Grep for regressions: no `chart.js`/`plus jakarta` references, no leftover old color values, and none of the IDs/classes the view modules depend on (see `CLAUDE.md`'s "must-preserve selectors") have been renamed or removed.
-- For any CSS/markup change, manually click through all 3 views (home, ward detail, methodology) in both themes at a few screen widths — there's no automated visual test suite.
+- For any CSS/markup change, manually click through all 4 views (home, ward detail, methodology, voter FAQs) in both themes at a few screen widths — there's no automated visual test suite.
 
 See `.claude/skills/verify-and-update-docs/SKILL.md` for the full verify-then-document workflow this repo follows, and `CLAUDE.md` for the detailed rules an AI coding agent should follow when working in this codebase.
