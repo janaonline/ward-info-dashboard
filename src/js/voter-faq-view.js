@@ -176,12 +176,10 @@ function renderCategory(cat) {
   `;
 }
 
-export function initVoterFaqView({ onBack }) {
+export function initVoterFaqView() {
   const container = document.getElementById('voterFaqContainer');
 
   container.innerHTML = `
-    <button class="back-link" id="voterFaqBack" type="button">&larr; Back</button>
-
     <div class="cover">
       <div class="eyebrow"><span class="eyebrow-dot"></span> Voter FAQs</div>
       <h1 class="headline">Everything you need to know before you <mark>vote</mark>.</h1>
@@ -234,8 +232,6 @@ export function initVoterFaqView({ onBack }) {
       </div>
     </section>
   `;
-
-  document.getElementById('voterFaqBack').addEventListener('click', () => onBack());
 
   container.querySelectorAll('.accordion-item').forEach(item => {
     const trigger = item.querySelector('.accordion-trigger');

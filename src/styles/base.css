@@ -26,6 +26,35 @@ a { color: inherit; }
   gap: 8px;
 }
 
+.back-fab {
+  position: fixed;
+  top: calc(14px + env(safe-area-inset-top));
+  left: clamp(16px, 4vw, 32px);
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 44px;
+  padding: 0 14px 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line2);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-1);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) ease, background-color var(--dur) ease;
+}
+.back-fab:hover { transform: translateY(-1px); box-shadow: var(--shadow-2); background: var(--surface-2); }
+.back-fab[hidden] { display: none; }
+
+@media (max-width: 519px) {
+  .back-fab { width: 44px; padding: 0; justify-content: center; }
+  .back-fab-label { display: none; }
+}
+
 .methodology-link {
   position: fixed;
   bottom: calc(14px + env(safe-area-inset-bottom));

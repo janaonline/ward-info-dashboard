@@ -101,7 +101,6 @@ function neighbourhoodsText(w) {
 function renderHead(w) {
   return `
     <div class="whead">
-      <button class="back-link" id="wardBack" type="button">&larr; Back</button>
       <h2>${esc(w.ward_name)}${w.ward_name_kn ? ` <span class="kn">${esc(w.ward_name_kn)}</span>` : ''}</h2>
       <p class="whead-meta">Ward ${fmt(w.ward_id)} &middot; ${esc(w.corporation)} &middot; ${esc(w.zone_name || w.zone)} &middot; ${esc(w.assembly)}</p>
       <div class="whead-origin">
@@ -299,7 +298,7 @@ export function initWardView({ W, A }) {
   avgRef = A;
 }
 
-export function openWard(uid, { onOpenWard, onBack } = {}) {
+export function openWard(uid, { onOpenWard } = {}) {
   const W = dataRef;
   const A = avgRef;
   const w = W[uid];
@@ -315,8 +314,6 @@ export function openWard(uid, { onOpenWard, onBack } = {}) {
     ${renderFacts(w, A)}
     ${renderAsk(w)}
   `;
-
-  document.getElementById('wardBack').addEventListener('click', () => onBack());
 
   if (wardMap) {
     wardMap.remove();

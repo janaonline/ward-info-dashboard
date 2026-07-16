@@ -1,8 +1,7 @@
-export function initMethodologyView({ meta }, { onBack }) {
+export function initMethodologyView({ meta }) {
   const container = document.getElementById('methodologyContainer');
 
   container.innerHTML = `
-    <button class="back-link" id="methBack" type="button">&larr; Back</button>
     <h2>Methodology &amp; data sources</h2>
 
     <div class="callout">
@@ -36,6 +35,4 @@ export function initMethodologyView({ meta }, { onBack }) {
       </ul>
     </section>
   `;
-
-  document.getElementById('methBack').addEventListener('click', () => onBack());
 }

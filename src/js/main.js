@@ -5,6 +5,7 @@ import { initWardView, openWard, resizeWardMap } from './ward-view.js';
 import { initMethodologyView } from './methodology-view.js';
 import { initVoterFaqView } from './voter-faq-view.js';
 import { initFooter, setFooterView, setFooterWard } from './footer.js';
+import { initBackButton, setBackButtonVisible } from './back-button.js';
 
 let currentView = 'home';
 const viewStack = [];
@@ -18,6 +19,7 @@ function showView(name) {
   if (name === 'home') resizeHomeMap();
   if (name === 'ward') resizeWardMap();
   setFooterView(name);
+  setBackButtonVisible(name !== 'home');
 
   const fab = document.getElementById('voterFaqFab');
   if (fab) fab.hidden = name === 'voter-faq';
@@ -48,7 +50,7 @@ async function boot() {
   const { W, A, meta } = data;
 
   const handleOpenWard = (uid) => {
-    openWard(uid, { onOpenWard: handleOpenWard, onBack: goBack });
+    openWard(uid, { onOpenWard: handleOpenWard });
     setFooterWard(uid, W[uid].ward_name);
     navigateTo('ward');
   };
@@ -57,11 +59,13 @@ async function boot() {
 
   initWardView({ W, A });
 
-  initMethodologyView({ meta }, { onBack: goBack });
+  initMethodologyView({ meta });
 
-  initVoterFaqView({ onBack: goBack });
+  initVoterFaqView();
 
   initFooter({ onMethodology: () => navigateTo('methodology') });
+
+  initBackButton(goBack);
 
   const voterFaqFab = document.getElementById('voterFaqFab');
   voterFaqFab.addEventListener('click', (e) => {
