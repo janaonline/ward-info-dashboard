@@ -39,6 +39,10 @@ const POINT_SOURCES = {
   fire: 'public/data/Bengaluru_Fire_Stations_Locations.geojson',
 };
 
+// Ward-specific "Did you know?" facts and "Questions to ask your candidates",
+// matched to a ward by ward_name (see buildFactsQuestionsIndex/normalizeWardName).
+const FACTS_QUESTIONS_SOURCE = 'public/data/ward_facts_questions.geojson';
+
 // Which raw GeoJSON property holds a point type's real display name (and, for
 // polling only, a secondary booth-number field). Only types with a real per-feature
 // name belong here — every other point source's Name property is a uniform literal
@@ -68,6 +72,14 @@ function firstNumber(source, keys, fallback = null) {
 
 function stripWardPrefix(name) {
   return String(name || '').replace(/^\s*\d+\s*-\s*/, '').trim();
+}
+
+function normalizeWardName(name) {
+  return String(name || '').trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+function isLocalDev() {
+  return typeof location !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
 }
 
 function makeUid(props) {
@@ -209,14 +221,28 @@ function assignPointSource(W, sourceGeoJSON, pointKey) {
   }
 }
 
+// Properties-only index for ward_facts_questions.geojson, keyed by normalized
+// ward_name — the file's own polygon geometry is unused and discarded here.
+function buildFactsQuestionsIndex(geojson) {
+  const index = {};
+  for (const feature of geojson.features || []) {
+    const name = feature.properties?.ward_name;
+    if (!name) continue;
+    index[normalizeWardName(name)] = feature.properties;
+  }
+  return index;
+}
+
 export async function loadData() {
   const pointKeys = Object.keys(POINT_SOURCES);
-  const [csvText, enrichedGeoJSON, ...pointGeoJSONs] = await Promise.all([
+  const [csvText, enrichedGeoJSON, factsQuestionsGeoJSON, ...pointGeoJSONs] = await Promise.all([
     fetchText('public/data/wards.csv'),
     fetchJSON('public/data/GBA_369_Wards_Enriched.geojson'),
+    fetchJSON(FACTS_QUESTIONS_SOURCE),
     ...pointKeys.map(key => fetchJSON(POINT_SOURCES[key])),
   ]);
   const pointGeoJSONByKey = Object.fromEntries(pointKeys.map((key, i) => [key, pointGeoJSONs[i]]));
+  const factsQuestionsByName = buildFactsQuestionsIndex(factsQuestionsGeoJSON);
 
   const parsed = Papa.parse(csvText, { header: true, dynamicTyping: true, skipEmptyLines: true });
   const csvByUid = {};
@@ -306,6 +332,12 @@ export async function loadData() {
       spreadCoincidentPoints(ward.points[key]);
     }
     if (ward.polling == null) ward.polling = ward.points.polling.length;
+
+    const fq = factsQuestionsByName[normalizeWardName(ward.ward_name)];
+    ward.factsQuestions = fq || null;
+    if (!fq && isLocalDev()) {
+      console.warn(`[ward_facts_questions] No match for ward "${ward.ward_name}" (${ward.uid})`);
+    }
   }
 
   const wards = Object.values(W);
