@@ -470,6 +470,44 @@ mark {
 #voterFaqContainer .category:last-child { margin-bottom: 0; }
 #voterFaqContainer .category h3 { margin-bottom: var(--space-2); }
 
+.faq-search { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); margin: 0 0 var(--space-5); }
+.faq-search-box { position: relative; width: 100%; max-width: 640px; }
+.faq-search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--hint); pointer-events: none; }
+.faq-search-input {
+  width: 100%; box-sizing: border-box; min-height: 44px; padding: 12px 44px 12px 42px;
+  border-radius: var(--radius-m); border: 1px solid var(--line2);
+  background: var(--surface); color: var(--ink);
+  font-family: var(--font-body); font-size: 0.95rem;
+  transition: border-color var(--dur) ease, box-shadow var(--dur) ease;
+}
+.faq-search-input:focus-visible { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-ring); outline: none; }
+[data-theme="dark"] .faq-search-input:focus-visible { border-color: var(--lime); box-shadow: 0 0 0 3px color-mix(in srgb, var(--lime) 35%, transparent); }
+.faq-search-clear {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  border: none; background: none; color: var(--hint); cursor: pointer; border-radius: 50%;
+  font-size: 1.1rem; line-height: 1; padding: 0;
+  transition: background-color var(--dur) ease, color var(--dur) ease;
+}
+.faq-search-clear:hover { background: var(--surface-2); color: var(--ink); }
+.faq-search-clear[hidden] { display: none; }
+.faq-search-summary { color: var(--hint); font-size: 0.85rem; text-align: center; margin: 0; }
+.faq-search-summary[hidden] { display: none; }
+
+.faq-empty { text-align: center; padding: var(--space-6) var(--space-4); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-l); }
+.faq-empty[hidden] { display: none; }
+.faq-empty-icon { font-size: 2rem; }
+.faq-empty h3 { font-family: var(--font-display); font-weight: 600; margin: var(--space-2) 0 var(--space-1); }
+.faq-empty p { color: var(--muted); margin: 0 0 var(--space-3); }
+.faq-empty-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); margin-bottom: var(--space-4); }
+.faq-empty-chip { cursor: pointer; border: 1px solid var(--line2); }
+.faq-empty-chip:hover { background: var(--surface-2); }
+
+/* .cat-nav's own display:flex would otherwise beat the native [hidden] UA
+   rule (author rules always win over UA styles) — same fix already used for
+   .voter-faq-fab[hidden] in base.css. */
+.cat-nav[hidden] { display: none; }
+
 /* -- footer -- */
 
 .site-footer { margin-top: var(--space-7); border-top: 1px solid var(--line); background: var(--surface); }

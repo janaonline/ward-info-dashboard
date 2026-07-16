@@ -157,7 +157,7 @@ const CATEGORIES = [
 
 function renderCategory(cat) {
   const items = cat.items.map((item, i) => `
-    <div class="accordion-item">
+    <div class="accordion-item" data-item-index="${i}">
       <button class="accordion-trigger" type="button" id="${cat.id}-trigger-${i}" aria-controls="${cat.id}-panel-${i}">
         <span>${item.q}</span>
         ${CHEVRON}
@@ -197,6 +197,15 @@ export function initVoterFaqView({ onBack }) {
       <p>For filing corrections, adding missing registrations, or shifting residential data points across updated ward boundaries, the critical ECI Claims and Objections window is strictly open from <mark>August 5</mark> to <mark>September 4</mark>. (This is also the time for new voters to register!)</p>
     </div>
 
+    <div class="faq-search">
+      <div class="faq-search-box">
+        <svg class="faq-search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input type="text" id="faqSearchInput" class="faq-search-input" placeholder="Search voter FAQs..." aria-label="Search voter FAQs" autocomplete="off" spellcheck="false" />
+        <button type="button" id="faqSearchClear" class="faq-search-clear" aria-label="Clear search" hidden>&times;</button>
+      </div>
+      <p class="faq-search-summary" id="faqSearchSummary" aria-live="polite" hidden></p>
+    </div>
+
     <section class="faq-section">
       <div class="faq-intro">
         <h2>Browse by topic</h2>
@@ -209,6 +218,18 @@ export function initVoterFaqView({ onBack }) {
         </nav>
         <div>
           ${CATEGORIES.map(renderCategory).join('')}
+        </div>
+        <div class="faq-empty" id="faqEmptyState" hidden>
+          <div class="faq-empty-icon" aria-hidden="true">&#128269;</div>
+          <h3>No FAQs matched your search.</h3>
+          <p>Try searching for:</p>
+          <div class="faq-empty-chips">
+            <button type="button" class="pill faq-empty-chip" data-suggest="Ward">Ward</button>
+            <button type="button" class="pill faq-empty-chip" data-suggest="Voter ID">Voter ID</button>
+            <button type="button" class="pill faq-empty-chip" data-suggest="Polling Station">Polling Station</button>
+            <button type="button" class="pill faq-empty-chip" data-suggest="Corporator">Corporator</button>
+          </div>
+          <button type="button" class="btn btn-secondary" id="faqEmptyClear">Clear Search</button>
         </div>
       </div>
     </section>
@@ -228,9 +249,150 @@ export function initVoterFaqView({ onBack }) {
     });
   });
 
+  // -- instant search --
+
+  function debounce(fn, ms) {
+    let t;
+    return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+  }
+
+  function stripHtml(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return tmp.textContent || '';
+  }
+
+  function escapeRegExp(s) {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  // Walks text nodes only (never touches tags/attributes, so an answer's
+  // <a href>/<strong>/<li> markup can never be corrupted) and splices <mark>
+  // elements around matches via real DOM nodes rather than string
+  // concatenation — safe even though the wrapped text originates from the
+  // user's own typed query.
+  function highlightIn(el, regex) {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    const textNodes = [];
+    let node;
+    while ((node = walker.nextNode())) textNodes.push(node);
+    textNodes.forEach(tn => {
+      const text = tn.nodeValue;
+      regex.lastIndex = 0;
+      if (!regex.test(text)) return;
+      regex.lastIndex = 0;
+      const frag = document.createDocumentFragment();
+      let lastIndex = 0;
+      let m;
+      while ((m = regex.exec(text))) {
+        if (m.index > lastIndex) frag.appendChild(document.createTextNode(text.slice(lastIndex, m.index)));
+        const mark = document.createElement('mark');
+        mark.textContent = m[0];
+        frag.appendChild(mark);
+        lastIndex = m.index + m[0].length;
+      }
+      if (lastIndex < text.length) frag.appendChild(document.createTextNode(text.slice(lastIndex)));
+      tn.parentNode.replaceChild(frag, tn);
+    });
+  }
+
+  const catIndex = new Map(CATEGORIES.map(c => [c.id, c]));
+  const searchIndex = [...container.querySelectorAll('.accordion-item')].map(itemEl => {
+    const cat = catIndex.get(itemEl.closest('.category').id);
+    const item = cat.items[Number(itemEl.dataset.itemIndex)];
+    return {
+      itemEl,
+      trigger: itemEl.querySelector('.accordion-trigger'),
+      triggerSpan: itemEl.querySelector('.accordion-trigger span'),
+      panel: itemEl.querySelector('.accordion-panel'),
+      panelInner: itemEl.querySelector('.accordion-panel-inner'),
+      item,
+      qLower: item.q.toLowerCase(),
+      answerLower: stripHtml(item.a).toLowerCase(),
+    };
+  });
+
+  const searchInput = document.getElementById('faqSearchInput');
+  const searchClear = document.getElementById('faqSearchClear');
+  const searchSummary = document.getElementById('faqSearchSummary');
+  const emptyState = document.getElementById('faqEmptyState');
+
+  function applySearch(rawQuery) {
+    const query = rawQuery.trim();
+    const hasQuery = query.length > 0;
+    const queryLower = query.toLowerCase();
+    const regex = hasQuery ? new RegExp(escapeRegExp(query), 'gi') : null;
+
+    navEl.hidden = hasQuery;
+    searchClear.hidden = !hasQuery;
+
+    // Unhide every section first so scrollHeight measurements below are
+    // accurate even if a section was hidden by the previous keystroke.
+    categoryEntries.forEach(c => { c.sectionEl.hidden = false; });
+
+    let visibleCount = 0;
+    searchIndex.forEach(entry => {
+      const { itemEl, trigger, triggerSpan, panel, panelInner, item, qLower, answerLower } = entry;
+      const matches = !hasQuery || qLower.includes(queryLower) || answerLower.includes(queryLower);
+
+      // Always rebuild from the pristine source rather than mutate-in-place —
+      // this is what makes re-highlighting (and un-highlighting on clear)
+      // drift-free with no separate "strip marks" step needed.
+      triggerSpan.textContent = item.q;
+      panelInner.innerHTML = item.a;
+
+      itemEl.hidden = !matches;
+      if (!matches) return;
+      visibleCount++;
+
+      if (hasQuery) {
+        highlightIn(triggerSpan, regex);
+        highlightIn(panelInner, regex);
+      }
+
+      const open = hasQuery; // auto-expand while searching; collapsed once cleared
+      itemEl.setAttribute('data-open', String(open));
+      trigger.setAttribute('aria-expanded', String(open));
+      panel.style.maxHeight = open ? `${panel.scrollHeight}px` : '0px';
+    });
+
+    categoryEntries.forEach(c => {
+      const anyVisible = c.itemEls.some(el => !el.hidden);
+      c.sectionEl.hidden = hasQuery && !anyVisible;
+    });
+
+    searchSummary.hidden = !hasQuery;
+    if (hasQuery) searchSummary.textContent = `${visibleCount} result${visibleCount === 1 ? '' : 's'} found`;
+    emptyState.hidden = !(hasQuery && visibleCount === 0);
+  }
+
+  function clearSearch() {
+    searchInput.value = '';
+    applySearch('');
+    searchInput.focus();
+  }
+
+  searchInput.addEventListener('input', debounce(() => applySearch(searchInput.value), 200));
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') clearSearch();
+  });
+  searchClear.addEventListener('click', clearSearch);
+  document.getElementById('faqEmptyClear').addEventListener('click', clearSearch);
+  emptyState.querySelectorAll('.faq-empty-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      searchInput.value = chip.dataset.suggest;
+      applySearch(searchInput.value);
+      searchInput.focus();
+    });
+  });
+
   const navEl = container.querySelector('.cat-nav');
   const catButtons = navEl.querySelectorAll('button');
   const sections = [...container.querySelectorAll('.category')];
+  const categoryEntries = sections.map(sectionEl => ({
+    sectionEl,
+    itemEls: [...sectionEl.querySelectorAll('.accordion-item')],
+  }));
 
   let activeId = 'cat-1'; // matches the .active class already in the initial markup
   let suppressScrollSpy = false;
