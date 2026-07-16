@@ -29,6 +29,7 @@ const POINT_SOURCES = {
   metro: 'public/data/Bengaluru_Metro_Stations.geojson',
   school: 'public/data/BBMP_Schools_Map.geojson',
   anganwadi: 'public/data/Bengaluru_Urban_Anganwadis_Map.geojson',
+  park: 'public/data/Parks.geojson',
   toilet: 'public/data/BBMP_Public_Toilets_Map.geojson',
   lake: 'public/data/BBMP_Lakes_Map.geojson',
   flood_prone: 'public/data/Flood_Prone_Locations_Map.geojson',
