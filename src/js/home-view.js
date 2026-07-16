@@ -12,6 +12,8 @@ const LANDMARK_MIN_LEN = 3;
 const LANDMARK_DEBOUNCE_MS = 400;
 const SUGGEST_CAP = 6;
 
+const BALLOT_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h16v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M4 10l3-6h10l3 6"/><path d="M9.5 13.5l2 2 4-4"/></svg>';
+
 function debounce(fn, ms) {
   let t;
   return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
@@ -172,6 +174,21 @@ export function initHomeView({ W, meta }, { onOpenWard }) {
     <div class="cover">
       <div class="eyebrow"><span class="eyebrow-dot"></span> Make an informed choice</div>
       <h1 class="headline">Bengaluru is choosing its <mark>ward councillor</mark> for the first time in years.</h1>
+      <section class="why-vote" aria-labelledby="whyVoteTitle">
+        <div class="why-vote-head">
+          <span class="why-vote-icon" aria-hidden="true">${BALLOT_ICON}</span>
+          <h2 id="whyVoteTitle" class="why-vote-title">Why vote?</h2>
+        </div>
+        <p class="why-vote-subtitle">Why your vote in the ward election matters.</p>
+        <div class="why-vote-body">
+          <p>Bengaluru has not held local body elections since 2015, and for nearly a decade the city has functioned without elected corporators, leaving neighbourhoods without direct, accountable representation in the system.</p>
+          <p>In that time, the city has continued to spend significant public funds, INR 38,455 crore annually, yet much of this remains difficult to trace, and for citizens there has been little clarity on how decisions are made or whom to hold responsible when services fall short.</p>
+          <p>What this looks like on the ground is not abstract: roads that remain damaged, garbage that is not cleared on time, drains that overflow during rains, footpaths that are unusable, and streetlights that do not function consistently, all without an elected representative whose role is to take these issues up and demand answers.</p>
+          <p>This election is an opportunity to restore that link.</p>
+          <p>Your vote decides who represents your ward, who raises your concerns, and who holds the system to account. It shapes how your neighbourhood functions and how responsive the city becomes.</p>
+          <p><strong>Vote. It is your voice in how Bengaluru is run.</strong></p>
+        </div>
+      </section>
       <div class="find-controls">
         <div class="find-search-wrap">
           <input id="findSearch" type="search" placeholder="Search by ward, area, or constituency" autocomplete="off">
