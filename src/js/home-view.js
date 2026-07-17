@@ -1,4 +1,4 @@
-import { createMap, buildWardPolygonsGeoJSON, addChoroplethLayer, CORP_COLORS, wardAt, resizeMap } from './maps.js';
+import { createMap, buildWardPolygonsGeoJSON, addChoroplethLayer, CORP_COLORS, wardAt, resizeMap, raiseLabels } from './maps.js';
 import { esc, fmt } from './format.js';
 
 let corpMap = null;
@@ -299,6 +299,7 @@ export function initHomeView({ W, meta }, { onOpenWard }) {
     corpMap.on('load', () => {
       const geojson = buildWardPolygonsGeoJSON(W);
       const hover = addChoroplethLayer(corpMap, geojson);
+      raiseLabels(corpMap);
       const tip = new maplibregl.Popup({ closeButton: false, closeOnClick: false, className: 'map-tip', offset: 12 });
 
       corpMap.on('mousemove', 'wards-fill', (e) => {

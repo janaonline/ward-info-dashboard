@@ -1,7 +1,7 @@
 import {
   createMap, buildWardPolygonsGeoJSON, addWardBoundaryLayer, LAYER, LAYER_ORDER,
   amenityRows, defaultLayer, layerPoints, setActiveAmenityLayer, setWalkBufferLayer,
-  nearbyWards, resizeMap, forEachWardCoordinate,
+  nearbyWards, resizeMap, forEachWardCoordinate, raiseLabels,
 } from './maps.js';
 import { esc, fmt } from './format.js';
 import { isLocalDev } from './data-loader.js';
@@ -337,6 +337,7 @@ export function openWard(uid, { onOpenWard } = {}) {
       wardMap.on('mouseleave', 'amenity-points-circle', () => amenityTip.remove());
     }
     wireLayerClicks(uid, W);
+    raiseLabels(wardMap);
   });
 }
 

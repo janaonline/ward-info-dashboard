@@ -61,6 +61,11 @@ export function tileUrlForTheme(theme) {
   return CARTO_SUBDOMAINS.map(s => `https://${s}.basemaps.cartocdn.com/${variant}/{z}/{x}/{y}.png`);
 }
 
+export function labelTileUrlForTheme(theme) {
+  const variant = theme === 'dark' ? 'dark_only_labels' : 'light_only_labels';
+  return CARTO_SUBDOMAINS.map(s => `https://${s}.basemaps.cartocdn.com/${variant}/{z}/{x}/{y}.png`);
+}
+
 // ---- geometry helpers (keyed by uid; supports GeoJSON Polygon and MultiPolygon) ----
 
 export function pipRing(x, y, ring) {
@@ -223,8 +228,12 @@ export function createMap(containerId, { center = [77.5946, 12.9716], zoom = 10.
       version: 8,
       sources: {
         carto: { type: 'raster', tiles: tileUrlForTheme(currentTheme), tileSize: 256, attribution: '© CARTO © OpenStreetMap contributors' },
+        'carto-labels': { type: 'raster', tiles: labelTileUrlForTheme(currentTheme), tileSize: 256 },
       },
-      layers: [{ id: 'carto-base', type: 'raster', source: 'carto' }],
+      layers: [
+        { id: 'carto-base', type: 'raster', source: 'carto' },
+        { id: 'carto-labels', type: 'raster', source: 'carto-labels' },
+      ],
     },
     center,
     zoom,
@@ -234,11 +243,17 @@ export function createMap(containerId, { center = [77.5946, 12.9716], zoom = 10.
   const unsubscribe = onThemeChange((newTheme) => {
     const src = map.getSource('carto');
     if (src && src.setTiles) src.setTiles(tileUrlForTheme(newTheme));
+    const labelSrc = map.getSource('carto-labels');
+    if (labelSrc && labelSrc.setTiles) labelSrc.setTiles(labelTileUrlForTheme(newTheme));
   });
 
   map.on('remove', unsubscribe);
   _liveMaps.add(map);
   return map;
+}
+
+export function raiseLabels(map) {
+  if (map.getLayer('carto-labels')) map.moveLayer('carto-labels');
 }
 
 export function resizeMap(map) {
