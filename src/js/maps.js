@@ -146,6 +146,63 @@ export function nearbyWards(uid, W, k = 6) {
   return arr.slice(0, k).map(x => x[0]);
 }
 
+// ---- buffer-zone distance helpers (same flat-earth, lat-adjusted approximation
+// as buildWalkBuffer below — not haversine, for consistency with that precedent) ----
+
+const _wardBboxCache = new Map();
+
+export function wardBbox(uid, W) {
+  if (_wardBboxCache.has(uid)) return _wardBboxCache.get(uid);
+  let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity, n = 0;
+  forEachWardCoordinate(W[uid], (p) => {
+    if (p[0] < minx) minx = p[0];
+    if (p[0] > maxx) maxx = p[0];
+    if (p[1] < miny) miny = p[1];
+    if (p[1] > maxy) maxy = p[1];
+    n++;
+  });
+  const bbox = n ? { minx, miny, maxx, maxy } : null;
+  _wardBboxCache.set(uid, bbox);
+  return bbox;
+}
+
+export function expandBbox(bbox, meters, refLat) {
+  const dLat = meters / 111320;
+  const dLng = meters / (111320 * Math.cos(refLat * Math.PI / 180));
+  return { minx: bbox.minx - dLng, miny: bbox.miny - dLat, maxx: bbox.maxx + dLng, maxy: bbox.maxy + dLat };
+}
+
+export function bboxesOverlap(a, b) {
+  return a.minx <= b.maxx && a.maxx >= b.minx && a.miny <= b.maxy && a.maxy >= b.miny;
+}
+
+function pointToSegmentMeters(px, py, ax, ay, bx, by) {
+  const refLat = py;
+  const mPerDegLng = 111320 * Math.cos(refLat * Math.PI / 180);
+  const X = px * mPerDegLng, Y = py * 111320;
+  const Ax = ax * mPerDegLng, Ay = ay * 111320;
+  const Bx = bx * mPerDegLng, By = by * 111320;
+  const dx = Bx - Ax, dy = By - Ay;
+  const lenSq = dx * dx + dy * dy;
+  let t = lenSq ? ((X - Ax) * dx + (Y - Ay) * dy) / lenSq : 0;
+  t = Math.max(0, Math.min(1, t));
+  const cx = Ax + t * dx, cy = Ay + t * dy;
+  return Math.hypot(X - cx, Y - cy);
+}
+
+export function distanceMetersToWardBoundary(lng, lat, uid, W) {
+  let min = Infinity;
+  for (const polygon of geometryPolygons(wardGeometry(W[uid]))) {
+    for (const ring of polygon) {
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const d = pointToSegmentMeters(lng, lat, ring[j][0], ring[j][1], ring[i][0], ring[i][1]);
+        if (d < min) min = d;
+      }
+    }
+  }
+  return min;
+}
+
 // ---- amenity point/row helpers ----
 
 export function layerPoints(uid, type, W) {
@@ -163,6 +220,29 @@ export function layerPointMeta(uid, type, W) {
   const w = W[uid];
   const k = type === 'polling' ? 'polling' : LAYER[type].ptkey;
   return (w && w.pointMeta && w.pointMeta[k]) || [];
+}
+
+function nearbyExternalPoints(uid, type, W, radiusMeters = 1600) {
+  const bbox = wardBbox(uid, W);
+  if (!bbox) return { points: [], meta: [] };
+  const refLat = (bbox.miny + bbox.maxy) / 2;
+  const expanded = expandBbox(bbox, radiusMeters, refLat);
+  const points = [], meta = [];
+  for (const otherUid in W) {
+    if (otherUid === uid) continue;
+    const otherBbox = wardBbox(otherUid, W);
+    if (!otherBbox || !bboxesOverlap(expanded, otherBbox)) continue;
+    const otherPoints = layerPoints(otherUid, type, W);
+    if (!otherPoints.length) continue;
+    const otherMeta = layerPointMeta(otherUid, type, W);
+    otherPoints.forEach((p, i) => {
+      if (distanceMetersToWardBoundary(p[0], p[1], uid, W) <= radiusMeters) {
+        points.push(p);
+        meta.push(otherMeta[i] || {});
+      }
+    });
+  }
+  return { points, meta };
 }
 
 export function defaultLayer(uid, W) {
@@ -415,4 +495,40 @@ export function setWalkBufferLayer(map, points, visible) {
       paint: { 'fill-color': '#2f8f66', 'fill-opacity': 0.12 },
     }, 'amenity-points-circle');
   }
+}
+
+export function addSecondaryAmenityPointsLayer(map, points, color, meta) {
+  const geojson = {
+    type: 'FeatureCollection',
+    features: points.map((p, i) => ({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: p },
+      properties: (meta && meta[i]) || {},
+    })),
+  };
+  if (map.getSource('amenity-points-secondary')) {
+    map.getSource('amenity-points-secondary').setData(geojson);
+    map.setPaintProperty('amenity-points-secondary-circle', 'circle-color', color);
+  } else {
+    map.addSource('amenity-points-secondary', { type: 'geojson', data: geojson });
+    map.addLayer({
+      id: 'amenity-points-secondary-circle',
+      type: 'circle',
+      source: 'amenity-points-secondary',
+      paint: {
+        'circle-radius': 5,
+        'circle-color': color,
+        'circle-opacity': 0.45,
+        'circle-stroke-width': 1.5,
+        'circle-stroke-color': '#ffffff',
+        'circle-stroke-opacity': 0.45,
+      },
+    }, 'amenity-points-circle');
+  }
+}
+
+export function setExternalAmenityLayer(map, type, uid, W, radiusMeters = 1600) {
+  const { points, meta } = nearbyExternalPoints(uid, type, W, radiusMeters);
+  addSecondaryAmenityPointsLayer(map, points, LAYER[type].color, meta);
+  return points;
 }

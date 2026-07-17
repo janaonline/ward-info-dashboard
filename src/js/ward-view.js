@@ -1,7 +1,7 @@
 import {
   createMap, buildWardPolygonsGeoJSON, addWardBoundaryLayer, LAYER, LAYER_ORDER,
   amenityRows, defaultLayer, layerPoints, setActiveAmenityLayer, setWalkBufferLayer,
-  nearbyWards, resizeMap, forEachWardCoordinate, raiseLabels, addResetViewControl,
+  setExternalAmenityLayer, nearbyWards, resizeMap, forEachWardCoordinate, raiseLabels, addResetViewControl,
 } from './maps.js';
 import { esc, fmt } from './format.js';
 import { isLocalDev } from './data-loader.js';
@@ -10,6 +10,7 @@ let wardMap = null;
 let currentLayer = null;
 let bufferOn = false;
 let dataRef = null;
+let activeSecondaryPopup = null;
 
 // ---- facts & questions engine (sourced from ward_facts_questions.geojson,
 // matched to a ward by ward_name once at load time in data-loader.js) ----
@@ -235,6 +236,10 @@ function renderFeedback() {
 
 // ---- map wiring ----
 
+function closeSecondaryPopup() {
+  if (activeSecondaryPopup) { activeSecondaryPopup.remove(); activeSecondaryPopup = null; }
+}
+
 function setLayer(uid, W, type) {
   if (!type || !LAYER[type]) return;
   currentLayer = type;
@@ -249,6 +254,7 @@ function setLayer(uid, W, type) {
   if (bufferToggle) bufferToggle.disabled = !walkEligible;
 
   setWalkBufferLayer(wardMap, walkEligible ? points : [], bufferOn && walkEligible);
+  setExternalAmenityLayer(wardMap, type, uid, W);
   document.querySelectorAll('.legend-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.layer === type);
   });
@@ -291,6 +297,9 @@ function wireLayerClicks(uid, W) {
 
 export function initWardView({ W }) {
   dataRef = W;
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeSecondaryPopup();
+  });
 }
 
 export function openWard(uid, { onOpenWard } = {}) {
@@ -298,6 +307,7 @@ export function openWard(uid, { onOpenWard } = {}) {
   const w = W[uid];
   currentLayer = defaultLayer(uid, W);
   bufferOn = false;
+  activeSecondaryPopup = null;
 
   const container = document.getElementById('wardContainer');
   container.innerHTML = `
@@ -358,6 +368,29 @@ export function openWard(uid, { onOpenWard } = {}) {
         amenityTip.setLngLat(e.lngLat).setHTML(html).addTo(wardMap);
       });
       wardMap.on('mouseleave', 'amenity-points-circle', () => amenityTip.remove());
+
+      const secondaryTip = new maplibregl.Popup({ closeButton: false, closeOnClick: false, className: 'map-tip', offset: 12 });
+      wardMap.on('mousemove', 'amenity-points-secondary-circle', (e) => {
+        if (!e.features.length || activeSecondaryPopup) return;
+        if (wardMap.queryRenderedFeatures(e.point, { layers: ['amenity-points-circle'] }).length) return;
+        const { name, num } = e.features[0].properties;
+        if (!name) { secondaryTip.remove(); return; }
+        const html = num ? `${esc(name)} &middot; Booth ${esc(num)}` : esc(name);
+        secondaryTip.setLngLat(e.lngLat).setHTML(html).addTo(wardMap);
+      });
+      wardMap.on('mouseleave', 'amenity-points-secondary-circle', () => secondaryTip.remove());
+
+      wardMap.on('click', 'amenity-points-secondary-circle', (e) => {
+        if (!e.features.length) return;
+        const { name, num } = e.features[0].properties;
+        if (!name) return;
+        closeSecondaryPopup();
+        secondaryTip.remove();
+        const html = num ? `${esc(name)} &middot; Booth ${esc(num)}` : esc(name);
+        activeSecondaryPopup = new maplibregl.Popup({ closeButton: false, className: 'map-tip', offset: 12 })
+          .setLngLat(e.lngLat).setHTML(html).addTo(wardMap);
+        activeSecondaryPopup.on('close', () => { activeSecondaryPopup = null; });
+      });
     }
     wireLayerClicks(uid, W);
     raiseLabels(wardMap);
