@@ -91,6 +91,7 @@ Selectors below are real, current selectors from `src/styles/components.css`/`ba
 | Component | Selector(s) | Purpose / token usage | Example usage |
 |---|---|---|---|
 | Card shell | `.sec, .whead, .why-vote` | Every major section block: `--surface-2` bg, `--line` border, `--radius-l`, `--shadow-1`, `--space-5`/`--space-6` padding | every ward-detail section, methodology sections |
+| Hero lede/subtitle | `.faq-lede` (top-margin-only variant), `.hero-subtitle` (symmetric-margin variant) | One-sentence paragraph directly under a `.headline`: `--ink` text (tier-1, sentence-length — never `--muted`/`--hint`), `0.95rem`, `max-width: 64ch` for line length; margin shorthand differs only by what follows it in each view | voter-FAQ hero (`.faq-lede`, followed by `.cta-row` which supplies its own top margin), home hero (`.hero-subtitle`, followed by `.why-vote`, which has none) |
 | Primary button | `.btn.btn-primary` | Solid `--green-d` (light) / `--green` (dark) CTA | ward-view "Ask" CTA, voter-FAQ hero |
 | Secondary button | `.btn.btn-secondary` | `--surface` bg, `--line2` border | back/cancel actions |
 | WhatsApp button | `.btn.btn-whatsapp` | Fixed `#25d366`/`#06341c` — brand-locked exception, not a token; only ever for the WhatsApp share action, never reused for generic green CTAs | `#footerWhatsapp` |

@@ -192,7 +192,8 @@ export function initHomeView({ W, meta }, { onOpenWard }) {
   container.innerHTML = `
     <div class="cover">
       <div class="eyebrow"><span class="eyebrow-dot"></span> Make an informed choice</div>
-      <h1 class="headline">Bengaluru is choosing its <mark>ward councillor</mark> for the first time in years.</h1>
+      <h1 class="headline">This election, Bengaluru will elect <mark>ward councillors</mark> under the Greater Bengaluru Authority (GBA) for the first time.</h1>
+      <p class="hero-subtitle">Before you vote, understand your neighbourhood, explore the candidates, see the public infrastructure around you, and learn how your local government shapes everyday life.</p>
       <section class="why-vote" aria-labelledby="whyVoteTitle">
         <div class="why-vote-head">
           <span class="why-vote-icon" aria-hidden="true">${BALLOT_ICON}</span>

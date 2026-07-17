@@ -163,6 +163,8 @@ mark {
   margin: 12px 0;
 }
 .headline mark { white-space: nowrap; }
+.hero-subtitle { color: var(--ink); font-size: 0.95rem; margin: var(--space-3) 0; }
+#homeContainer .headline { font-size: clamp(1.7rem, 5.5vw, 2.4rem); }
 
 .why-vote {
   display: flex; flex-direction: column;
@@ -688,5 +690,6 @@ mark {
 
 @media (max-width: 380px) {
   .headline { font-size: clamp(1.7rem, 7vw, 2rem); }
+  #homeContainer .headline { font-size: clamp(1.5rem, 6.5vw, 1.8rem); }
   .container { padding-left: 12px; padding-right: 12px; }
 }
