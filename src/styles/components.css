@@ -403,6 +403,8 @@ mark {
 .sahaaya-sub { color: var(--muted); font-size: 0.9rem; margin: 4px 0 10px; }
 .sahaaya-cats { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-top: var(--space-2); }
 
+.feedback-actions { display: flex; justify-content: flex-end; margin-top: var(--space-4); }
+
 /* -- methodology view -- */
 
 .callout {
@@ -680,6 +682,8 @@ mark {
   .amenity-card-icon svg { width: 14px; height: 14px; }
   .amenity-card-name { font-size: 0.68rem; }
   .amenity-card-count { font-size: 0.85rem; }
+  .feedback-actions { justify-content: center; }
+  .feedback-actions .btn { width: 100%; }
 }
 
 @media (max-width: 380px) {
