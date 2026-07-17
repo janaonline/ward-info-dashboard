@@ -155,6 +155,35 @@ mark {
 [data-theme="dark"] .why-vote-subtitle { color: var(--green); }
 .why-vote-body { display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-1); }
 .why-vote-body p { margin: 0; color: var(--ink); font-size: 0.95rem; line-height: 1.6; }
+.why-vote-more {
+  max-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  transition: max-height .3s ease;
+}
+.why-vote-actions { display: flex; justify-content: flex-end; margin-top: var(--space-3); }
+.why-vote-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 4px 0;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--green-d);
+  cursor: pointer;
+  transition: color var(--dur) var(--ease-out);
+}
+[data-theme="dark"] .why-vote-toggle { color: var(--green); }
+.why-vote-toggle:hover { color: var(--green); }
+[data-theme="dark"] .why-vote-toggle:hover { color: var(--green-d); }
+.why-vote-toggle-arrow { display: inline-block; transition: transform var(--dur) var(--ease-out); }
+.why-vote-toggle--more:hover .why-vote-toggle-arrow { transform: translateX(2px); }
+.why-vote-toggle--less:hover .why-vote-toggle-arrow { transform: translateY(-2px); }
 
 .ward-def { color: var(--ink); font-size: 0.95rem; margin: var(--space-3) 0; }
 .hero-kicker {

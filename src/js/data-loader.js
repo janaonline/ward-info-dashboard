@@ -79,7 +79,7 @@ function normalizeWardName(name) {
   return String(name || '').trim().replace(/\s+/g, ' ').toLowerCase();
 }
 
-function isLocalDev() {
+export function isLocalDev() {
   return typeof location !== 'undefined' && /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
 }
 

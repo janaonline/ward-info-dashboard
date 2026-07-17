@@ -1,6 +1,6 @@
 ---
 name: verify-and-update-docs
-description: Use after any code modification or implementation in Know Your Ward, before declaring the task done and before touching CLAUDE.md or README.md. Runs this project's real verification gates (node --check syntax validation, grep sweeps for banned terms and must-preserve selectors, var(--) coverage) plus manual/browser verification for UI changes, and only updates CLAUDE.md/README.md once everything passes. Trigger on phrases like "verify this", "test and verify", "make sure this works", "update the docs", "sync CLAUDE.md", "update readme", or as the closing step of any code change.
+description: Use as the closing step after a code change in Know Your Ward that's substantial enough to need it — a real implementation, bug fix, or feature (with or without a design/UI component) that changes app behavior, structure, or user-visible output — once that change is complete and has already been exercised/tested successfully. Skip it for trivial, non-behavioral edits (typo/comment fixes, pure formatting, a rename with no behavior change) that leave CLAUDE.md/README.md still accurate as-is — running the full gate set on those costs tokens for no doc-accuracy gain. Never invoke mid-implementation or before the change is confirmed working, and never more than once per completed task — this is a single closing gate, not a per-edit habit. Runs this project's real verification gates (node --check syntax validation, grep sweeps for banned terms and must-preserve selectors, var(--) coverage) plus manual/browser verification for UI changes, and only updates CLAUDE.md/README.md once everything passes and only for sections the change actually affects. Trigger on phrases like "verify this", "test and verify", "make sure this works", "update the docs", "sync CLAUDE.md", "update readme" — or proactively, without being asked, once as the closing step of any change substantial enough that CLAUDE.md/README.md would otherwise drift out of sync with actual behavior. This includes purely presentational UI reorganizations — moving, splitting, merging, adding, or renaming a documented section/view/component (e.g. "move X into its own section," "split Y out of Z," "add a new panel") — even when the change introduces no new visual/token decision and correctly skips `design-theme-protocols`: CLAUDE.md's "Must-preserve selectors" list and "Current state (by area)" changelog enumerate exact section/view names and structure, so any change to that structure is substantial by definition, regardless of how small the underlying code diff is.
 ---
 
 # Verify & Update Docs
@@ -8,6 +8,12 @@ description: Use after any code modification or implementation in Know Your Ward
 This skill enforces one rule: **never document a change that hasn't been verified.** CLAUDE.md and README.md describe the app as it actually behaves — updating them off unverified code turns them into fiction. Verification always comes first; doc updates are the last step, and are skipped entirely if verification fails.
 
 Do not run this skill's doc-update step speculatively "to save time." If a gate fails, fix the code and re-run the gates — do not edit CLAUDE.md/README.md until they're clean.
+
+## When to invoke this
+
+Run this once, as the closing step, right after a code change — an implementation, bug fix, or feature, with or without a design/UI component — is finished and has already been exercised/tested to work at the code level, **and only when the change is substantial enough that skipping this would leave CLAUDE.md/README.md describing something no longer true.** Skip it for trivial, purely non-behavioral edits (a comment tweak, a rename with identical behavior, whitespace/formatting) that don't change what the app does or what either doc claims — running the full gate set on those burns tokens without improving doc accuracy. Do not invoke it before the change is confirmed working (this skill verifies a change, it doesn't substitute for getting the change working first), and do not invoke it more than once per completed task: if a gate fails, fix the issue and re-run the specific failed gate(s), not the whole skill from scratch, and don't re-run the whole thing again once everything is already clean for that change.
+
+None of this is license to let the docs drift, though: whenever a change *does* qualify, CLAUDE.md/README.md must come out of §5 actually matching current behavior — accuracy is the whole reason this skill exists, and running it is wasted effort if the doc-update step gets rushed or skipped.
 
 ---
 
@@ -40,7 +46,7 @@ Required whenever `index.html`, any file in `src/styles/`, or a view-render func
 
 1. Serve the repo (`npx serve .` or `python -m http.server`) — `file://` won't work since the app `fetch()`es local data.
 2. Toggle both themes and confirm the ripple transition still runs.
-3. Walk all 3 views: Home (search, geolocation, choropleth map, capped ward list), Ward (map + legend + amenities grid + facts + N/E/S/W nav + ask/share + copy-link/WhatsApp), Methodology (back button restores the correct prior view).
+3. Walk all 4 views: Home (search, geolocation, choropleth map, ward list), Ward (map + legend + amenities grid + vulnerability-hotspots grid + facts + ask), Methodology (back button restores the correct prior view), Voter FAQ (category nav + accordion + search). Share/WhatsApp/copy-link live in the persistent site footer (`footer.js`), shown only on the Ward view — check those there, not as part of the Ward view markup itself.
 4. If the change touched anything in the "must-preserve selectors" list, specifically click/interact with that exact control (e.g. a legend chip, an amenity row, a nav button) rather than just eyeballing it — a renamed class can look fine visually while silently breaking a click handler.
 5. Spot-check responsiveness at a couple of widths (e.g. ~375px and ~1024px) if the change touched layout/spacing.
 

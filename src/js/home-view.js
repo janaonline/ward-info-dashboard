@@ -165,6 +165,25 @@ function renderSuggestions(W, rows) {
   });
 }
 
+function initWhyVoteToggle() {
+  const btn = document.getElementById('whyVoteToggle');
+  const more = document.getElementById('whyVoteMore');
+  if (!btn || !more) return;
+  more.inert = true;
+
+  function setExpanded(expanded) {
+    more.inert = !expanded;
+    more.style.maxHeight = expanded ? `${more.scrollHeight}px` : '0px';
+    btn.setAttribute('aria-expanded', String(expanded));
+    btn.classList.toggle('why-vote-toggle--less', expanded);
+    btn.innerHTML = expanded
+      ? 'Show less <span class="why-vote-toggle-arrow" aria-hidden="true">&uarr;</span>'
+      : 'Read more <span class="why-vote-toggle-arrow" aria-hidden="true">&rarr;</span>';
+  }
+
+  btn.addEventListener('click', () => setExpanded(btn.getAttribute('aria-expanded') !== 'true'));
+}
+
 export function initHomeView({ W, meta }, { onOpenWard }) {
   onOpenWardRef = onOpenWard;
   const container = document.getElementById('homeContainer');
@@ -182,11 +201,16 @@ export function initHomeView({ W, meta }, { onOpenWard }) {
         <p class="why-vote-subtitle">Why your vote in the ward election matters.</p>
         <div class="why-vote-body">
           <p>Bengaluru has not held local body elections since 2015, and for nearly a decade the city has functioned without elected corporators, leaving neighbourhoods without direct, accountable representation in the system.</p>
-          <p>In that time, the city has continued to spend significant public funds, INR 38,455 crore annually, yet much of this remains difficult to trace, and for citizens there has been little clarity on how decisions are made or whom to hold responsible when services fall short.</p>
-          <p>What this looks like on the ground is not abstract: roads that remain damaged, garbage that is not cleared on time, drains that overflow during rains, footpaths that are unusable, and streetlights that do not function consistently, all without an elected representative whose role is to take these issues up and demand answers.</p>
-          <p>This election is an opportunity to restore that link.</p>
-          <p>Your vote decides who represents your ward, who raises your concerns, and who holds the system to account. It shapes how your neighbourhood functions and how responsive the city becomes.</p>
-          <p><strong>Vote. It is your voice in how Bengaluru is run.</strong></p>
+          <div class="why-vote-more" id="whyVoteMore">
+            <p>In that time, the city has continued to spend significant public funds, INR 38,455 crore annually, yet much of this remains difficult to trace, and for citizens there has been little clarity on how decisions are made or whom to hold responsible when services fall short.</p>
+            <p>What this looks like on the ground is not abstract: roads that remain damaged, garbage that is not cleared on time, drains that overflow during rains, footpaths that are unusable, and streetlights that do not function consistently, all without an elected representative whose role is to take these issues up and demand answers.</p>
+            <p>This election is an opportunity to restore that link.</p>
+            <p>Your vote decides who represents your ward, who raises your concerns, and who holds the system to account. It shapes how your neighbourhood functions and how responsive the city becomes.</p>
+            <p><strong>Vote. It is your voice in how Bengaluru is run.</strong></p>
+          </div>
+        </div>
+        <div class="why-vote-actions">
+          <button type="button" id="whyVoteToggle" class="why-vote-toggle" aria-expanded="false" aria-controls="whyVoteMore">Read more <span class="why-vote-toggle-arrow" aria-hidden="true">&rarr;</span></button>
         </div>
       </section>
       <div class="find-controls">
@@ -209,15 +233,17 @@ export function initHomeView({ W, meta }, { onOpenWard }) {
       <ul id="findList" class="ward-list"></ul>
       <details class="panel">
         <summary>What is the Greater Bengaluru Authority?</summary>
-        <p>The Greater Bengaluru Authority (GBA) is the apex civic body for the Bengaluru metropolitan region. It coordinates planning, infrastructure and governance across the city. Established in 2025, it replaced the Bruhat Bengaluru Mahanagara Palike (BBMP) as Bengaluru's primary urban governance institution.</p>
+        <p>The Greater Bengaluru Authority (GBA) is the apex civic body for the Bengaluru metropolitan region. It coordinates planning, infrastructure and governance across the city. Under the Greater Bengaluru Governance Act, 2024, the erstwhile Bruhat Bengaluru Mahanagara Palike (BBMP) has been reconstituted into multiple City Corporations (currently five), which now perform municipal functions within the Greater Bengaluru Area under the overarching coordination and supervision of the Greater Bengaluru Authority and its Executive Committee.</p>
       </details>
       <details class="panel">
         <summary>What is a ward councillor?</summary>
         <p>A ward councillor is your elected representative in local government. They represent your neighbourhood, raise local issues, oversee civic works, and help ensure municipal services respond to residents' needs.</p>
       </details>
       <details class="panel">
-        <summary>How this works</summary>
-        <p>We combine ward boundaries with open civic datasets on buses, metro, schools, parks, lakes, and more to show how well-served your neighbourhood is.</p>
+        <summary>How does this dashboard work?</summary>
+        <p>This platform presents ward-level civic information for Bengaluru, overlapping ward boundaries with open datasets on public amenities—bus stops, metro, schools, parks, lakes and more—to indicate how well each area is served and where provision is lacking.</p>
+        <p>Its purpose is to make civic data accessible and usable for residents, supporting an understanding of local conditions based on evidence and data. Ahead of elections, this can help citizens ask their candidates specific, informed questions.</p>
+        <p>The intention is to develop this into a consolidated source of ward-level information for Bengaluru.</p>
       </details>
       <details class="panel">
         <summary>About the data</summary>
@@ -225,6 +251,8 @@ export function initHomeView({ W, meta }, { onOpenWard }) {
       </details>
     </div>
   `;
+
+  initWhyVoteToggle();
 
   renderList(W, '');
 
