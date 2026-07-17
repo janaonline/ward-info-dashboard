@@ -165,6 +165,25 @@ function renderSuggestions(W, rows) {
   });
 }
 
+function initWhyVoteToggle() {
+  const btn = document.getElementById('whyVoteToggle');
+  const more = document.getElementById('whyVoteMore');
+  if (!btn || !more) return;
+  more.inert = true;
+
+  function setExpanded(expanded) {
+    more.inert = !expanded;
+    more.style.maxHeight = expanded ? `${more.scrollHeight}px` : '0px';
+    btn.setAttribute('aria-expanded', String(expanded));
+    btn.classList.toggle('why-vote-toggle--less', expanded);
+    btn.innerHTML = expanded
+      ? 'Show less <span class="why-vote-toggle-arrow" aria-hidden="true">&uarr;</span>'
+      : 'Read more <span class="why-vote-toggle-arrow" aria-hidden="true">&rarr;</span>';
+  }
+
+  btn.addEventListener('click', () => setExpanded(btn.getAttribute('aria-expanded') !== 'true'));
+}
+
 export function initHomeView({ W, meta }, { onOpenWard }) {
   onOpenWardRef = onOpenWard;
   const container = document.getElementById('homeContainer');
@@ -182,11 +201,16 @@ export function initHomeView({ W, meta }, { onOpenWard }) {
         <p class="why-vote-subtitle">Why your vote in the ward election matters.</p>
         <div class="why-vote-body">
           <p>Bengaluru has not held local body elections since 2015, and for nearly a decade the city has functioned without elected corporators, leaving neighbourhoods without direct, accountable representation in the system.</p>
-          <p>In that time, the city has continued to spend significant public funds, INR 38,455 crore annually, yet much of this remains difficult to trace, and for citizens there has been little clarity on how decisions are made or whom to hold responsible when services fall short.</p>
-          <p>What this looks like on the ground is not abstract: roads that remain damaged, garbage that is not cleared on time, drains that overflow during rains, footpaths that are unusable, and streetlights that do not function consistently, all without an elected representative whose role is to take these issues up and demand answers.</p>
-          <p>This election is an opportunity to restore that link.</p>
-          <p>Your vote decides who represents your ward, who raises your concerns, and who holds the system to account. It shapes how your neighbourhood functions and how responsive the city becomes.</p>
-          <p><strong>Vote. It is your voice in how Bengaluru is run.</strong></p>
+          <div class="why-vote-more" id="whyVoteMore">
+            <p>In that time, the city has continued to spend significant public funds, INR 38,455 crore annually, yet much of this remains difficult to trace, and for citizens there has been little clarity on how decisions are made or whom to hold responsible when services fall short.</p>
+            <p>What this looks like on the ground is not abstract: roads that remain damaged, garbage that is not cleared on time, drains that overflow during rains, footpaths that are unusable, and streetlights that do not function consistently, all without an elected representative whose role is to take these issues up and demand answers.</p>
+            <p>This election is an opportunity to restore that link.</p>
+            <p>Your vote decides who represents your ward, who raises your concerns, and who holds the system to account. It shapes how your neighbourhood functions and how responsive the city becomes.</p>
+            <p><strong>Vote. It is your voice in how Bengaluru is run.</strong></p>
+          </div>
+        </div>
+        <div class="why-vote-actions">
+          <button type="button" id="whyVoteToggle" class="why-vote-toggle" aria-expanded="false" aria-controls="whyVoteMore">Read more <span class="why-vote-toggle-arrow" aria-hidden="true">&rarr;</span></button>
         </div>
       </section>
       <div class="find-controls">
@@ -225,6 +249,8 @@ export function initHomeView({ W, meta }, { onOpenWard }) {
       </details>
     </div>
   `;
+
+  initWhyVoteToggle();
 
   renderList(W, '');
 
