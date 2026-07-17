@@ -61,6 +61,11 @@ export function tileUrlForTheme(theme) {
   return CARTO_SUBDOMAINS.map(s => `https://${s}.basemaps.cartocdn.com/${variant}/{z}/{x}/{y}.png`);
 }
 
+export function labelTileUrlForTheme(theme) {
+  const variant = theme === 'dark' ? 'dark_only_labels' : 'light_only_labels';
+  return CARTO_SUBDOMAINS.map(s => `https://${s}.basemaps.cartocdn.com/${variant}/{z}/{x}/{y}.png`);
+}
+
 // ---- geometry helpers (keyed by uid; supports GeoJSON Polygon and MultiPolygon) ----
 
 export function pipRing(x, y, ring) {
@@ -223,8 +228,12 @@ export function createMap(containerId, { center = [77.5946, 12.9716], zoom = 10.
       version: 8,
       sources: {
         carto: { type: 'raster', tiles: tileUrlForTheme(currentTheme), tileSize: 256, attribution: '© CARTO © OpenStreetMap contributors' },
+        'carto-labels': { type: 'raster', tiles: labelTileUrlForTheme(currentTheme), tileSize: 256 },
       },
-      layers: [{ id: 'carto-base', type: 'raster', source: 'carto' }],
+      layers: [
+        { id: 'carto-base', type: 'raster', source: 'carto' },
+        { id: 'carto-labels', type: 'raster', source: 'carto-labels' },
+      ],
     },
     center,
     zoom,
@@ -234,6 +243,8 @@ export function createMap(containerId, { center = [77.5946, 12.9716], zoom = 10.
   const unsubscribe = onThemeChange((newTheme) => {
     const src = map.getSource('carto');
     if (src && src.setTiles) src.setTiles(tileUrlForTheme(newTheme));
+    const labelSrc = map.getSource('carto-labels');
+    if (labelSrc && labelSrc.setTiles) labelSrc.setTiles(labelTileUrlForTheme(newTheme));
   });
 
   map.on('remove', unsubscribe);
@@ -241,8 +252,36 @@ export function createMap(containerId, { center = [77.5946, 12.9716], zoom = 10.
   return map;
 }
 
+export function raiseLabels(map) {
+  if (map.getLayer('carto-labels')) map.moveLayer('carto-labels');
+}
+
 export function resizeMap(map) {
   if (map) map.resize();
+}
+
+// Same reset-arrows glyph as ward-view.js's amenity-layer "Reset" button, sized
+// to match .icon-btn's other icons (the theme toggle's sun/moon, both 18x18).
+const RESET_VIEW_ICON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>';
+
+export function addResetViewControl(map, defaultView) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'icon-btn map-reset-btn';
+  btn.setAttribute('aria-label', 'Reset Map');
+  btn.title = 'Reset map view';
+  btn.innerHTML = RESET_VIEW_ICON;
+  btn.addEventListener('click', () => {
+    map.easeTo({
+      center: defaultView.center,
+      zoom: defaultView.zoom,
+      bearing: defaultView.bearing || 0,
+      pitch: defaultView.pitch || 0,
+      duration: 600,
+    });
+  });
+  map.getContainer().appendChild(btn);
+  return btn;
 }
 
 // ---- feature-state hover bookkeeping ----

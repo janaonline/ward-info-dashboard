@@ -95,7 +95,6 @@ a { color: inherit; }
   animation-play-state: paused;
 }
 .voter-faq-fab[hidden] { display: none; }
-.voter-faq-fab--near-footer { opacity: 0; pointer-events: none; }
 
 @keyframes voterFaqPulse {
   0%, 100% { box-shadow: var(--shadow-2), 0 0 0 0 color-mix(in srgb, var(--fab-tint) 45%, transparent); }

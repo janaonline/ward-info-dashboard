@@ -73,17 +73,6 @@ async function boot() {
     navigateTo('voter-faq');
   });
 
-  // The FAB is position:fixed, so without this it would sit pinned on top of
-  // whatever's in that bottom-right corner once a user scrolls to the bottom
-  // of any page — including the footer's own links. Fade it out whenever any
-  // part of the footer is in view, rather than a hard show/hide, so it
-  // reappears smoothly on scrolling back up.
-  const siteFooter = document.getElementById('siteFooter');
-  new IntersectionObserver(
-    (entries) => voterFaqFab.classList.toggle('voter-faq-fab--near-footer', entries[0].isIntersecting),
-    { rootMargin: '0px' }
-  ).observe(siteFooter);
-
   loadingIndicator.setAttribute('hidden', '');
 
   const hashMatch = location.hash.match(/^#ward=(.+)$/);

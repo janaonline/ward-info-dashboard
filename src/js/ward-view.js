@@ -1,7 +1,7 @@
 import {
   createMap, buildWardPolygonsGeoJSON, addWardBoundaryLayer, LAYER, LAYER_ORDER,
   amenityRows, defaultLayer, layerPoints, setActiveAmenityLayer, setWalkBufferLayer,
-  nearbyWards, resizeMap, forEachWardCoordinate,
+  nearbyWards, resizeMap, forEachWardCoordinate, raiseLabels, addResetViewControl,
 } from './maps.js';
 import { esc, fmt } from './format.js';
 import { isLocalDev } from './data-loader.js';
@@ -100,6 +100,10 @@ function renderCandidates(w) {
 }
 
 const RESET_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>';
+
+const EXTERNAL_LINK_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>';
+
+const FEEDBACK_FORM_URL = 'https://forms.office.com/Pages/ResponsePage.aspx?id=durzKFDheUu_0kCRJE6V1UD6pxYgE_lDvC_e0YLsHi9UNk05RFRIUEFaS1U3VkpTMDRYTDMxR1pKSi4u';
 
 function amenityLabel(type, uid, W, w) {
   if (type === 'polling') return 'Polling booths';
@@ -217,6 +221,18 @@ function renderAsk(w) {
   `;
 }
 
+function renderFeedback() {
+  return `
+    <section class="sec">
+      <h3>Spotted something wrong? Let us know.</h3>
+      <p class="cand-intro">Help us improve ward-level information by reporting missing details, incorrect information, or civic issues you've observed. Your feedback helps keep this dashboard accurate and useful for everyone.</p>
+      <div class="feedback-actions">
+        <a class="btn btn-primary" href="${FEEDBACK_FORM_URL}" target="_blank" rel="noopener" aria-label="Submit feedback about this ward (opens in a new tab)">Submit feedback<span aria-hidden="true">${EXTERNAL_LINK_ICON}</span></a>
+      </div>
+    </section>
+  `;
+}
+
 // ---- map wiring ----
 
 function setLayer(uid, W, type) {
@@ -292,6 +308,7 @@ export function openWard(uid, { onOpenWard } = {}) {
     ${renderVulnerability(uid, W, w)}
     ${renderFacts(w)}
     ${renderAsk(w)}
+    ${renderFeedback()}
   `;
 
   if (wardMap) {
@@ -323,6 +340,12 @@ export function openWard(uid, { onOpenWard } = {}) {
       boundCount++;
     });
     if (boundCount) wardMap.fitBounds(bounds, { padding: 40, duration: 0 });
+    const defaultView = {
+      center: wardMap.getCenter(),
+      zoom: wardMap.getZoom(),
+      bearing: wardMap.getBearing(),
+      pitch: wardMap.getPitch(),
+    };
 
     if (currentLayer) {
       setLayer(uid, W, currentLayer);
@@ -337,6 +360,8 @@ export function openWard(uid, { onOpenWard } = {}) {
       wardMap.on('mouseleave', 'amenity-points-circle', () => amenityTip.remove());
     }
     wireLayerClicks(uid, W);
+    raiseLabels(wardMap);
+    addResetViewControl(wardMap, defaultView);
   });
 }
 

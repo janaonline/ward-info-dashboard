@@ -74,6 +74,7 @@ mark {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .map {
+  position: relative;
   width: 100%;
   border-radius: var(--radius);
   overflow: hidden;
@@ -82,6 +83,11 @@ mark {
 }
 .map-corp { height: 260px; margin: 16px 0; }
 .map-ward { height: 320px; margin: 10px 0; }
+
+.map-reset-btn { position: absolute; top: var(--space-2); right: var(--space-2); z-index: 2; }
+/* .wardmap-badge sits at top/right: var(--space-3) on the same box (.wardmap-frame
+   tightly wraps #wardMap) — push the reset button below it there only. */
+#wardMap .map-reset-btn { top: 52px; }
 
 .map-tip { pointer-events: none; }
 .map-tip .maplibregl-popup-content {
@@ -95,6 +101,31 @@ mark {
   border: 1px solid var(--line);
 }
 .map-tip .maplibregl-popup-tip { display: none; }
+
+.ward-popup .maplibregl-popup-content {
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-body);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-m);
+  box-shadow: var(--shadow-2);
+  border: 1px solid var(--line);
+}
+.ward-popup.maplibregl-popup-anchor-top .maplibregl-popup-tip,
+.ward-popup.maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
+.ward-popup.maplibregl-popup-anchor-top-right .maplibregl-popup-tip {
+  border-bottom-color: var(--surface);
+}
+.ward-popup.maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
+.ward-popup.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,
+.ward-popup.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip {
+  border-top-color: var(--surface);
+}
+.ward-popup.maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: var(--surface); }
+.ward-popup.maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: var(--surface); }
+.ward-popup-body { display: flex; flex-direction: column; gap: var(--space-2); cursor: pointer; }
+.ward-popup-name { font-family: var(--font-stat); font-weight: 700; font-size: 0.95rem; }
+.ward-popup-btn { width: 100%; }
 
 .legend-chip {
   display: inline-flex;
@@ -138,6 +169,8 @@ mark {
   margin: 12px 0;
 }
 .headline mark { white-space: nowrap; }
+.hero-subtitle { color: var(--ink); font-size: 0.95rem; margin: var(--space-3) 0; }
+#homeContainer .headline { font-size: clamp(1.7rem, 5.5vw, 2.4rem); }
 
 .why-vote {
   display: flex; flex-direction: column;
@@ -378,6 +411,8 @@ mark {
 .sahaaya-sub { color: var(--muted); font-size: 0.9rem; margin: 4px 0 10px; }
 .sahaaya-cats { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-top: var(--space-2); }
 
+.feedback-actions { display: flex; justify-content: flex-end; margin-top: var(--space-4); }
+
 /* -- methodology view -- */
 
 .callout {
@@ -552,7 +587,11 @@ mark {
 
 /* -- footer -- */
 
-.site-footer { margin-top: var(--space-7); border-top: 1px solid var(--line); background: var(--surface); }
+/* Extra bottom clearance so the fixed, always-visible #voterFaqFab (bottom
+   offset up to 28px + ~51px own height) never sits on top of real footer
+   content once the page is scrolled to the bottom — it hovers over this
+   blank strip of the footer's own background instead. */
+.site-footer { margin-top: var(--space-7); border-top: 1px solid var(--line); background: var(--surface); padding-bottom: 100px; }
 .footer-inner { padding-top: var(--space-5); padding-bottom: var(--space-5); display: flex; flex-direction: column; gap: var(--space-4); }
 .footer-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
 .footer-utility { justify-content: space-between; }
@@ -655,9 +694,12 @@ mark {
   .amenity-card-icon svg { width: 14px; height: 14px; }
   .amenity-card-name { font-size: 0.68rem; }
   .amenity-card-count { font-size: 0.85rem; }
+  .feedback-actions { justify-content: center; }
+  .feedback-actions .btn { width: 100%; }
 }
 
 @media (max-width: 380px) {
   .headline { font-size: clamp(1.7rem, 7vw, 2rem); }
+  #homeContainer .headline { font-size: clamp(1.5rem, 6.5vw, 1.8rem); }
   .container { padding-left: 12px; padding-right: 12px; }
 }

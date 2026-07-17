@@ -1,4 +1,4 @@
-import { createMap, buildWardPolygonsGeoJSON, addChoroplethLayer, CORP_COLORS, wardAt, resizeMap } from './maps.js';
+import { createMap, buildWardPolygonsGeoJSON, addChoroplethLayer, CORP_COLORS, wardAt, resizeMap, raiseLabels, addResetViewControl } from './maps.js';
 import { esc, fmt } from './format.js';
 
 let corpMap = null;
@@ -192,7 +192,8 @@ export function initHomeView({ W, meta }, { onOpenWard }) {
   container.innerHTML = `
     <div class="cover">
       <div class="eyebrow"><span class="eyebrow-dot"></span> Make an informed choice</div>
-      <h1 class="headline">Bengaluru is choosing its <mark>ward councillor</mark> for the first time in years.</h1>
+      <h1 class="headline">This election, Bengaluru will elect <mark>ward councillors</mark> under the Greater Bengaluru Authority (GBA) for the first time.</h1>
+      <p class="hero-subtitle">Before you vote, understand your neighbourhood, explore the candidates, see the public infrastructure around you, and learn how your local government shapes everyday life.</p>
       <section class="why-vote" aria-labelledby="whyVoteTitle">
         <div class="why-vote-head">
           <span class="why-vote-icon" aria-hidden="true">${BALLOT_ICON}</span>
@@ -257,6 +258,14 @@ export function initHomeView({ W, meta }, { onOpenWard }) {
   renderList(W, '');
 
   let latestLocalMatches = [];
+  let activeWardPopup = null;
+
+  function closeWardPopup() {
+    if (activeWardPopup) {
+      activeWardPopup.remove();
+      activeWardPopup = null;
+    }
+  }
 
   const landmarkLookup = debounce(async (query, mySeq) => {
     if (query.length < LANDMARK_MIN_LEN) return;
@@ -282,6 +291,10 @@ export function initHomeView({ W, meta }, { onOpenWard }) {
     if (!e.target.closest('.find-search-wrap')) renderSuggestions(W, []);
   });
 
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeWardPopup();
+  });
+
   document.getElementById('findLocate').addEventListener('click', () => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
@@ -295,16 +308,20 @@ export function initHomeView({ W, meta }, { onOpenWard }) {
   });
 
   if (!corpMap) {
-    corpMap = createMap('homeCorpMap', { center: [77.5946, 12.9716], zoom: 9.5 });
+    const defaultView = { center: [77.5946, 12.9716], zoom: 9 };
+    corpMap = createMap('homeCorpMap', defaultView);
     corpMap.on('load', () => {
       const geojson = buildWardPolygonsGeoJSON(W);
       const hover = addChoroplethLayer(corpMap, geojson);
+      raiseLabels(corpMap);
+      addResetViewControl(corpMap, defaultView);
       const tip = new maplibregl.Popup({ closeButton: false, closeOnClick: false, className: 'map-tip', offset: 12 });
 
       corpMap.on('mousemove', 'wards-fill', (e) => {
         if (!e.features.length) return;
         const f = e.features[0];
         hover.setHovered(f.id);
+        if (activeWardPopup) return;
         tip.setLngLat(e.lngLat)
           .setHTML(`Ward ${fmt(f.properties.ward_id)} &middot; ${esc(f.properties.name)} &middot; ${esc(f.properties.corporation)}`)
           .addTo(corpMap);
@@ -312,6 +329,34 @@ export function initHomeView({ W, meta }, { onOpenWard }) {
       corpMap.on('mouseleave', 'wards-fill', () => {
         hover.clear();
         tip.remove();
+      });
+
+      corpMap.on('click', 'wards-fill', (e) => {
+        if (!e.features.length) return;
+        const f = e.features[0];
+        const uid = f.properties.uid;
+        const name = f.properties.name;
+
+        closeWardPopup();
+        tip.remove();
+
+        const popup = new maplibregl.Popup({ closeButton: false, className: 'ward-popup' })
+          .setLngLat(e.lngLat)
+          .setHTML(`
+            <div class="ward-popup-body">
+              <div class="ward-popup-name">Ward: ${esc(name)}</div>
+              <button type="button" class="btn btn-primary btn-sm ward-popup-btn" aria-label="View ward info for ${esc(name)}">View ward info</button>
+            </div>
+          `)
+          .addTo(corpMap);
+
+        popup.getElement().querySelector('.ward-popup-body').addEventListener('click', () => {
+          closeWardPopup();
+          onOpenWardRef(uid);
+        });
+
+        popup.on('close', () => { if (activeWardPopup === popup) activeWardPopup = null; });
+        activeWardPopup = popup;
       });
     });
   }
