@@ -4,6 +4,7 @@ import {
   nearbyWards, resizeMap, forEachWardCoordinate,
 } from './maps.js';
 import { esc, fmt } from './format.js';
+import { isLocalDev } from './data-loader.js';
 
 let wardMap = null;
 let currentLayer = null;
@@ -45,11 +46,24 @@ function neighbourhoodsText(w) {
   return w.neighbourhoods.map(esc).join(', ');
 }
 
+function demographicsParts(w) {
+  const parts = [];
+  if (w.pop != null) parts.push(`<strong>Total population:</strong> ${fmt(w.pop)}`);
+  if (w.male != null) parts.push(`<strong>Male:</strong> ${fmt(w.male)}`);
+  if (w.female != null) parts.push(`<strong>Female:</strong> ${fmt(w.female)}`);
+  return parts;
+}
+
 function renderHead(w) {
+  const demoParts = demographicsParts(w);
+  if (!demoParts.length && isLocalDev()) {
+    console.warn(`[demographics] No population data for ward "${w.ward_name}" (${w.uid})`);
+  }
   return `
     <div class="whead">
       <h2>${esc(w.ward_name)}${w.ward_name_kn ? ` <span class="kn">${esc(w.ward_name_kn)}</span>` : ''}</h2>
-      <p class="whead-meta">Ward ${fmt(w.ward_id)} &middot; ${esc(w.corporation)} &middot; ${esc(w.zone_name || w.zone)} &middot; ${esc(w.assembly)}</p>
+      <p class="whead-meta">Ward ${fmt(w.ward_id)} &middot; <strong>Corporation:</strong> ${esc(w.corporation)} &middot; <strong>Zone:</strong> ${esc(w.zone_name || w.zone)} &middot; <strong>Assembly:</strong> ${esc(w.assembly)}</p>
+      ${demoParts.length ? `<p class="whead-meta">${demoParts.join(' &middot; ')}</p>` : ''}
       <div class="whead-origin">
         <div class="whead-origin-block">
           <span class="label">Formed from old wards</span>
