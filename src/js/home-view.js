@@ -257,6 +257,14 @@ export function initHomeView({ W, meta }, { onOpenWard }) {
   renderList(W, '');
 
   let latestLocalMatches = [];
+  let activeWardPopup = null;
+
+  function closeWardPopup() {
+    if (activeWardPopup) {
+      activeWardPopup.remove();
+      activeWardPopup = null;
+    }
+  }
 
   const landmarkLookup = debounce(async (query, mySeq) => {
     if (query.length < LANDMARK_MIN_LEN) return;
@@ -280,6 +288,10 @@ export function initHomeView({ W, meta }, { onOpenWard }) {
 
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.find-search-wrap')) renderSuggestions(W, []);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeWardPopup();
   });
 
   document.getElementById('findLocate').addEventListener('click', () => {
@@ -306,6 +318,7 @@ export function initHomeView({ W, meta }, { onOpenWard }) {
         if (!e.features.length) return;
         const f = e.features[0];
         hover.setHovered(f.id);
+        if (activeWardPopup) return;
         tip.setLngLat(e.lngLat)
           .setHTML(`Ward ${fmt(f.properties.ward_id)} &middot; ${esc(f.properties.name)} &middot; ${esc(f.properties.corporation)}`)
           .addTo(corpMap);
@@ -313,6 +326,34 @@ export function initHomeView({ W, meta }, { onOpenWard }) {
       corpMap.on('mouseleave', 'wards-fill', () => {
         hover.clear();
         tip.remove();
+      });
+
+      corpMap.on('click', 'wards-fill', (e) => {
+        if (!e.features.length) return;
+        const f = e.features[0];
+        const uid = f.properties.uid;
+        const name = f.properties.name;
+
+        closeWardPopup();
+        tip.remove();
+
+        const popup = new maplibregl.Popup({ closeButton: false, className: 'ward-popup' })
+          .setLngLat(e.lngLat)
+          .setHTML(`
+            <div class="ward-popup-body">
+              <div class="ward-popup-name">Ward: ${esc(name)}</div>
+              <button type="button" class="btn btn-primary btn-sm ward-popup-btn" aria-label="View ward info for ${esc(name)}">View ward info</button>
+            </div>
+          `)
+          .addTo(corpMap);
+
+        popup.getElement().querySelector('.ward-popup-body').addEventListener('click', () => {
+          closeWardPopup();
+          onOpenWardRef(uid);
+        });
+
+        popup.on('close', () => { if (activeWardPopup === popup) activeWardPopup = null; });
+        activeWardPopup = popup;
       });
     });
   }

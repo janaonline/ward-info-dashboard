@@ -105,6 +105,7 @@ Selectors below are real, current selectors from `src/styles/components.css`/`ba
 | Severity card | `.fact`, `.fact.warn`, `.fact.bad` | Left-border color swap only (`--green-ring` → `--yellow` → `--red`); base card is plain `--surface` | facts engine (currently rendered with no tone class — see CLAUDE.md Facts Engine Rules) |
 | Map surface | `.map`, `.map-corp`, `.map-ward` | `--radius`, `--line` border, `--shadow-s` | both MapLibre instances |
 | Map tooltip | `.map-tip` | Theme-aware Popup override: `--surface` bg, `--ink` text, `--radius-s` | hover tooltips on both maps |
+| Interactive map popup | `.ward-popup` (+ `.ward-popup-body`/`-name`/`-btn`) | Pinned, click-triggered Popup override (not `pointer-events: none` like `.map-tip`): `--surface` bg, `--radius-m`, `--shadow-2`, `.btn.btn-primary` reused verbatim for the action button | home choropleth's click-to-navigate ward popup |
 | Fixed nav chrome | `.topcluster`, `.back-fab`, `.voter-faq-fab` | Fixed-position controls, 44px min touch target, `--shadow-1`/`--shadow-2` on hover | theme toggle, back button, FAQ FAB |
 | Footer primitives | `.footer-methodology`, `.footer-share*`, `.footer-org*`, `.footer-social-link` | Card/link/icon patterns for the persistent site footer | `src/js/footer.js` |
 
