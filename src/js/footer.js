@@ -67,7 +67,7 @@ let currentWardName = null;
 
 function shareHref() {
   if (!currentUid) return '#';
-  const shareText = encodeURIComponent(`Check out ward info for ${currentWardName} on Nimma Ward, Nimma Vote: `);
+  const shareText = encodeURIComponent(`Check out ward info for ${currentWardName}: `);
   const shareUrl = encodeURIComponent(`${location.origin}${location.pathname}#ward=${currentUid}`);
   return `https://wa.me/?text=${shareText}${shareUrl}`;
 }
@@ -104,7 +104,7 @@ export function initFooter({ onMethodology }) {
           </span>
         </a>
         <div class="footer-share" id="footerShare" hidden>
-          <span class="footer-share-label">Share this ward</span>
+          <span class="footer-share-label">Share this ward info</span>
           <div class="footer-share-actions">
             <a class="btn btn-whatsapp btn-sm" id="footerWhatsapp" target="_blank" rel="noopener" href="#"><span aria-hidden="true">${WHATSAPP_ICON}</span>Share on WhatsApp</a>
             <button class="btn btn-secondary btn-sm" id="copyLinkBtn" type="button"><span aria-hidden="true">${COPY_ICON}</span><span class="btn-label">Copy link</span></button>
