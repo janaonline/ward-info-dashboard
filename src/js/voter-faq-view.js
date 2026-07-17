@@ -2,19 +2,22 @@ const CHEVRON = '<svg class="chevron" viewBox="0 0 8 12" fill="none" aria-hidden
 
 // Every question/answer below is copied verbatim from Voter_FAQs.PDF — do not
 // reword, shorten, or "fix" anything (e.g. "Specific Intensive Revision" is
-// the source document's own wording, kept as-is).
+// the source document's own wording, kept as-is). Documented exception:
+// cat-1's `heading` and its first two `q` strings spell out "GBA"/"BBMP" as
+// their full names for clarity — a deliberate, one-time curation, not source
+// text. `nav` and every `a` (including cat-1's) are still untouched source text.
 const CATEGORIES = [
   {
     id: 'cat-1',
     nav: '1. About the GBA',
-    heading: '1. About the GBA',
+    heading: '1. About the Greater Bengaluru Authority (GBA)',
     items: [
       {
-        q: 'What is the GBA?',
+        q: 'What is the Greater Bengaluru Authority (GBA)?',
         a: `<p>The Greater Bengaluru Authority (GBA) is a metropolitan governance body established by the Greater Bengaluru Governance (GBG) Act, 2024 to replace and take over functions performed by the erstwhile Bruhat Bengaluru Mahanagara Palike (BBMP) like urban planning, financial strategy, etc. across the Greater Bengaluru Area. It collaborates with parastatal agencies like BESCOM, BWSSB, BMTC, etc. to address various issues and necessities across Bengaluru.</p>`,
       },
       {
-        q: 'How is the GBA different from the BBMP?',
+        q: 'How is the Greater Bengaluru Authority (GBA) different from Bruhat Bengaluru Mahanagara Palike (BBMP)?',
         a: `<p>The BBMP worked as Bengaluru's single local government unit, responsible for all kinda of tasks ranging from building roads to cleaning up parks. In an attempt to move toward better governance and service delivery, the erstwhile BBMP was split into five city corporations, the Bengaluru Central City Corporation (BCCC), the Bengaluru North City Corporation (BNCC), the Bengaluru East City Corporation (BECC), the Bengaluru South City Corporation (BSCC) and the Bengaluru West City Corporation (BWCC). Along with this, the GBA act also incorporated:</p>
         <ul>
           <li>Three-tier planning framework (Metropolitan, Municipal and Ward levels).</li>
