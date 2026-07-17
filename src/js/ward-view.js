@@ -2,7 +2,7 @@ import {
   createMap, buildWardPolygonsGeoJSON, addWardBoundaryLayer, LAYER, LAYER_ORDER,
   amenityRows, defaultLayer, layerPoints, setActiveAmenityLayer, setWalkBufferLayer,
   setExternalAmenityLayer, setBufferZoneWardsLayer, makeHoverTracker, resizeMap,
-  forEachWardCoordinate, raiseLabels, addResetViewControl,
+  forEachWardCoordinate, raiseLabels, addResetViewControl, distanceMetersToWardBoundary,
 } from './maps.js';
 import { esc, fmt } from './format.js';
 import { isLocalDev } from './data-loader.js';
@@ -397,6 +397,14 @@ export function openWard(uid, { onOpenWard } = {}) {
           neighborTip.remove();
           return;
         }
+        // The rendered polygon is the qualifying ward's whole shape, but only the portion
+        // actually within 1.6km of the current ward's boundary should react to hover/click —
+        // a large neighboring ward can extend far beyond the buffer zone that made it qualify.
+        if (distanceMetersToWardBoundary(e.lngLat.lng, e.lngLat.lat, uid, W) > 1600) {
+          neighborHover.clear();
+          neighborTip.remove();
+          return;
+        }
         const f = e.features[0];
         neighborHover.setHovered(f.id);
         if (activeNeighborWardPopup) return;
@@ -412,6 +420,7 @@ export function openWard(uid, { onOpenWard } = {}) {
       wardMap.on('click', 'buffer-zone-wards-fill', (e) => {
         if (!e.features.length) return;
         if (wardMap.queryRenderedFeatures(e.point, { layers: ['amenity-points-secondary-circle'] }).length) return;
+        if (distanceMetersToWardBoundary(e.lngLat.lng, e.lngLat.lat, uid, W) > 1600) return;
         const f = e.features[0];
         const targetUid = f.properties.uid;
         const targetName = f.properties.name;
