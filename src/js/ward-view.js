@@ -16,6 +16,7 @@ let dataRef = null;
 
 const DID_YOU_KNOW_FIELDS = ['did_you_know_1', 'did_you_know_2', 'did_you_know_3'];
 const CANDIDATE_QUESTION_FIELDS = ['question_1', 'question_2', 'question_3', 'question_4', 'question_5'];
+const VULNERABILITY_KEYS = ['flood_prone', 'flood_vuln'];
 
 function isBlank(v) {
   return v == null || String(v).trim() === '';
@@ -150,10 +151,28 @@ function renderWardMap(uid, W, w) {
 }
 
 function renderAmenities(uid, W, w) {
-  const rows = amenityRows(uid, W, w);
+  const rows = amenityRows(uid, W, w).filter(([key]) => !VULNERABILITY_KEYS.includes(key));
   return `
     <section class="sec">
       <h3>Amenities</h3>
+      <div class="amgrid">
+        ${rows.map(([key, label, count]) => `
+          <div class="amrow" data-layer="${key}">
+            <span class="am-icon" aria-hidden="true">${LAYER[key].icon}</span>
+            <span class="am-label">${esc(label)}</span>
+            <span class="cnt">${fmt(count || 0)}</span>
+          </div>
+        `).join('')}
+      </div>
+    </section>
+  `;
+}
+
+function renderVulnerability(uid, W, w) {
+  const rows = amenityRows(uid, W, w).filter(([key]) => VULNERABILITY_KEYS.includes(key));
+  return `
+    <section class="sec">
+      <h3>Vulnerability hotspots</h3>
       <div class="amgrid">
         ${rows.map(([key, label, count]) => `
           <div class="amrow" data-layer="${key}">
@@ -270,6 +289,7 @@ export function openWard(uid, { onOpenWard } = {}) {
     ${renderCandidates(w)}
     ${renderWardMap(uid, W, w)}
     ${renderAmenities(uid, W, w)}
+    ${renderVulnerability(uid, W, w)}
     ${renderFacts(w)}
     ${renderAsk(w)}
   `;
