@@ -107,13 +107,6 @@ export function forEachWardCoordinate(w, cb) {
   }
 }
 
-function forEachWardOuterCoordinate(w, cb) {
-  for (const polygon of geometryPolygons(wardGeometry(w))) {
-    const outer = polygon[0] || [];
-    for (const point of outer) cb(point);
-  }
-}
-
 export function pointInWard(x, y, uid, W) {
   return geometryPolygons(wardGeometry(W[uid])).some(polygon => pointInPolygon(x, y, polygon));
 }
@@ -123,27 +116,6 @@ export function wardAt(lng, lat, W) {
     if (pointInWard(lng, lat, k, W)) return k;
   }
   return null;
-}
-
-export function centroid(uid, W) {
-  let sx = 0, sy = 0, n = 0;
-  forEachWardOuterCoordinate(W[uid], (point) => {
-    sx += point[0];
-    sy += point[1];
-    n++;
-  });
-  return n ? [sx / n, sy / n] : [0, 0];
-}
-
-export function nearbyWards(uid, W, k = 6) {
-  const c = centroid(uid, W), arr = [];
-  for (const key in W) {
-    if (key === uid) continue;
-    const cc = centroid(key, W), dx = cc[0] - c[0], dy = cc[1] - c[1];
-    arr.push([key, dx * dx + dy * dy]);
-  }
-  arr.sort((a, b) => a[1] - b[1]);
-  return arr.slice(0, k).map(x => x[0]);
 }
 
 // ---- buffer-zone distance helpers (same flat-earth, lat-adjusted approximation
@@ -224,10 +196,11 @@ export function layerPointMeta(uid, type, W) {
 
 function nearbyExternalPoints(uid, type, W, radiusMeters = 1600) {
   const bbox = wardBbox(uid, W);
-  if (!bbox) return { points: [], meta: [] };
+  if (!bbox) return { points: [], meta: [], wardUids: [] };
   const refLat = (bbox.miny + bbox.maxy) / 2;
   const expanded = expandBbox(bbox, radiusMeters, refLat);
   const points = [], meta = [];
+  const wardUidSet = new Set();
   for (const otherUid in W) {
     if (otherUid === uid) continue;
     const otherBbox = wardBbox(otherUid, W);
@@ -239,10 +212,11 @@ function nearbyExternalPoints(uid, type, W, radiusMeters = 1600) {
       if (distanceMetersToWardBoundary(p[0], p[1], uid, W) <= radiusMeters) {
         points.push(p);
         meta.push(otherMeta[i] || {});
+        wardUidSet.add(otherUid);
       }
     });
   }
-  return { points, meta };
+  return { points, meta, wardUids: [...wardUidSet] };
 }
 
 export function defaultLayer(uid, W) {
@@ -528,7 +502,31 @@ export function addSecondaryAmenityPointsLayer(map, points, color, meta) {
 }
 
 export function setExternalAmenityLayer(map, type, uid, W, radiusMeters = 1600) {
-  const { points, meta } = nearbyExternalPoints(uid, type, W, radiusMeters);
+  const { points, meta, wardUids } = nearbyExternalPoints(uid, type, W, radiusMeters);
   addSecondaryAmenityPointsLayer(map, points, LAYER[type].color, meta);
-  return points;
+  return { points, wardUids };
+}
+
+export function setBufferZoneWardsLayer(map, wardUids, W) {
+  const geojson = buildWardPolygonsGeoJSON(W, { filterUids: wardUids });
+  if (map.getSource('buffer-zone-wards')) {
+    map.getSource('buffer-zone-wards').setData(geojson);
+  } else {
+    map.addSource('buffer-zone-wards', { type: 'geojson', data: geojson });
+    map.addLayer({
+      id: 'buffer-zone-wards-fill',
+      type: 'fill',
+      source: 'buffer-zone-wards',
+      paint: {
+        'fill-color': '#2f8f66',
+        'fill-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.18, 0],
+      },
+    }, 'amenity-points-secondary-circle');
+    map.addLayer({
+      id: 'buffer-zone-wards-line',
+      type: 'line',
+      source: 'buffer-zone-wards',
+      paint: { 'line-color': '#93a29a', 'line-width': 1, 'line-dasharray': [2, 2] },
+    }, 'amenity-points-secondary-circle');
+  }
 }

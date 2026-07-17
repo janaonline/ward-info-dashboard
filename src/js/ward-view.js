@@ -1,7 +1,8 @@
 import {
   createMap, buildWardPolygonsGeoJSON, addWardBoundaryLayer, LAYER, LAYER_ORDER,
   amenityRows, defaultLayer, layerPoints, setActiveAmenityLayer, setWalkBufferLayer,
-  setExternalAmenityLayer, nearbyWards, resizeMap, forEachWardCoordinate, raiseLabels, addResetViewControl,
+  setExternalAmenityLayer, setBufferZoneWardsLayer, makeHoverTracker, resizeMap,
+  forEachWardCoordinate, raiseLabels, addResetViewControl,
 } from './maps.js';
 import { esc, fmt } from './format.js';
 import { isLocalDev } from './data-loader.js';
@@ -11,6 +12,7 @@ let currentLayer = null;
 let bufferOn = false;
 let dataRef = null;
 let activeSecondaryPopup = null;
+let activeNeighborWardPopup = null;
 
 // ---- facts & questions engine (sourced from ward_facts_questions.geojson,
 // matched to a ward by ward_name once at load time in data-loader.js) ----
@@ -240,6 +242,10 @@ function closeSecondaryPopup() {
   if (activeSecondaryPopup) { activeSecondaryPopup.remove(); activeSecondaryPopup = null; }
 }
 
+function closeNeighborWardPopup() {
+  if (activeNeighborWardPopup) { activeNeighborWardPopup.remove(); activeNeighborWardPopup = null; }
+}
+
 function setLayer(uid, W, type) {
   if (!type || !LAYER[type]) return;
   currentLayer = type;
@@ -254,7 +260,8 @@ function setLayer(uid, W, type) {
   if (bufferToggle) bufferToggle.disabled = !walkEligible;
 
   setWalkBufferLayer(wardMap, walkEligible ? points : [], bufferOn && walkEligible);
-  setExternalAmenityLayer(wardMap, type, uid, W);
+  const external = setExternalAmenityLayer(wardMap, type, uid, W);
+  setBufferZoneWardsLayer(wardMap, external.wardUids, W);
   document.querySelectorAll('.legend-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.layer === type);
   });
@@ -298,7 +305,7 @@ function wireLayerClicks(uid, W) {
 export function initWardView({ W }) {
   dataRef = W;
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeSecondaryPopup();
+    if (e.key === 'Escape') { closeSecondaryPopup(); closeNeighborWardPopup(); }
   });
 }
 
@@ -308,6 +315,7 @@ export function openWard(uid, { onOpenWard } = {}) {
   currentLayer = defaultLayer(uid, W);
   bufferOn = false;
   activeSecondaryPopup = null;
+  activeNeighborWardPopup = null;
 
   const container = document.getElementById('wardContainer');
   container.innerHTML = `
@@ -329,19 +337,6 @@ export function openWard(uid, { onOpenWard } = {}) {
   wardMap.on('load', () => {
     const geojson = buildWardPolygonsGeoJSON(W, { filterUids: [uid] });
     addWardBoundaryLayer(wardMap, geojson);
-
-    const nearby = nearbyWards(uid, W, 8);
-    const neighborGeojson = buildWardPolygonsGeoJSON(W, { filterUids: nearby });
-    wardMap.addSource('neighbor-wards', { type: 'geojson', data: neighborGeojson });
-    wardMap.addLayer({
-      id: 'neighbor-wards-line',
-      type: 'line',
-      source: 'neighbor-wards',
-      paint: { 'line-color': '#93a29a', 'line-width': 1, 'line-dasharray': [2, 2] },
-    });
-    wardMap.on('click', 'neighbor-wards-line', (e) => {
-      if (e.features.length) onOpenWard(e.features[0].properties.uid);
-    });
 
     const bounds = new maplibregl.LngLatBounds();
     let boundCount = 0;
@@ -390,6 +385,53 @@ export function openWard(uid, { onOpenWard } = {}) {
         activeSecondaryPopup = new maplibregl.Popup({ closeButton: false, className: 'map-tip', offset: 12 })
           .setLngLat(e.lngLat).setHTML(html).addTo(wardMap);
         activeSecondaryPopup.on('close', () => { activeSecondaryPopup = null; });
+      });
+
+      const neighborTip = new maplibregl.Popup({ closeButton: false, closeOnClick: false, className: 'map-tip', offset: 12 });
+      const neighborHover = makeHoverTracker(wardMap, 'buffer-zone-wards');
+
+      wardMap.on('mousemove', 'buffer-zone-wards-fill', (e) => {
+        if (!e.features.length) return;
+        if (wardMap.queryRenderedFeatures(e.point, { layers: ['amenity-points-secondary-circle'] }).length) {
+          neighborHover.clear();
+          neighborTip.remove();
+          return;
+        }
+        const f = e.features[0];
+        neighborHover.setHovered(f.id);
+        if (activeNeighborWardPopup) return;
+        neighborTip.setLngLat(e.lngLat)
+          .setHTML(`Ward ${fmt(f.properties.ward_id)} &middot; ${esc(f.properties.name)}`)
+          .addTo(wardMap);
+      });
+      wardMap.on('mouseleave', 'buffer-zone-wards-fill', () => {
+        neighborHover.clear();
+        neighborTip.remove();
+      });
+
+      wardMap.on('click', 'buffer-zone-wards-fill', (e) => {
+        if (!e.features.length) return;
+        if (wardMap.queryRenderedFeatures(e.point, { layers: ['amenity-points-secondary-circle'] }).length) return;
+        const f = e.features[0];
+        const targetUid = f.properties.uid;
+        const targetName = f.properties.name;
+        closeNeighborWardPopup();
+        neighborTip.remove();
+        const popup = new maplibregl.Popup({ closeButton: false, className: 'ward-popup' })
+          .setLngLat(e.lngLat)
+          .setHTML(`
+            <div class="ward-popup-body">
+              <div class="ward-popup-name">Ward: ${esc(targetName)}</div>
+              <button type="button" class="btn btn-primary btn-sm ward-popup-btn" aria-label="View ward info for ${esc(targetName)}">View this ward</button>
+            </div>
+          `)
+          .addTo(wardMap);
+        popup.getElement().querySelector('.ward-popup-body').addEventListener('click', () => {
+          closeNeighborWardPopup();
+          onOpenWard(targetUid);
+        });
+        popup.on('close', () => { if (activeNeighborWardPopup === popup) activeNeighborWardPopup = null; });
+        activeNeighborWardPopup = popup;
       });
     }
     wireLayerClicks(uid, W);
