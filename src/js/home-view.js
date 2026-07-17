@@ -233,15 +233,17 @@ export function initHomeView({ W, meta }, { onOpenWard }) {
       <ul id="findList" class="ward-list"></ul>
       <details class="panel">
         <summary>What is the Greater Bengaluru Authority?</summary>
-        <p>The Greater Bengaluru Authority (GBA) is the apex civic body for the Bengaluru metropolitan region. It coordinates planning, infrastructure and governance across the city. Established in 2025, it replaced the Bruhat Bengaluru Mahanagara Palike (BBMP) as Bengaluru's primary urban governance institution.</p>
+        <p>The Greater Bengaluru Authority (GBA) is the apex civic body for the Bengaluru metropolitan region. It coordinates planning, infrastructure and governance across the city. Under the Greater Bengaluru Governance Act, 2024, the erstwhile Bruhat Bengaluru Mahanagara Palike (BBMP) has been reconstituted into multiple City Corporations (currently five), which now perform municipal functions within the Greater Bengaluru Area under the overarching coordination and supervision of the Greater Bengaluru Authority and its Executive Committee.</p>
       </details>
       <details class="panel">
         <summary>What is a ward councillor?</summary>
         <p>A ward councillor is your elected representative in local government. They represent your neighbourhood, raise local issues, oversee civic works, and help ensure municipal services respond to residents' needs.</p>
       </details>
       <details class="panel">
-        <summary>How this works</summary>
-        <p>We combine ward boundaries with open civic datasets on buses, metro, schools, parks, lakes, and more to show how well-served your neighbourhood is.</p>
+        <summary>How does this dashboard work?</summary>
+        <p>This platform presents ward-level civic information for Bengaluru, overlapping ward boundaries with open datasets on public amenities—bus stops, metro, schools, parks, lakes and more—to indicate how well each area is served and where provision is lacking.</p>
+        <p>Its purpose is to make civic data accessible and usable for residents, supporting an understanding of local conditions based on evidence and data. Ahead of elections, this can help citizens ask their candidates specific, informed questions.</p>
+        <p>The intention is to develop this into a consolidated source of ward-level information for Bengaluru.</p>
       </details>
       <details class="panel">
         <summary>About the data</summary>
