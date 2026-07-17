@@ -260,6 +260,30 @@ export function resizeMap(map) {
   if (map) map.resize();
 }
 
+// Same reset-arrows glyph as ward-view.js's amenity-layer "Reset" button, sized
+// to match .icon-btn's other icons (the theme toggle's sun/moon, both 18x18).
+const RESET_VIEW_ICON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>';
+
+export function addResetViewControl(map, defaultView) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'icon-btn map-reset-btn';
+  btn.setAttribute('aria-label', 'Reset Map');
+  btn.title = 'Reset map view';
+  btn.innerHTML = RESET_VIEW_ICON;
+  btn.addEventListener('click', () => {
+    map.easeTo({
+      center: defaultView.center,
+      zoom: defaultView.zoom,
+      bearing: defaultView.bearing || 0,
+      pitch: defaultView.pitch || 0,
+      duration: 600,
+    });
+  });
+  map.getContainer().appendChild(btn);
+  return btn;
+}
+
 // ---- feature-state hover bookkeeping ----
 
 export function makeHoverTracker(map, sourceId) {

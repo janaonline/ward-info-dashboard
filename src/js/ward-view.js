@@ -1,7 +1,7 @@
 import {
   createMap, buildWardPolygonsGeoJSON, addWardBoundaryLayer, LAYER, LAYER_ORDER,
   amenityRows, defaultLayer, layerPoints, setActiveAmenityLayer, setWalkBufferLayer,
-  nearbyWards, resizeMap, forEachWardCoordinate, raiseLabels,
+  nearbyWards, resizeMap, forEachWardCoordinate, raiseLabels, addResetViewControl,
 } from './maps.js';
 import { esc, fmt } from './format.js';
 import { isLocalDev } from './data-loader.js';
@@ -340,6 +340,12 @@ export function openWard(uid, { onOpenWard } = {}) {
       boundCount++;
     });
     if (boundCount) wardMap.fitBounds(bounds, { padding: 40, duration: 0 });
+    const defaultView = {
+      center: wardMap.getCenter(),
+      zoom: wardMap.getZoom(),
+      bearing: wardMap.getBearing(),
+      pitch: wardMap.getPitch(),
+    };
 
     if (currentLayer) {
       setLayer(uid, W, currentLayer);
@@ -355,6 +361,7 @@ export function openWard(uid, { onOpenWard } = {}) {
     }
     wireLayerClicks(uid, W);
     raiseLabels(wardMap);
+    addResetViewControl(wardMap, defaultView);
   });
 }
 

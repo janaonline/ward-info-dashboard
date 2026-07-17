@@ -74,6 +74,7 @@ mark {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .map {
+  position: relative;
   width: 100%;
   border-radius: var(--radius);
   overflow: hidden;
@@ -82,6 +83,11 @@ mark {
 }
 .map-corp { height: 260px; margin: 16px 0; }
 .map-ward { height: 320px; margin: 10px 0; }
+
+.map-reset-btn { position: absolute; top: var(--space-2); right: var(--space-2); z-index: 2; }
+/* .wardmap-badge sits at top/right: var(--space-3) on the same box (.wardmap-frame
+   tightly wraps #wardMap) — push the reset button below it there only. */
+#wardMap .map-reset-btn { top: 52px; }
 
 .map-tip { pointer-events: none; }
 .map-tip .maplibregl-popup-content {
