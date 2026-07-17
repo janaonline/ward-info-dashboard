@@ -581,7 +581,11 @@ mark {
 
 /* -- footer -- */
 
-.site-footer { margin-top: var(--space-7); border-top: 1px solid var(--line); background: var(--surface); }
+/* Extra bottom clearance so the fixed, always-visible #voterFaqFab (bottom
+   offset up to 28px + ~51px own height) never sits on top of real footer
+   content once the page is scrolled to the bottom — it hovers over this
+   blank strip of the footer's own background instead. */
+.site-footer { margin-top: var(--space-7); border-top: 1px solid var(--line); background: var(--surface); padding-bottom: 100px; }
 .footer-inner { padding-top: var(--space-5); padding-bottom: var(--space-5); display: flex; flex-direction: column; gap: var(--space-4); }
 .footer-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
 .footer-utility { justify-content: space-between; }
