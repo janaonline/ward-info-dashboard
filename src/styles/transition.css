@@ -5,7 +5,10 @@
 }
 
 ::view-transition-old(root) { z-index: 1; }
-::view-transition-new(root) { z-index: 2; }
+::view-transition-new(root) {
+  z-index: 2;
+  animation: reveal 500ms ease-in-out;
+}
 
 @keyframes reveal {
   from { clip-path: circle(0px at var(--ripple-x, 50%) var(--ripple-y, 50%)); }
