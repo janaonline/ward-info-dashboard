@@ -378,19 +378,27 @@ mark {
 .wardmap-badge-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
 .amgrid { display: flex; flex-direction: column; }
-.amrow {
-  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px;
+.amrow, .amrow-static {
   min-height: 44px;
   padding: 10px var(--space-2); border-bottom: 1px solid var(--line);
   border-left: 3px solid transparent;
   cursor: default;
   transition: background-color var(--dur) ease, border-color var(--dur) ease;
 }
+.amrow { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; }
+/* Deliberately a distinct class, not an .amrow modifier: wireLayerClicks() selects
+   `.amrow` to wire map-layer clicks, and would throw on a row with no data-layer.
+   Flex (not grid) since this row's content is a wrapping sentence, not a fixed
+   label+count pair — same pattern as .callout's icon+paragraph layout. */
+.amrow-static { display: flex; align-items: flex-start; gap: 10px; }
 .amrow.is-clickable { cursor: pointer; }
 .amrow.is-clickable:hover { background: var(--surface); border-left-color: var(--green); }
 .am-icon { display: flex; color: var(--muted); }
 .am-icon svg { width: 18px; height: 18px; }
+.amrow-static .am-icon { flex-shrink: 0; margin-top: 2px; }
 .cnt { font-family: var(--font-stat); font-weight: 700; }
+.am-temp-text { color: var(--ink); }
+.am-temp-delta { color: var(--muted); }
 
 .factslist { display: flex; flex-direction: column; gap: var(--space-2); }
 .fact {
