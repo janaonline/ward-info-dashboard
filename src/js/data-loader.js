@@ -319,6 +319,7 @@ export async function loadData() {
       water_cov_pct: numberOr(row.water_cov_pct, null),
       neighbourhoods: parseNeighbourhoods(row.neighbourhoods),
       old_wards: parseOldWards(row.old_wards),
+      reservation: row.reservation || null,
     });
     W[uid] = ward;
     nameIndex[String(ward.ward_name).toLowerCase()] = uid;
