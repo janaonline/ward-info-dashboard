@@ -58,16 +58,25 @@ function demographicsParts(w) {
   return parts;
 }
 
+function reservationText(w) {
+  return isBlank(w.reservation) ? null : esc(w.reservation);
+}
+
 function renderHead(w) {
   const demoParts = demographicsParts(w);
   if (!demoParts.length && isLocalDev()) {
     console.warn(`[demographics] No population data for ward "${w.ward_name}" (${w.uid})`);
+  }
+  const reservation = reservationText(w);
+  if (!reservation && isLocalDev()) {
+    console.warn(`[reservation] No reservation data for ward "${w.ward_name}" (${w.uid})`);
   }
   return `
     <div class="whead">
       <h2>${esc(w.ward_name)}${w.ward_name_kn ? ` <span class="kn">${esc(w.ward_name_kn)}</span>` : ''}</h2>
       <p class="whead-meta">Ward ${fmt(w.ward_id)} &middot; <strong>Corporation:</strong> ${esc(w.corporation)} &middot; <strong>Zone:</strong> ${esc(w.zone_name || w.zone)} &middot; <strong>Assembly:</strong> ${esc(w.assembly)}</p>
       ${demoParts.length ? `<p class="whead-meta">${demoParts.join(' &middot; ')}</p>` : ''}
+      ${reservation ? `<p class="whead-meta"><strong>Reservation:</strong> ${reservation}</p>` : ''}
       <div class="whead-origin">
         <div class="whead-origin-block">
           <span class="label">Formed from old wards</span>
