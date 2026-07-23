@@ -115,6 +115,8 @@ const RESET_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" 
 
 const EXTERNAL_LINK_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>';
 
+const TEMPERATURE_ICON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14.5V5a2 2 0 0 0-4 0v9.5a4 4 0 1 0 4 0z"/></svg>';
+
 const FEEDBACK_FORM_URL = 'https://forms.office.com/Pages/ResponsePage.aspx?id=durzKFDheUu_0kCRJE6V1UD6pxYgE_lDvC_e0YLsHi9UNk05RFRIUEFaS1U3VkpTMDRYTDMxR1pKSi4u';
 
 function amenityLabel(type, uid, W, w) {
@@ -184,6 +186,38 @@ function renderAmenities(uid, W, w) {
   `;
 }
 
+// Ward-level temperature is informational only (sourced from temperature.geojson,
+// joined by ward name once at load time in data-loader.js) — unlike the flood rows
+// above, it never toggles the Ward Map, so it's rendered outside wireLayerClicks'
+// `.amrow` click-wiring entirely (see renderTemperatureRow).
+function temperatureText(w) {
+  if (!w.temperature) return null; // join miss already warned in data-loader.js
+  const current = Number(w.temperature.lst_2025);
+  const delta = Number(w.temperature.delta_lst);
+  if (!Number.isFinite(current) || !Number.isFinite(delta)) {
+    if (isLocalDev()) {
+      console.warn(`[temperature] Missing lst_2025/delta_lst for ward "${w.ward_name}" (${w.uid})`);
+    }
+    return null;
+  }
+  const deltaAbs = Math.abs(delta);
+  const deltaText = delta > 0 ? `Increased by ${fmt(deltaAbs, 1)}&deg;C since 2015`
+    : delta < 0 ? `Decreased by ${fmt(deltaAbs, 1)}&deg;C since 2015`
+    : 'No change since 2015';
+  return { current: fmt(current, 1), deltaText };
+}
+
+function renderTemperatureRow(w) {
+  const t = temperatureText(w);
+  if (!t) return '';
+  return `
+    <div class="amrow-static">
+      <span class="am-icon" aria-hidden="true">${TEMPERATURE_ICON}</span>
+      <span class="am-temp-text"><strong>Temperature:</strong> ${t.current}&deg;C <span class="am-temp-delta">(${t.deltaText})</span></span>
+    </div>
+  `;
+}
+
 function renderVulnerability(uid, W, w) {
   const rows = amenityRows(uid, W, w).filter(([key]) => VULNERABILITY_KEYS.includes(key));
   return `
@@ -198,6 +232,7 @@ function renderVulnerability(uid, W, w) {
           </div>
         `).join('')}
       </div>
+      ${renderTemperatureRow(w)}
     </section>
   `;
 }

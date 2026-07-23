@@ -44,6 +44,10 @@ const POINT_SOURCES = {
 // matched to a ward by ward_name (see buildFactsQuestionsIndex/normalizeWardName).
 const FACTS_QUESTIONS_SOURCE = 'public/data/ward_facts_questions.geojson';
 
+// Ward-level temperature/land-cover metrics, matched to a ward by its own `ward`
+// property (not `ward_name` — see buildTemperatureIndex/normalizeWardName).
+const TEMPERATURE_SOURCE = 'public/data/temperature.geojson';
+
 // Which raw GeoJSON property holds a point type's real display name (and, for
 // polling only, a secondary booth-number field). Only types with a real per-feature
 // name belong here — every other point source's Name property is a uniform literal
@@ -234,16 +238,31 @@ function buildFactsQuestionsIndex(geojson) {
   return index;
 }
 
+// Properties-only index for temperature.geojson, keyed by normalized ward
+// name (its own `ward` property, not `ward_name`) — the file's own per-ward
+// boundary polygon is unused and discarded here, same as buildFactsQuestionsIndex.
+function buildTemperatureIndex(geojson) {
+  const index = {};
+  for (const feature of geojson.features || []) {
+    const name = feature.properties?.ward;
+    if (!name) continue;
+    index[normalizeWardName(name)] = feature.properties;
+  }
+  return index;
+}
+
 export async function loadData() {
   const pointKeys = Object.keys(POINT_SOURCES);
-  const [csvText, enrichedGeoJSON, factsQuestionsGeoJSON, ...pointGeoJSONs] = await Promise.all([
+  const [csvText, enrichedGeoJSON, factsQuestionsGeoJSON, temperatureGeoJSON, ...pointGeoJSONs] = await Promise.all([
     fetchText('public/data/wards.csv'),
     fetchJSON('public/data/GBA_369_Wards_Enriched.geojson'),
     fetchJSON(FACTS_QUESTIONS_SOURCE),
+    fetchJSON(TEMPERATURE_SOURCE),
     ...pointKeys.map(key => fetchJSON(POINT_SOURCES[key])),
   ]);
   const pointGeoJSONByKey = Object.fromEntries(pointKeys.map((key, i) => [key, pointGeoJSONs[i]]));
   const factsQuestionsByName = buildFactsQuestionsIndex(factsQuestionsGeoJSON);
+  const temperatureByName = buildTemperatureIndex(temperatureGeoJSON);
 
   const parsed = Papa.parse(csvText, { header: true, dynamicTyping: true, skipEmptyLines: true });
   const csvByUid = {};
@@ -339,6 +358,12 @@ export async function loadData() {
     ward.factsQuestions = fq || null;
     if (!fq && isLocalDev()) {
       console.warn(`[ward_facts_questions] No match for ward "${ward.ward_name}" (${ward.uid})`);
+    }
+
+    const temp = temperatureByName[normalizeWardName(ward.ward_name)];
+    ward.temperature = temp || null;
+    if (!temp && isLocalDev()) {
+      console.warn(`[temperature] No match for ward "${ward.ward_name}" (${ward.uid})`);
     }
   }
 
