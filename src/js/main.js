@@ -47,7 +47,7 @@ async function boot() {
     throw err;
   }
 
-  const { W, meta } = data;
+  const { W, meta, benchmarks } = data;
 
   const handleOpenWard = (uid) => {
     openWard(uid, { onOpenWard: handleOpenWard });
@@ -57,7 +57,7 @@ async function boot() {
 
   initHomeView({ W, meta }, { onOpenWard: handleOpenWard });
 
-  initWardView({ W });
+  initWardView({ W, benchmarks });
 
   initMethodologyView({ meta });
 

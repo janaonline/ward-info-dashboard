@@ -48,6 +48,12 @@ const FACTS_QUESTIONS_SOURCE = 'public/data/ward_facts_questions.geojson';
 // property (see buildTemperatureIndex/normalizeWardName).
 const TEMPERATURE_SOURCE = 'public/data/temperature.geojson';
 
+// Amenity planning-standard benchmarks (11 rows, one per Amenities-section row
+// type) — ward-independent, matched to amenityRows() labels by normalized
+// Amenity text (see buildBenchmarkIndex/normalizeWardName). Consumed only by
+// ward-view.js's renderAmenities.
+const BENCHMARKS_SOURCE = 'public/data/benchmarks_for_WID.csv';
+
 // Which raw GeoJSON property holds a point type's real display name (and, for
 // polling only, a secondary booth-number field). Only types with a real per-feature
 // name belong here — every other point source's Name property is a uniform literal
@@ -79,7 +85,10 @@ function stripWardPrefix(name) {
   return String(name || '').replace(/^\s*\d+\s*-\s*/, '').trim();
 }
 
-function normalizeWardName(name) {
+// Generic trim/collapse-whitespace/lowercase key normalizer — despite the name
+// (kept for historical reasons, it predates the benchmark join), it's not
+// ward-specific and is reused as-is for the Amenity-name join below.
+export function normalizeWardName(name) {
   return String(name || '').trim().replace(/\s+/g, ' ').toLowerCase();
 }
 
@@ -251,18 +260,34 @@ function buildTemperatureIndex(geojson) {
   return index;
 }
 
+// Index for benchmarks_for_WID.csv, keyed by normalized Amenity text — unlike
+// the two indexes above, this isn't a per-ward join, it's a small (11-row)
+// ward-independent lookup table shared by every ward.
+function buildBenchmarkIndex(rows) {
+  const index = {};
+  for (const row of rows) {
+    if (!row.Amenity) continue;
+    index[normalizeWardName(row.Amenity)] = { text: row.benchmark_text || null, benchmark: row.benchmark };
+  }
+  return index;
+}
+
 export async function loadData() {
   const pointKeys = Object.keys(POINT_SOURCES);
-  const [csvText, enrichedGeoJSON, factsQuestionsGeoJSON, temperatureGeoJSON, ...pointGeoJSONs] = await Promise.all([
+  const [csvText, enrichedGeoJSON, factsQuestionsGeoJSON, temperatureGeoJSON, benchmarksText, ...pointGeoJSONs] = await Promise.all([
     fetchText('public/data/wards.csv'),
     fetchJSON('public/data/GBA_369_Wards_Enriched.geojson'),
     fetchJSON(FACTS_QUESTIONS_SOURCE),
     fetchJSON(TEMPERATURE_SOURCE),
+    fetchText(BENCHMARKS_SOURCE),
     ...pointKeys.map(key => fetchJSON(POINT_SOURCES[key])),
   ]);
   const pointGeoJSONByKey = Object.fromEntries(pointKeys.map((key, i) => [key, pointGeoJSONs[i]]));
   const factsQuestionsByName = buildFactsQuestionsIndex(factsQuestionsGeoJSON);
   const temperatureByName = buildTemperatureIndex(temperatureGeoJSON);
+  const benchmarksByAmenity = buildBenchmarkIndex(
+    Papa.parse(benchmarksText, { header: true, dynamicTyping: true, skipEmptyLines: true }).data
+  );
 
   const parsed = Papa.parse(csvText, { header: true, dynamicTyping: true, skipEmptyLines: true });
   const csvByUid = {};
@@ -373,6 +398,7 @@ export async function loadData() {
     W,
     nameIndex,
     A: buildAverages(wards),
+    benchmarks: benchmarksByAmenity,
     meta: {
       generated: null,
       source: 'GBA_369_Wards_Enriched.geojson',
