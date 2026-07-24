@@ -385,7 +385,7 @@ mark {
   cursor: default;
   transition: background-color var(--dur) ease, border-color var(--dur) ease;
 }
-.amrow { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; }
+.amrow { display: grid; grid-template-columns: auto 1fr auto; align-items: center; column-gap: 10px; row-gap: var(--space-1); }
 /* Deliberately a distinct class, not an .amrow modifier: wireLayerClicks() selects
    `.amrow` to wire map-layer clicks, and would throw on a row with no data-layer.
    Flex (not grid) since this row's content is a wrapping sentence, not a fixed
@@ -399,6 +399,126 @@ mark {
 .cnt { font-family: var(--font-stat); font-weight: 700; }
 .am-temp-text { color: var(--ink); }
 .am-temp-delta { color: var(--muted); }
+
+/* Amenities-only grid instance: benchmark blocks give rows variable heights, so
+   this modifier stops CSS Grid's default row-stretch from vertically centering
+   a short row (e.g. Parks' bar) against a taller neighbour in the same visual
+   row (e.g. Bus stops' long description) at the >=900px multi-column layout.
+   Scoped to this modifier, not .amgrid itself, so Vulnerability hotspots keeps
+   its own (unaffected, no benchmark blocks) grid behavior. */
+@media (min-width: 900px) {
+  .amgrid-benchmarks { align-items: start; }
+}
+
+/* Benchmark sub-row: spans columns 2-3 of .amrow's existing 3-col grid (auto 1fr
+   auto), auto-placed into a new implicit row — column 1 (icon) stays empty on
+   this row, which is what indents it under the label instead of the icon. */
+.am-benchmark { grid-column: 2 / -1; display: flex; flex-direction: column; gap: var(--space-1); }
+.am-benchmark-bar { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+/* Neutral gray tint (color-mix from --gray, not the brand's green-tinted
+   --inset) — the unfilled portion of a benchmark progress bar reads as plain
+   "not yet filled" track, not a green-brand surface. */
+.am-benchmark-track {
+  display: inline-block; flex: 0 1 120px; min-width: 60px;
+  height: 6px; border-radius: 999px; overflow: hidden;
+  background: color-mix(in srgb, var(--gray) 25%, var(--surface-2));
+}
+.am-benchmark-fill { display: block; height: 100%; border-radius: 999px; }
+/* Performance-tier fill colors: >=100% of recommended, 75-99%, 40-74%, <40%
+   (see progressTone() in ward-view.js) — never a flat color regardless of
+   how close the ward actually is to the benchmark. */
+.am-benchmark-fill--green { background: var(--green); }
+.am-benchmark-fill--light-green { background: var(--light-green); }
+.am-benchmark-fill--orange { background: var(--orange); }
+.am-benchmark-fill--red { background: var(--red); }
+.am-benchmark-ratio { font-size: 0.78rem; color: var(--muted); white-space: nowrap; }
+
+/* A new tier-2 component, not .pill reused: .pill's background (--surface) is
+   identical to .amrow.is-clickable:hover's background, so a .pill-based badge
+   would visually vanish on row hover. The color-mix() tint (same convention
+   already used elsewhere in this codebase, e.g. the dark-theme search-input
+   focus ring) keeps the badge legible in both states. */
+.am-benchmark-badge {
+  display: inline-block; align-self: flex-start;
+  padding: 2px 10px; border-radius: 999px;
+  border: 1px solid currentColor;
+  background: color-mix(in srgb, currentColor 12%, var(--surface-2));
+  font-size: 0.78rem; font-weight: 600;
+}
+/* Category -> tone (see BADGE_TONES in ward-view.js) — not every tone is
+   reachable with today's benchmarks_for_WID.csv data (only blue/cyan are),
+   the rest are defined for categories no current row uses yet. */
+.am-benchmark-badge--blue { color: var(--blue); }
+.am-benchmark-badge--teal { color: var(--teal); }
+.am-benchmark-badge--indigo { color: var(--indigo); }
+.am-benchmark-badge--cyan { color: var(--cyan); }
+.am-benchmark-badge--gray { color: var(--gray); }
+.am-benchmark-badge--orange { color: var(--orange); }
+.am-benchmark-badge--green { color: var(--green); }
+
+/* Clamped to (and, via the explicit height below, always reserved at exactly)
+   2 lines — so a long CSV description still gets its "…" ellipsis from
+   -webkit-line-clamp, but a short 1-line description no longer collapses its
+   box either: every row's description area is the same height regardless of
+   actual text length, which is what keeps every Amenities row the same total
+   height (see .amgrid-benchmarks .amrow below). The full text is reachable via
+   the "Read more" toggle (wireBenchmarkToggles in ward-view.js), which only
+   appears when the text actually overflows this fixed box. position:relative
+   is the positioning context for that toggle, which is this element's own
+   child (see .am-benchmark-more) so it can sit flush at the bottom-right
+   corner of line 2 rather than adding a line of its own underneath. */
+.am-benchmark-desc {
+  position: relative;
+  margin: 0; font-size: 0.78rem; line-height: 1.45; color: var(--muted);
+  height: 2.9em;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2;
+  overflow: hidden;
+}
+.am-benchmark-desc--expanded {
+  display: block;
+  height: auto;
+  -webkit-line-clamp: unset; line-clamp: unset;
+  overflow: visible;
+}
+
+/* Absolutely positioned at the description's own bottom-right corner (a
+   child of .am-benchmark-desc, appended there by wireBenchmarkToggles) rather
+   than a block-level sibling underneath it — this is what puts "Read more" at
+   the end of line 2 instead of on a line of its own, and adds no height to
+   the row. Its own background matches the card so it cleanly overlays
+   whatever trailing characters would otherwise sit underneath, rather than
+   the two visually colliding. Same 44x44 invisible hit-slop technique as
+   .temp-info-link (::before, absolutely centered) for the tappable area. */
+.am-benchmark-more {
+  position: absolute;
+  right: 0; bottom: 0;
+  padding: 0 0 0 var(--space-2);
+  border: none; background: var(--surface-2);
+  font-family: var(--font-body); font-size: 0.78rem; font-weight: 600;
+  color: var(--green-d);
+  text-decoration: underline; text-underline-offset: 2px;
+  cursor: pointer;
+}
+.am-benchmark-more::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 44px; height: 44px;
+  transform: translate(-50%, -50%);
+}
+
+/* Fixed row height, Amenities-grid-only (Vulnerability hotspots' plain .amrow
+   is untouched): forces every row — badge or progress-bar header, 1-line or
+   2-line description — to the exact same height, so a short description
+   doesn't leave its row visibly shorter than a neighbour with a long one.
+   align-content:start collects any resulting slack space at the row's own
+   bottom rather than letting the grid's default stretch spread it between
+   the icon/label/count line and the benchmark block. */
+.amgrid-benchmarks .amrow {
+  min-height: 132px;
+  align-content: start;
+}
+
 .temp-info-link {
   position: relative;
   display: inline-flex;
