@@ -109,6 +109,7 @@ Selectors below are real, current selectors from `src/styles/components.css`/`ba
 | Interactive map popup | `.ward-popup` (+ `.ward-popup-body`/`-name`/`-btn`) | Pinned, click-triggered Popup override (not `pointer-events: none` like `.map-tip`): `--surface` bg, `--radius-m`, `--shadow-2`, `.btn.btn-primary` reused verbatim for the action button | home choropleth's click-to-navigate ward popup |
 | Fixed nav chrome | `.topcluster`, `.back-fab`, `.voter-faq-fab` | Fixed-position controls, 44px min touch target, `--shadow-1`/`--shadow-2` on hover | theme toggle, back button, FAQ FAB |
 | Footer primitives | `.footer-methodology`, `.footer-share*`, `.footer-org*`, `.footer-social-link` | Card/link/icon patterns for the persistent site footer | `src/js/footer.js` |
+| Inline info-icon link | `.temp-info-link` | Small tooltip+external-link icon embedded mid-sentence (not a standalone button): `--muted` idle / `--ink` hover text color, `--surface` hover fill, `--radius-s`; full 44×44px touch target via padding around a visually smaller 16px glyph, so it stays compliant with this project's touch-target rule even inline | ward-view Temperature row's link to `Temperature_2015_2026.pdf` |
 
 When none of these fit, build a new component (tier 2, §4) — do not force an unrelated fit.
 
