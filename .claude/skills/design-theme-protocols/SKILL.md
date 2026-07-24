@@ -46,7 +46,16 @@ Both tiers apply in both themes — `:root` and `[data-theme="dark"]` are update
 | `--lime` | `#c8e537` | `#c8e537` | **dark-theme-only** accent — see §6 |
 | `--footer-logo-bg` | `#ffffff` | `#ffffff` | fixed-light chip behind partner logos (same both themes) |
 | `--footer-logo-fallback-ink` | `#1b2410` | `#1b2410` | fallback text on that chip |
-| `--blue` / `--violet` | `#2563c9` / `#6d4bd6` | `#5b8fe0` / `#9c85f0` | kept for back-compat only, not brand-critical — don't build new UI on these |
+| `--violet` | `#6d4bd6` | `#9c85f0` | kept for back-compat only, not brand-critical — don't build new UI on this (used briefly by an earlier iteration of the Amenities benchmark badges, since superseded by the per-category tone system below) |
+| `--blue` | `#2563c9` | `#5b8fe0` | confirmed exception (2026): Amenities-grid benchmark-badge tone for the "Network standard" category (`.am-benchmark-badge--blue`) — part of the categorical badge/progress-tier system below, not general-purpose |
+| `--teal` | `#0f8a7e` | `#5fcfc0` | Amenities benchmark-badge tone: "Accessibility based" (`.am-benchmark-badge--teal`) |
+| `--indigo` | `#4b53c9` | `#9aa3f0` | Amenities benchmark-badge tone: "Coverage based" (`.am-benchmark-badge--indigo`) |
+| `--cyan` | `#0891b2` | `#5fd0e8` | Amenities benchmark-badge tone: "Geography based" (`.am-benchmark-badge--cyan`) |
+| `--gray` | `#6b7280` | `#a3a9b3` | Amenities benchmark-badge tone: "Planning based" / unmatched-category fallback (`.am-benchmark-badge--gray`), and the neutral tint for `.am-benchmark-track`'s unfilled progress-bar background |
+| `--orange` | `#c2660a` | `#f0a860` | Amenities benchmark-badge tone: "Activity based" (`.am-benchmark-badge--orange`), **and** the progress-bar "Moderate" (40–74% of recommended) fill tier (`.am-benchmark-fill--orange`) |
+| `--light-green` | `#7cb342` | `#a8d876` | Amenities progress-bar "Good" (75–99% of recommended) fill tier only (`.am-benchmark-fill--light-green`) — distinct from `--green`'s "Excellent" (≥100%) tier |
+
+All 7 new/repurposed tokens above are scoped to the Amenities benchmark UI specifically (progress-bar fill tiers + category badges) per an explicit requester color-mapping — not a general license to use these hues elsewhere in the app. `--green`/`--red` are reused as-is for the progress-bar "Excellent"/"Poor" tiers and the badge "Environmental" category; no new token was needed for those.
 
 ### Radius scale
 
@@ -97,6 +106,8 @@ Selectors below are real, current selectors from `src/styles/components.css`/`ba
 | WhatsApp button | `.btn.btn-whatsapp` | Fixed `#25d366`/`#06341c` — brand-locked exception, not a token; only ever for the WhatsApp share action, never reused for generic green CTAs | `#footerWhatsapp` |
 | Small button | `.btn.btn-sm` | `36px` min-height variant of `.btn` for tight footer rows | footer share actions |
 | Pill/badge | `.pill`, `.pill.pill-soon` | `--surface` bg + `--muted` text; `pill-soon` swaps to `--yellow-soft`/`--yellow-ink` | `.candgrid h3` "coming soon" badge |
+| Benchmark progress bar | `.am-benchmark-track`/`.am-benchmark-fill` (+ `--green`/`--light-green`/`--orange`/`--red` tone modifiers)/`.am-benchmark-ratio` | Neutral gray track (`color-mix(in srgb, var(--gray) 25%, var(--surface-2))`, not `--inset`); fill color is a performance tier (`progressTone()` in `ward-view.js`: ≥100%→green, 75–99%→light-green, 40–74%→orange, <40%→red), never flat; `--muted` ratio text; not `.pill`-based | Amenities-grid rows with a numeric CSV benchmark |
+| Benchmark badge | `.am-benchmark-badge` (+ `--blue`/`--teal`/`--indigo`/`--cyan`/`--gray`/`--orange`/`--green` tone modifiers) | Outlined pill: `border: 1px solid currentColor`, `background: color-mix(in srgb, currentColor 12%, var(--surface-2))`, color keyed by category via `BADGE_TONES` in `ward-view.js` (not uniform) — deliberately not `.pill` reused, since `.pill`'s `--surface` bg is identical to `.amrow.is-clickable:hover`'s and would vanish on hover | Amenities-grid rows with no numeric CSV benchmark |
 | Icon button (round, 44px) | `.icon-btn` | Theme toggle and any other round icon-only control | `#themeToggle` |
 | List row | `.ward-row`, `.ward-suggest-row` | 44px min-height, hover = `--surface-2` bg + `--green` left-border, active = `--green-soft` | ward list, autosuggest dropdown |
 | Filter/legend button | `.legend-btn` (+ `.active`), `.amenity-card-*` | Map filter cards: `--surface`/`--line2` idle, `--green-soft`/`--green-d` active | ward-map amenity filter row |

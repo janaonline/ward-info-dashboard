@@ -24,7 +24,13 @@
   --footer-logo-fallback-ink:#1b2410;
 
   /* kept for back-compat, no longer brand-critical */
-  --blue:#2563c9; --violet:#6d4bd6;
+  --violet:#6d4bd6;
+
+  /* Amenities benchmark badges/progress tiers only (categorical color-coding,
+     confirmed with the requester) — --blue moves out of "back-compat only" to
+     back this; the rest are new. Not for general reuse elsewhere in the app. */
+  --blue:#2563c9; --teal:#0f8a7e; --indigo:#4b53c9; --cyan:#0891b2;
+  --gray:#6b7280; --orange:#c2660a; --light-green:#7cb342;
 
   --radius:14px; --radius-m:11px; --radius-s:8px; --radius-l:18px;
 
@@ -57,7 +63,9 @@
   --lime:#c8e537;
   --footer-logo-bg:#ffffff;
   --footer-logo-fallback-ink:#1b2410;
-  --blue:#5b8fe0; --violet:#9c85f0;
+  --violet:#9c85f0;
+  --blue:#5b8fe0; --teal:#5fcfc0; --indigo:#9aa3f0; --cyan:#5fd0e8;
+  --gray:#a3a9b3; --orange:#f0a860; --light-green:#a8d876;
 
   --shadow-1:0 1px 2px rgba(0,0,0,.35), 0 1px 3px rgba(0,0,0,.45);
   --shadow-2:0 2px 6px rgba(0,0,0,.40), 0 8px 18px rgba(0,0,0,.50);

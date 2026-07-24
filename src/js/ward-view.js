@@ -5,12 +5,13 @@ import {
   forEachWardCoordinate, raiseLabels, addResetViewControl, distanceMetersToWardBoundary,
 } from './maps.js';
 import { esc, fmt, fmtTrunc } from './format.js';
-import { isLocalDev } from './data-loader.js';
+import { isLocalDev, normalizeWardName } from './data-loader.js';
 
 let wardMap = null;
 let currentLayer = null;
 let bufferOn = false;
 let dataRef = null;
+let benchmarksRef = null;
 let activeSecondaryPopup = null;
 let activeNeighborWardPopup = null;
 
@@ -123,6 +124,44 @@ const FEEDBACK_FORM_URL = 'https://forms.office.com/Pages/ResponsePage.aspx?id=d
 
 const TEMPERATURE_PDF_URL = 'public/data/Temperature_2015_2026.pdf';
 
+// Static badge labels for amenityRows() keys whose benchmarks_for_WID.csv entry
+// has no numeric `benchmark` (so no recommended-count progress bar can be
+// computed) — keyed by `key`, not the CSV's Amenity text, so this never depends
+// on string matching.
+const BENCHMARK_BADGES = {
+  bus: { label: 'Network standard' },
+  metro: { label: 'Network standard' },
+  lake: { label: 'Geography based' },
+  pond: { label: 'Geography based' },
+};
+const DEFAULT_BENCHMARK_BADGE = { label: 'No fixed benchmark' };
+
+// Badge category -> accent tone (see .am-benchmark-badge--* in components.css).
+// Only Network standard/Geography based are reachable with today's CSV data;
+// the rest are defined so a future badge-eligible amenity using one of these
+// category labels gets the right color automatically, no code change needed.
+const BADGE_TONES = {
+  'Network standard': 'blue',
+  'Accessibility based': 'teal',
+  'Coverage based': 'indigo',
+  'Geography based': 'cyan',
+  'Planning based': 'gray',
+  'Activity based': 'orange',
+  'Environmental': 'green',
+};
+const DEFAULT_BADGE_TONE = 'gray';
+
+// Progress-bar fill tone by percent-of-recommended (pct is already clamped to
+// [0, 100] by benchmarkFor — every ratio >=100% collapses to exactly 100,
+// which still correctly satisfies ">= 100" here, so no separate unclamped
+// ratio is needed just to classify the "Excellent" tier).
+function progressTone(pct) {
+  if (pct >= 100) return 'green';
+  if (pct >= 75) return 'light-green';
+  if (pct >= 40) return 'orange';
+  return 'red';
+}
+
 function amenityLabel(type, uid, W, w) {
   if (type === 'polling') return 'Polling booths';
   const row = amenityRows(uid, W, w).find(r => r[0] === type);
@@ -172,17 +211,71 @@ function renderWardMap(uid, W, w) {
   `;
 }
 
+// Looks up label's benchmark entry (blank/no-match returns null so the row
+// renders exactly as it did before this feature existed) and turns it into a
+// progress-bar payload (numeric benchmark + known ward population), a badge
+// payload (no numeric benchmark), or a text-only payload (numeric benchmark
+// but population unavailable — not reachable with current data, since every
+// ward has a population, but kept as a safe no-crash fallback).
+function benchmarkFor(key, label, count, w) {
+  const entry = benchmarksRef && benchmarksRef[normalizeWardName(label)];
+  if (!entry) return null;
+
+  const hasBenchmark = entry.benchmark != null && Number.isFinite(Number(entry.benchmark)) && Number(entry.benchmark) > 0;
+  const hasPop = w.pop != null && Number.isFinite(Number(w.pop)) && Number(w.pop) > 0;
+  const text = isBlank(entry.text) ? null : esc(entry.text);
+
+  if (hasBenchmark && hasPop) {
+    const recommended = Math.ceil(Number(w.pop) / Number(entry.benchmark));
+    const pct = recommended > 0 ? Math.max(0, Math.min(100, ((count || 0) / recommended) * 100)) : 0;
+    const roundedPct = Math.round(pct);
+    return { kind: 'bar', pct: roundedPct, tone: progressTone(roundedPct), count: count || 0, recommended, text };
+  }
+  if (!hasBenchmark) {
+    const badge = BENCHMARK_BADGES[key] || DEFAULT_BENCHMARK_BADGE;
+    const tone = BADGE_TONES[badge.label] || DEFAULT_BADGE_TONE;
+    return { kind: 'badge', badgeLabel: badge.label, tone, text };
+  }
+  return text ? { kind: 'text', text } : null;
+}
+
+function renderBenchmarkBlock(key, label, count, w) {
+  const b = benchmarkFor(key, label, count, w);
+  if (!b) return '';
+  if (b.kind === 'bar') {
+    return `
+      <div class="am-benchmark">
+        <div class="am-benchmark-bar">
+          <span class="am-benchmark-track" aria-hidden="true"><span class="am-benchmark-fill am-benchmark-fill--${b.tone}" style="width:${b.pct}%"></span></span>
+          <span class="am-benchmark-ratio">${fmt(b.count)} / ${fmt(b.recommended)} recommended</span>
+        </div>
+        ${b.text ? `<p class="am-benchmark-desc">${b.text}</p>` : ''}
+      </div>
+    `;
+  }
+  if (b.kind === 'badge') {
+    return `
+      <div class="am-benchmark">
+        <span class="am-benchmark-badge am-benchmark-badge--${b.tone}">${esc(b.badgeLabel)}</span>
+        ${b.text ? `<p class="am-benchmark-desc">${b.text}</p>` : ''}
+      </div>
+    `;
+  }
+  return `<div class="am-benchmark"><p class="am-benchmark-desc">${b.text}</p></div>`;
+}
+
 function renderAmenities(uid, W, w) {
   const rows = amenityRows(uid, W, w).filter(([key]) => !VULNERABILITY_KEYS.includes(key));
   return `
     <section class="sec">
       <h3>Amenities</h3>
-      <div class="amgrid">
+      <div class="amgrid amgrid-benchmarks">
         ${rows.map(([key, label, count]) => `
           <div class="amrow" data-layer="${key}">
             <span class="am-icon" aria-hidden="true">${LAYER[key].icon}</span>
             <span class="am-label">${esc(label)}</span>
             <span class="cnt">${fmt(count || 0)}</span>
+            ${renderBenchmarkBlock(key, label, count, w)}
           </div>
         `).join('')}
       </div>
@@ -325,6 +418,36 @@ function setLayer(uid, W, type) {
   }
 }
 
+// -webkit-line-clamp is purely visual truncation — the paragraph's textContent
+// already holds the full benchmark_text regardless of clipping, so "expanding"
+// is just a CSS class toggle, no text-swapping needed. Only adds a toggle for
+// descriptions that are actually clamped (scrollHeight > clientHeight); a
+// short one-line description gets no control at all.
+function wireBenchmarkToggles() {
+  document.querySelectorAll('.am-benchmark-desc').forEach((el, i) => {
+    if (el.scrollHeight <= el.clientHeight + 1) return;
+    el.id = el.id || `am-benchmark-desc-${i}`;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'am-benchmark-more';
+    btn.textContent = 'Read more';
+    btn.setAttribute('aria-expanded', 'false');
+    btn.setAttribute('aria-controls', el.id);
+    btn.addEventListener('click', (e) => {
+      // Prevents bubbling into the parent .amrow's map-layer-switch click handler
+      // (wireLayerClicks), which would otherwise also fire on this click.
+      e.stopPropagation();
+      const expanded = el.classList.toggle('am-benchmark-desc--expanded');
+      btn.textContent = expanded ? 'Show less' : 'Read more';
+      btn.setAttribute('aria-expanded', String(expanded));
+    });
+    // Appended as a child (not a sibling) so CSS can absolutely position it at
+    // this paragraph's own bottom-right corner (.am-benchmark-more), landing
+    // at the end of line 2 instead of adding a line of its own underneath.
+    el.appendChild(btn);
+  });
+}
+
 function wireLayerClicks(uid, W) {
   document.querySelectorAll('.legend-btn').forEach(btn => {
     btn.addEventListener('click', () => setLayer(uid, W, btn.dataset.layer));
@@ -354,8 +477,9 @@ function wireLayerClicks(uid, W) {
 
 // ---- entry point ----
 
-export function initWardView({ W }) {
+export function initWardView({ W, benchmarks }) {
   dataRef = W;
+  benchmarksRef = benchmarks || {};
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') { closeSecondaryPopup(); closeNeighborWardPopup(); }
   });
@@ -380,6 +504,18 @@ export function openWard(uid, { onOpenWard } = {}) {
     ${renderAsk(w)}
     ${renderFeedback()}
   `;
+  // Deferred until web fonts finish loading: measuring scrollHeight/clientHeight
+  // immediately after innerHTML would race the Manrope/PT Sans <link> fonts —
+  // text still on the fallback font can measure as fitting within 2 lines, then
+  // silently overflow once the real font swaps in, permanently under-detecting
+  // which descriptions actually need a "Read more" toggle. document.fonts.ready
+  // resolves immediately (next microtask) once fonts are already cached, so this
+  // adds no perceptible delay on repeat ward navigations.
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(wireBenchmarkToggles);
+  } else {
+    wireBenchmarkToggles();
+  }
 
   if (wardMap) {
     wardMap.remove();
