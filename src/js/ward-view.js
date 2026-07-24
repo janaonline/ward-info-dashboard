@@ -4,7 +4,7 @@ import {
   setExternalAmenityLayer, setBufferZoneWardsLayer, makeHoverTracker, resizeMap,
   forEachWardCoordinate, raiseLabels, addResetViewControl, distanceMetersToWardBoundary,
 } from './maps.js';
-import { esc, fmt } from './format.js';
+import { esc, fmt, fmtTrunc } from './format.js';
 import { isLocalDev } from './data-loader.js';
 
 let wardMap = null;
@@ -117,7 +117,11 @@ const EXTERNAL_LINK_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill
 
 const TEMPERATURE_ICON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14.5V5a2 2 0 0 0-4 0v9.5a4 4 0 1 0 4 0z"/></svg>';
 
+const INFO_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+
 const FEEDBACK_FORM_URL = 'https://forms.office.com/Pages/ResponsePage.aspx?id=durzKFDheUu_0kCRJE6V1UD6pxYgE_lDvC_e0YLsHi9UNk05RFRIUEFaS1U3VkpTMDRYTDMxR1pKSi4u';
+
+const TEMPERATURE_PDF_URL = 'public/data/Temperature_2015_2026.pdf';
 
 function amenityLabel(type, uid, W, w) {
   if (type === 'polling') return 'Polling booths';
@@ -187,33 +191,37 @@ function renderAmenities(uid, W, w) {
 }
 
 // Ward-level temperature is informational only (sourced from temperature.geojson,
-// joined by ward name once at load time in data-loader.js) — unlike the flood rows
+// joined by ward_name once at load time in data-loader.js) — unlike the flood rows
 // above, it never toggles the Ward Map, so it's rendered outside wireLayerClicks'
-// `.amrow` click-wiring entirely (see renderTemperatureRow).
+// `.amrow` click-wiring entirely (see renderTemperatureRow). The row always renders,
+// even when a ward has no temperature data (shows "N/A"), so the info icon/PDF link
+// stays visible and functional for every ward.
 function temperatureText(w) {
-  if (!w.temperature) return null; // join miss already warned in data-loader.js
-  const current = Number(w.temperature.lst_2025);
+  if (!w.temperature) return { current: null, deltaText: null }; // join miss already warned in data-loader.js
+  const current = Number(w.temperature.lst_2026);
   const delta = Number(w.temperature.delta_lst);
   if (!Number.isFinite(current) || !Number.isFinite(delta)) {
     if (isLocalDev()) {
-      console.warn(`[temperature] Missing lst_2025/delta_lst for ward "${w.ward_name}" (${w.uid})`);
+      console.warn(`[temperature] Missing lst_2026/delta_lst for ward "${w.ward_name}" (${w.uid})`);
     }
-    return null;
+    return { current: null, deltaText: null };
   }
   const deltaAbs = Math.abs(delta);
-  const deltaText = delta > 0 ? `Increased by ${fmt(deltaAbs, 1)}&deg;C since 2015`
-    : delta < 0 ? `Decreased by ${fmt(deltaAbs, 1)}&deg;C since 2015`
+  const deltaText = delta > 0 ? `Increased by ${fmtTrunc(deltaAbs, 1)}&deg;C since 2015`
+    : delta < 0 ? `Decreased by ${fmtTrunc(deltaAbs, 1)}&deg;C since 2015`
     : 'No change since 2015';
-  return { current: fmt(current, 1), deltaText };
+  return { current: fmtTrunc(current, 1), deltaText };
 }
 
 function renderTemperatureRow(w) {
   const t = temperatureText(w);
-  if (!t) return '';
+  const text = t.current == null
+    ? '<strong>Temperature:</strong> N/A'
+    : `<strong>Temperature:</strong> ${t.current}&deg;C <span class="am-temp-delta">(${t.deltaText})</span>`;
   return `
     <div class="amrow-static">
       <span class="am-icon" aria-hidden="true">${TEMPERATURE_ICON}</span>
-      <span class="am-temp-text"><strong>Temperature:</strong> ${t.current}&deg;C <span class="am-temp-delta">(${t.deltaText})</span></span>
+      <span class="am-temp-text">${text} <a class="temp-info-link" href="${TEMPERATURE_PDF_URL}" target="_blank" rel="noopener" title="About this temperature data" aria-label="About this temperature data (opens PDF in a new tab)">${INFO_ICON}</a></span>
     </div>
   `;
 }
