@@ -44,8 +44,8 @@ const POINT_SOURCES = {
 // matched to a ward by ward_name (see buildFactsQuestionsIndex/normalizeWardName).
 const FACTS_QUESTIONS_SOURCE = 'public/data/ward_facts_questions.geojson';
 
-// Ward-level temperature/land-cover metrics, matched to a ward by its own `ward`
-// property (not `ward_name` — see buildTemperatureIndex/normalizeWardName).
+// Ward-level temperature metrics, matched to a ward by its own `ward_name`
+// property (see buildTemperatureIndex/normalizeWardName).
 const TEMPERATURE_SOURCE = 'public/data/temperature.geojson';
 
 // Which raw GeoJSON property holds a point type's real display name (and, for
@@ -239,12 +239,12 @@ function buildFactsQuestionsIndex(geojson) {
 }
 
 // Properties-only index for temperature.geojson, keyed by normalized ward
-// name (its own `ward` property, not `ward_name`) — the file's own per-ward
-// boundary polygon is unused and discarded here, same as buildFactsQuestionsIndex.
+// name (its own `ward_name` property) — the file's own per-ward boundary
+// polygon is unused and discarded here, same as buildFactsQuestionsIndex.
 function buildTemperatureIndex(geojson) {
   const index = {};
   for (const feature of geojson.features || []) {
-    const name = feature.properties?.ward;
+    const name = feature.properties?.ward_name;
     if (!name) continue;
     index[normalizeWardName(name)] = feature.properties;
   }

@@ -81,8 +81,8 @@ mark {
   border: 1px solid var(--line);
   box-shadow: var(--shadow-s);
 }
-.map-corp { height: 260px; margin: 16px 0; }
-.map-ward { height: 320px; margin: 10px 0; }
+.map-corp { height: 350px; margin: 16px 0; }
+.map-ward { height: 430px; margin: 10px 0; }
 
 .map-reset-btn { position: absolute; top: var(--space-2); right: var(--space-2); z-index: 2; }
 /* .wardmap-badge sits at top/right: var(--space-3) on the same box (.wardmap-frame
@@ -399,6 +399,33 @@ mark {
 .cnt { font-family: var(--font-stat); font-weight: 700; }
 .am-temp-text { color: var(--ink); }
 .am-temp-delta { color: var(--muted); }
+.temp-info-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: var(--space-1);
+  vertical-align: middle;
+  color: var(--muted);
+  border-radius: var(--radius-s);
+  transition: background-color var(--dur) ease, color var(--dur) ease;
+}
+/* Invisible hit-slop: keeps the real touch target at 44x44px without
+   inflating the visible box (which previously threw off vertical
+   alignment against the surrounding text). */
+.temp-info-link::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+}
+.temp-info-link svg { width: 16px; height: 16px; }
+.temp-info-link:hover, .temp-info-link:focus-visible { color: var(--ink); background: var(--surface); }
 
 .factslist { display: flex; flex-direction: column; gap: var(--space-2); }
 .fact {
@@ -693,8 +720,8 @@ mark {
   .why-vote { padding: var(--space-2) var(--space-4); }
   .find-controls { flex-direction: column; }
   .find-search-wrap, #findLocate { width: 100%; }
-  .map-corp { height: 200px; }
-  .map-ward { height: 260px; }
+  .map-corp { height: 270px; }
+  .map-ward { height: 350px; }
   .ward-list { max-height: 320px; }
   .amenity-filters { gap: var(--space-1) var(--space-2); }
   .legend-btn { padding: var(--space-1) var(--space-2); gap: var(--space-1); }

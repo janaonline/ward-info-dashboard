@@ -308,7 +308,8 @@ export function initHomeView({ W, meta }, { onOpenWard }) {
   });
 
   if (!corpMap) {
-    const defaultView = { center: [77.5946, 12.9716], zoom: 9 };
+    const isDesktopWidth = window.matchMedia('(min-width: 900px)').matches;
+    const defaultView = { center: [77.5946, 12.9716], zoom: isDesktopWidth ? 9.3 : 9 };
     corpMap = createMap('homeCorpMap', defaultView);
     corpMap.on('load', () => {
       const geojson = buildWardPolygonsGeoJSON(W);
