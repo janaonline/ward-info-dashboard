@@ -81,8 +81,8 @@ mark {
   border: 1px solid var(--line);
   box-shadow: var(--shadow-s);
 }
-.map-corp { height: 260px; margin: 16px 0; }
-.map-ward { height: 320px; margin: 10px 0; }
+.map-corp { height: 350px; margin: 16px 0; }
+.map-ward { height: 430px; margin: 10px 0; }
 
 .map-reset-btn { position: absolute; top: var(--space-2); right: var(--space-2); z-index: 2; }
 /* .wardmap-badge sits at top/right: var(--space-3) on the same box (.wardmap-frame
@@ -720,8 +720,8 @@ mark {
   .why-vote { padding: var(--space-2) var(--space-4); }
   .find-controls { flex-direction: column; }
   .find-search-wrap, #findLocate { width: 100%; }
-  .map-corp { height: 200px; }
-  .map-ward { height: 260px; }
+  .map-corp { height: 270px; }
+  .map-ward { height: 350px; }
   .ward-list { max-height: 320px; }
   .amenity-filters { gap: var(--space-1) var(--space-2); }
   .legend-btn { padding: var(--space-1) var(--space-2); gap: var(--space-1); }
