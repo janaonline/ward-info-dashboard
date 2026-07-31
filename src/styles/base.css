@@ -7,98 +7,164 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
+  overflow-x: hidden; /* guards against the full-bleed band pattern's calc(50% - 50vw) rounding against a scrollbar */
 }
 img, svg { display: block; max-width: 100%; }
 button { font: inherit; color: inherit; }
 a { color: inherit; }
 
-:focus-visible { outline: 2px solid var(--green-d); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
 
 .view { display: none; }
 .view.view--active { display: block; }
 
-.topcluster {
-  position: fixed;
-  top: calc(14px + env(safe-area-inset-top));
-  right: 14px;
-  z-index: 40;
+/* -- site header (persistent nav; replaces the old theme-toggle cluster,
+      floating back button, and floating Voter FAQs FAB) -- */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--forest);
+  color: var(--on-forest);
+  padding-top: env(safe-area-inset-top);
+}
+
+.site-header-inner {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-3);
 }
 
-.back-fab {
-  position: fixed;
-  top: calc(14px + env(safe-area-inset-top));
-  left: clamp(16px, 4vw, 32px);
-  z-index: 40;
+.site-header-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.site-header-back {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 44px;
-  padding: 0 14px 0 12px;
-  border-radius: 999px;
-  border: 1px solid var(--line2);
-  background: var(--surface);
-  color: var(--ink);
-  box-shadow: var(--shadow-1);
-  cursor: pointer;
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: 0.9rem;
-  transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) ease, background-color var(--dur) ease;
-}
-.back-fab:hover { transform: translateY(-1px); box-shadow: var(--shadow-2); background: var(--surface-2); }
-.back-fab[hidden] { display: none; }
-
-@media (max-width: 519px) {
-  .back-fab { width: 44px; padding: 0; justify-content: center; }
-  .back-fab-label { display: none; }
-}
-
-.methodology-link {
-  position: fixed;
-  bottom: calc(14px + env(safe-area-inset-bottom));
-  left: 14px;
-  z-index: 40;
-}
-
-.voter-faq-fab {
-  /* Election portal primary CTA — reachable from anywhere, so it needs to
-     read clearly rather than blend into page chrome like .topcluster does. */
-  --fab-tint: var(--green-d);
-  position: fixed;
-  bottom: clamp(18px, 4vw, 28px);
-  right: clamp(18px, 4vw, 28px);
-  z-index: 40;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 14px 22px;
-  background: var(--green-d);
-  color: #fff;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: var(--radius-s);
   border: none;
-  border-radius: 100px;
-  box-shadow: var(--shadow-2), 0 0 0 0 color-mix(in srgb, var(--fab-tint) 45%, transparent);
-  text-decoration: none;
-  font-family: var(--font-stat);
-  font-weight: 700;
-  font-size: 0.95rem;
-  min-height: 44px;
+  background: transparent;
+  color: var(--on-forest);
   cursor: pointer;
-  animation: voterFaqPulse 2.5s ease-in-out infinite;
-  transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) ease, opacity var(--dur) ease;
+  transition: background-color var(--dur) var(--ease-out);
 }
-[data-theme="dark"] .voter-faq-fab { --fab-tint: var(--green); background: var(--green); color: #10160b; }
-.voter-faq-fab:hover, .voter-faq-fab:focus-visible {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-3), 0 0 0 0 transparent;
-  animation-play-state: paused;
-}
-.voter-faq-fab[hidden] { display: none; }
+.site-header-back:hover { background: var(--forest-2); }
+.site-header-back[hidden] { display: none; }
 
-@keyframes voterFaqPulse {
-  0%, 100% { box-shadow: var(--shadow-2), 0 0 0 0 color-mix(in srgb, var(--fab-tint) 45%, transparent); }
-  50% { box-shadow: var(--shadow-2), 0 0 0 9px color-mix(in srgb, var(--fab-tint) 0%, transparent); }
+.site-header-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration: none;
+  color: var(--on-forest);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  white-space: nowrap;
+}
+.site-header-logo-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-s);
+  background: var(--yellow);
+  color: var(--forest);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+.site-header-logo[hidden] { display: none; }
+
+.site-header-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.site-header-title[hidden] { display: none; }
+
+.site-header-nav {
+  display: none;
+  align-items: center;
+  gap: var(--space-5);
+}
+.site-header-nav a {
+  text-decoration: none;
+  color: var(--on-forest-muted);
+  font-family: var(--font-stat);
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: var(--space-1) 0;
+  border-bottom: 2px solid transparent;
+  transition: color var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out);
+}
+.site-header-nav a:hover { color: var(--on-forest); }
+.site-header-nav a.active { color: var(--yellow); border-bottom-color: var(--yellow); }
+
+.site-header-actions { display: flex; align-items: center; gap: var(--space-3); }
+
+/* .site-header-actions-scoped, not a bare .site-header-cta selector: components.css
+   loads after base.css and its .btn rule (display:inline-flex) shares the same
+   single-class specificity, so a bare selector here would lose that cascade tie
+   and the CTA would never actually hide on mobile. */
+.site-header-actions .site-header-cta {
+  display: none;
+  white-space: nowrap;
+}
+
+.site-header-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-s);
+  border: none;
+  background: transparent;
+  color: var(--on-forest);
+  cursor: pointer;
+}
+.site-header-menu-btn:hover { background: var(--forest-2); }
+
+.site-header-mobile-menu {
+  border-top: 1px solid var(--on-forest-line);
+  padding: var(--space-3) clamp(14px, 4vw, 24px) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.site-header-mobile-menu[hidden] { display: none; }
+.site-header-mobile-menu a {
+  text-decoration: none;
+  color: var(--on-forest);
+  font-family: var(--font-stat);
+  font-weight: 600;
+  padding: var(--space-2) 0;
+}
+.site-header-mobile-menu a.active { color: var(--yellow); }
+
+@media (min-width: 900px) {
+  .site-header-back { display: none; }
+  .site-header-title { display: none; }
+  .site-header-nav { display: flex; }
+  .site-header-actions .site-header-cta { display: inline-flex; }
+  .site-header-menu-btn { display: none; }
 }
 
 .loading-indicator {

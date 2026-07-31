@@ -1,13 +1,13 @@
 import { loadData } from './data-loader.js';
-import { initTheme } from './theme.js';
 import { initHomeView, resizeHomeMap } from './home-view.js';
 import { initWardView, openWard, resizeWardMap } from './ward-view.js';
 import { initMethodologyView } from './methodology-view.js';
 import { initVoterFaqView } from './voter-faq-view.js';
-import { initFooter, setFooterView, setFooterWard } from './footer.js';
-import { initBackButton, setBackButtonVisible } from './back-button.js';
+import { initFooter } from './footer.js';
+import { initHeader, setHeaderState } from './header.js';
 
 let currentView = 'home';
+let currentWardName = '';
 const viewStack = [];
 
 function showView(name) {
@@ -18,11 +18,7 @@ function showView(name) {
 
   if (name === 'home') resizeHomeMap();
   if (name === 'ward') resizeWardMap();
-  setFooterView(name);
-  setBackButtonVisible(name !== 'home');
-
-  const fab = document.getElementById('voterFaqFab');
-  if (fab) fab.hidden = name === 'voter-faq';
+  setHeaderState(name, name === 'ward' ? currentWardName : '');
 }
 
 function navigateTo(name) {
@@ -37,7 +33,6 @@ function goBack() {
 
 async function boot() {
   const loadingIndicator = document.getElementById('loadingIndicator');
-  initTheme();
 
   let data;
   try {
@@ -50,12 +45,12 @@ async function boot() {
   const { W, meta, benchmarks } = data;
 
   const handleOpenWard = (uid) => {
-    openWard(uid, { onOpenWard: handleOpenWard });
-    setFooterWard(uid, W[uid].ward_name);
+    currentWardName = W[uid].ward_name;
+    openWard(uid, { onOpenWard: handleOpenWard, onNavigateHome: () => navigateTo('home') });
     navigateTo('ward');
   };
 
-  initHomeView({ W, meta }, { onOpenWard: handleOpenWard });
+  initHomeView({ W, meta }, { onOpenWard: handleOpenWard, onMethodology: () => navigateTo('methodology') });
 
   initWardView({ W, benchmarks });
 
@@ -63,15 +58,9 @@ async function boot() {
 
   initVoterFaqView();
 
-  initFooter({ onMethodology: () => navigateTo('methodology') });
+  initFooter({ onNavigate: navigateTo, onMethodology: () => navigateTo('methodology') });
 
-  initBackButton(goBack);
-
-  const voterFaqFab = document.getElementById('voterFaqFab');
-  voterFaqFab.addEventListener('click', (e) => {
-    e.preventDefault();
-    navigateTo('voter-faq');
-  });
+  initHeader({ onNavigate: navigateTo, onBack: goBack });
 
   loadingIndicator.setAttribute('hidden', '');
 

@@ -1,4 +1,5 @@
 import { esc } from './format.js';
+import { FEEDBACK_FORM_URL } from './constants.js';
 
 // Confirmed social URLs (Jul 2026).
 const SOCIAL_LINKS = {
@@ -25,12 +26,6 @@ const NETWORK_LABELS = {
 };
 
 const SVG_OPEN = '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">';
-
-const METHODOLOGY_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 15.5h6M9 8.5h3"/></svg>';
-
-const WHATSAPP_ICON = `${SVG_OPEN}<path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.5A10 10 0 1 0 12 2zm0 18.2c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3 .9.9-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.6.1-.2.2-.6.8-.8 1-.1.2-.3.2-.5.1-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.2 0-.4.1-.5l.4-.5c.1-.1.2-.3.2-.4.1-.2 0-.3 0-.4-.1-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.6.3-.2.2-.8.8-.8 1.9 0 1.1.8 2.2.9 2.4.1.2 1.6 2.4 3.8 3.4.5.2.9.4 1.3.5.5.2 1 .1 1.4.1.4-.1 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1 0-.1-.2-.2-.4-.3z"/></svg>`;
-
-const COPY_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>';
 
 const SOCIAL_ICONS = {
   youtube: `${SVG_OPEN}<path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 4.8 12 4.8 12 4.8s-6 0-7.7.5a2.7 2.7 0 0 0-1.9 1.9A28 28 0 0 0 2 12a28 28 0 0 0 .4 4.8 2.7 2.7 0 0 0 1.9 1.9c1.7.5 7.7.5 7.7.5s6 0 7.7-.5a2.7 2.7 0 0 0 1.9-1.9A28 28 0 0 0 22 12a28 28 0 0 0-.4-4.8zM10 15.3V8.7l5.6 3.3z"/></svg>`,
@@ -61,88 +56,67 @@ function logoBlock(name, alt) {
   `;
 }
 
-let onMethodologyRef = null;
-let currentUid = null;
-let currentWardName = null;
+let refs = null;
 
-function shareHref() {
-  if (!currentUid) return '#';
-  const shareText = encodeURIComponent(`Check out ward info for ${currentWardName}: `);
-  const shareUrl = encodeURIComponent(`${location.origin}${location.pathname}#ward=${currentUid}`);
-  return `https://wa.me/?text=${shareText}${shareUrl}`;
-}
-
-function copyUrl() {
-  return `${location.origin}${location.pathname}#ward=${currentUid}`;
-}
-
-export function setFooterView(viewName) {
-  const shareRow = document.getElementById('footerShare');
-  if (shareRow) shareRow.hidden = viewName !== 'ward';
-}
-
-export function setFooterWard(uid, wardName) {
-  currentUid = uid;
-  currentWardName = wardName;
-  const whatsapp = document.getElementById('footerWhatsapp');
-  if (whatsapp) whatsapp.href = shareHref();
-}
-
-export function initFooter({ onMethodology }) {
-  onMethodologyRef = onMethodology;
+export function initFooter({ onNavigate, onMethodology }) {
+  refs = { onNavigate, onMethodology };
   const container = document.getElementById('siteFooter');
   if (!container) return;
 
   container.innerHTML = `
     <div class="container footer-inner">
-      <div class="footer-row footer-utility">
-        <a href="#methodology" id="methodologyLink" class="footer-methodology">
-          <span class="footer-methodology-icon" aria-hidden="true">${METHODOLOGY_ICON}</span>
-          <span class="footer-methodology-text">
-            <span class="footer-methodology-title">Methodology</span>
-            <span class="footer-methodology-desc">Learn how the data is collected and calculated <span aria-hidden="true">&rarr;</span></span>
+      <div class="footer-cols">
+        <div class="footer-col footer-col-brand">
+          <span class="footer-logo-wordmark">
+            <span class="footer-logo-badge" aria-hidden="true">W</span> Ward Info
           </span>
-        </a>
-        <div class="footer-share" id="footerShare" hidden>
-          <span class="footer-share-label">Share this ward info</span>
-          <div class="footer-share-actions">
-            <a class="btn btn-whatsapp btn-sm" id="footerWhatsapp" target="_blank" rel="noopener" href="#"><span aria-hidden="true">${WHATSAPP_ICON}</span>Share on WhatsApp</a>
-            <button class="btn btn-secondary btn-sm" id="copyLinkBtn" type="button"><span aria-hidden="true">${COPY_ICON}</span><span class="btn-label">Copy link</span></button>
+          <p class="footer-blurb">Made with <span aria-hidden="true">&#10084;&#65039;</span> for Bengaluru, so every voter can understand their ward before they vote.</p>
+          <div class="footer-orgs">
+            <div class="footer-org-group">
+              ${logoBlock('janaagraha', 'Janaagraha')}
+              <div class="footer-org-social" role="group" aria-label="${ORG_LABELS.janaagraha} social links">${socialRow('janaagraha')}</div>
+            </div>
+            <div class="footer-org-group">
+              ${logoBlock('oorvani', 'Oorvani Foundation')}
+              <div class="footer-org-social" role="group" aria-label="${ORG_LABELS.oorvani} social links">${socialRow('oorvani')}</div>
+            </div>
           </div>
+        </div>
+        <div class="footer-col">
+          <span class="footer-col-title">Explore</span>
+          <a href="#" data-nav="home">Home</a>
+          <a href="#" data-nav="home">All 369 wards</a>
+          <a href="#" data-nav="voter-faq">Voter FAQs</a>
+        </div>
+        <div class="footer-col">
+          <span class="footer-col-title">Data</span>
+          <a href="#" id="footerMethodologyLink">Methodology</a>
+          <a href="#" id="footerAboutDataLink">About the data</a>
+          <a href="${esc(FEEDBACK_FORM_URL)}" target="_blank" rel="noopener">Report an issue</a>
+        </div>
+        <div class="footer-col">
+          <span class="footer-col-title">Sources</span>
+          <a href="https://kgis.karnataka.gov.in/" target="_blank" rel="noopener">KGIS &middot; KSRSAC</a>
+          <a href="https://sahaaya.bbmp.gov.in/" target="_blank" rel="noopener">BBMP Sahaaya</a>
+          <a href="https://opencity.in/" target="_blank" rel="noopener">OpenCity</a>
         </div>
       </div>
-      <div class="footer-row footer-attribution">
-        <span class="footer-heart-line">Made with <span class="footer-heart" aria-hidden="true">&#10084;&#65039;</span> for Bengaluru by:</span>
-        <div class="footer-orgs">
-          <div class="footer-org-group">
-            ${logoBlock('janaagraha', 'Janaagraha')}
-            <div class="footer-org-social" role="group" aria-label="${ORG_LABELS.janaagraha} social links">
-              ${socialRow('janaagraha')}
-            </div>
-          </div>
-          <div class="footer-org-divider" aria-hidden="true"></div>
-          <div class="footer-org-group">
-            ${logoBlock('oorvani', 'Oorvani Foundation')}
-            <div class="footer-org-social" role="group" aria-label="${ORG_LABELS.oorvani} social links">
-              ${socialRow('oorvani')}
-            </div>
-          </div>
-        </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 Ward Info. Data licensed for public use.</span>
+        <span>&copy; CARTO &copy; OpenStreetMap contributors</span>
       </div>
     </div>
   `;
 
-  document.getElementById('methodologyLink').addEventListener('click', (e) => {
-    e.preventDefault();
-    onMethodologyRef();
+  container.querySelectorAll('[data-nav]').forEach(a => {
+    a.addEventListener('click', (e) => { e.preventDefault(); onNavigate(a.dataset.nav); });
   });
-
-  const copyBtn = document.getElementById('copyLinkBtn');
-  const copyBtnLabel = copyBtn.querySelector('.btn-label');
-  copyBtn.addEventListener('click', () => {
-    navigator.clipboard.writeText(copyUrl()).then(() => {
-      copyBtnLabel.textContent = 'Copied!';
-      setTimeout(() => { copyBtnLabel.textContent = 'Copy link'; }, 1500);
-    });
+  document.getElementById('footerMethodologyLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    onMethodology();
+  });
+  document.getElementById('footerAboutDataLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    onMethodology();
   });
 }

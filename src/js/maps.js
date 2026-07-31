@@ -1,5 +1,3 @@
-import { onThemeChange, getCurrentTheme } from './theme.js';
-
 const SVG_OPEN = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">';
 
 // simple, unambiguous line pictograms — one per amenity type (CLAUDE.md: LAYER is the
@@ -56,14 +54,15 @@ export const CORP_COLORS = {
 
 const CARTO_SUBDOMAINS = ['a', 'b', 'c', 'd'];
 
-export function tileUrlForTheme(theme) {
-  const variant = theme === 'dark' ? 'dark_nolabels' : 'light_nolabels';
-  return CARTO_SUBDOMAINS.map(s => `https://${s}.basemaps.cartocdn.com/${variant}/{z}/{x}/{y}.png`);
+// This design has no light/dark theme toggle — every map (home choropleth,
+// ward detail) always sits on the dark CARTO basemap to match the dark map
+// cards throughout the mockups.
+export function tileUrl() {
+  return CARTO_SUBDOMAINS.map(s => `https://${s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png`);
 }
 
-export function labelTileUrlForTheme(theme) {
-  const variant = theme === 'dark' ? 'dark_only_labels' : 'light_only_labels';
-  return CARTO_SUBDOMAINS.map(s => `https://${s}.basemaps.cartocdn.com/${variant}/{z}/{x}/{y}.png`);
+export function labelTileUrl() {
+  return CARTO_SUBDOMAINS.map(s => `https://${s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}.png`);
 }
 
 // ---- geometry helpers (keyed by uid; supports GeoJSON Polygon and MultiPolygon) ----
@@ -274,15 +273,14 @@ export function buildWardPolygonsGeoJSON(W, { filterUids } = {}) {
 
 const _liveMaps = new Set();
 
-export function createMap(containerId, { center = [77.5946, 12.9716], zoom = 10.5, theme } = {}) {
-  const currentTheme = theme || getCurrentTheme();
+export function createMap(containerId, { center = [77.5946, 12.9716], zoom = 10.5 } = {}) {
   const map = new maplibregl.Map({
     container: containerId,
     style: {
       version: 8,
       sources: {
-        carto: { type: 'raster', tiles: tileUrlForTheme(currentTheme), tileSize: 256, attribution: '© CARTO © OpenStreetMap contributors' },
-        'carto-labels': { type: 'raster', tiles: labelTileUrlForTheme(currentTheme), tileSize: 256 },
+        carto: { type: 'raster', tiles: tileUrl(), tileSize: 256, attribution: '© CARTO © OpenStreetMap contributors' },
+        'carto-labels': { type: 'raster', tiles: labelTileUrl(), tileSize: 256 },
       },
       layers: [
         { id: 'carto-base', type: 'raster', source: 'carto' },
@@ -294,14 +292,6 @@ export function createMap(containerId, { center = [77.5946, 12.9716], zoom = 10.
     attributionControl: { compact: true },
   });
 
-  const unsubscribe = onThemeChange((newTheme) => {
-    const src = map.getSource('carto');
-    if (src && src.setTiles) src.setTiles(tileUrlForTheme(newTheme));
-    const labelSrc = map.getSource('carto-labels');
-    if (labelSrc && labelSrc.setTiles) labelSrc.setTiles(labelTileUrlForTheme(newTheme));
-  });
-
-  map.on('remove', unsubscribe);
   _liveMaps.add(map);
   return map;
 }

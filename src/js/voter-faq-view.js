@@ -183,20 +183,44 @@ export function initVoterFaqView() {
   const container = document.getElementById('voterFaqContainer');
 
   container.innerHTML = `
-    <div class="cover">
-      <div class="eyebrow"><span class="eyebrow-dot"></span> Voter FAQs</div>
-      <h1 class="headline">Everything you need to know before you <mark>vote</mark>.</h1>
-      <p class="faq-lede">Bengaluru is electing its Ward Councillors for the first time under the Greater Bengaluru Authority. Here's what the GBA is, who you're voting for, and how to cast your ballot.</p>
-      <div class="cta-row">
-        <a href="https://voters.eci.gov.in" target="_blank" rel="noopener" class="btn btn-primary">Check my voter status &rarr;</a>
-        <a href="https://gba.karnataka.gov.in/electoral2026" target="_blank" rel="noopener" class="btn btn-secondary">Find my ward &amp; polling booth</a>
+    <div class="cover faq-cover">
+      <div class="band-inner faq-cover-inner">
+        <div>
+          <div class="eyebrow"><span class="eyebrow-dot"></span> Voter FAQs</div>
+          <h1 class="headline">Everything you need to know before you <mark>vote</mark>.</h1>
+          <p class="faq-lede">Bengaluru is electing its Ward Councillors for the first time under the Greater Bengaluru Authority. Here's what the GBA is, who you're voting for, and how to cast your ballot.</p>
+          <div class="cta-row">
+            <a href="https://voters.eci.gov.in" target="_blank" rel="noopener" class="btn btn-primary">Check my voter status &rarr;</a>
+            <a href="https://gba.karnataka.gov.in/electoral2026" target="_blank" rel="noopener" class="btn btn-secondary">Find my ward &amp; polling booth</a>
+          </div>
+        </div>
+        <div class="callout faq-key-dates">
+          <span class="callout-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5l3 2"/></svg></span>
+          <div>
+            <p class="faq-key-dates-eyebrow">Time-critical window</p>
+            <p><mark>August 5</mark> &rarr; <mark>September 4</mark></p>
+            <p>The ECI Claims and Objections window is strictly open from <strong>August 5</strong> to <strong>September 4</strong> &mdash; for filing corrections, adding missing registrations, or shifting residential data points across updated ward boundaries. This is also the time for new voters to register.</p>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="callout">
-      <span class="callout-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5l3 2"/></svg></span>
-      <p>For filing corrections, adding missing registrations, or shifting residential data points across updated ward boundaries, the critical ECI Claims and Objections window is strictly open from <mark>August 5</mark> to <mark>September 4</mark>. (This is also the time for new voters to register!)</p>
-    </div>
+    <section class="faq-topic-section">
+      <div class="faq-intro">
+        <span class="eyebrow eyebrow--red">Browse by topic</span>
+        <h2 class="section-title">Eight topics, start anywhere.</h2>
+        <p>Grouped by what you actually need to figure out.</p>
+      </div>
+      <div class="faq-topic-grid" id="faqTopicGrid">
+        ${CATEGORIES.map((c, i) => `
+          <button type="button" class="faq-topic-tile faq-topic-tile--${(i % 8) + 1}" data-target="${c.id}">
+            <span class="faq-topic-num">${String(i + 1).padStart(2, '0')}</span>
+            <span class="faq-topic-label">${c.nav.replace(/^\d+\.\s*/, '')}</span>
+            <span class="faq-topic-count">${c.items.length} question${c.items.length === 1 ? '' : 's'}</span>
+          </button>
+        `).join('')}
+      </div>
+    </section>
 
     <div class="faq-search">
       <div class="faq-search-box">
@@ -209,8 +233,8 @@ export function initVoterFaqView() {
 
     <section class="faq-section">
       <div class="faq-intro">
-        <h2>Browse by topic</h2>
-        <p>Grouped by what you actually need to figure out &mdash; jump to a section below.</p>
+        <span class="eyebrow eyebrow--red">All questions</span>
+        <h2 class="section-title">Read straight through.</h2>
       </div>
 
       <div class="faq-layout">
@@ -447,17 +471,27 @@ export function initVoterFaqView() {
   }
   window.addEventListener('scrollend', releaseScrollSpySuppression);
 
+function jumpToCategory(id) {
+    suppressScrollSpy = true;
+    setActive(id);
+    document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+    clearTimeout(releaseSuppressTimer);
+    releaseSuppressTimer = setTimeout(releaseScrollSpySuppression, 1000);
+  }
+
   catButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      suppressScrollSpy = true;
-      setActive(btn.dataset.target); // highlight immediately, not once the scroll animation finishes
-      document.getElementById(btn.dataset.target).scrollIntoView({ behavior: 'smooth', block: 'start' });
-      // Fallback for browsers without the scrollend event, so suppression
-      // can't get stuck on permanently.
-      clearTimeout(releaseSuppressTimer);
-      releaseSuppressTimer = setTimeout(releaseScrollSpySuppression, 1000);
-    });
+    btn.addEventListener('click', () => jumpToCategory(btn.dataset.target));
   });
+
+  container.querySelectorAll('.faq-topic-tile').forEach(tile => {
+    tile.addEventListener('click', () => jumpToCategory(tile.dataset.target));
+  });
+
+  // The sticky site header sits above .cat-nav on every view — dock the FAQ
+  // nav just below it, the same way ward-view.js's sub-nav measures
+  // #siteHeader's own rendered height rather than hardcoding an offset.
+  const siteHeader = document.getElementById('siteHeader');
+  if (siteHeader) navEl.style.top = `${siteHeader.offsetHeight}px`;
 
   // The nav no longer wraps (always single-row, horizontal-scroll instead),
   // so its height is normally constant — still measured via ResizeObserver
