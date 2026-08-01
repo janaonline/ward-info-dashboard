@@ -153,7 +153,7 @@ mark {
    the background bleed full-width while .band-inner re-applies .container's
    own max-width scale so the actual content still lines up with every other
    section on the page. */
-.cover, .why-vote-band, .methodology-band, .whead, .facts-band, .feedback-band {
+.cover, .why-vote-band, .methodology-band, .whead, .facts-band, .feedback-band, .basics-section {
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
   padding-left: clamp(14px, 4vw, 24px);
@@ -197,6 +197,13 @@ mark {
 .hero-subtitle { color: var(--on-forest-muted); font-size: 0.98rem; max-width: 62ch; margin: 0 0 var(--space-5); }
 #homeContainer .headline { font-size: clamp(1.7rem, 5.5vw, 2.4rem); }
 
+.cover-layout { display: flex; flex-direction: column; gap: var(--space-5); }
+@media (min-width: 900px) {
+  .cover-layout { flex-direction: row; align-items: center; justify-content: space-between; gap: var(--space-6); }
+  .cover-main { flex: 1.3; }
+  .cover-stats { flex: 0 0 auto; }
+}
+
 .hero-stats {
   display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);
   margin-top: var(--space-5); max-width: 420px;
@@ -217,11 +224,11 @@ mark {
 .why-vote-band { background: var(--yellow); color: var(--yellow-ink); padding-top: var(--space-6); padding-bottom: var(--space-6); margin-top: 0; margin-bottom: 0; }
 .why-vote-band-inner { display: flex; flex-direction: column; gap: var(--space-4); }
 .why-vote-head { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2); }
-.why-vote-head .eyebrow--dark { color: var(--forest); }
+.why-vote-head .eyebrow--dark { color: var(--ink); }
 .why-vote-icon { display: flex; align-items: center; color: var(--yellow-ink); }
-.why-vote-title { font-family: var(--font-display); font-weight: 700; font-size: 1.6rem; color: var(--forest); margin: 0; line-height: 1.2; }
+.why-vote-title { font-family: var(--font-display); font-weight: 700; font-size: 1.6rem; color: var(--ink); margin: 0; line-height: 1.2; }
 .why-vote-body { display: flex; flex-direction: column; gap: var(--space-3); }
-.why-vote-body p { margin: 0; color: var(--yellow-ink); font-size: 0.95rem; line-height: 1.6; }
+.why-vote-body p { margin: 0; color: var(--ink); font-size: 0.95rem; line-height: 1.6; }
 .why-vote-more {
   max-height: 0;
   overflow: hidden;
@@ -231,7 +238,7 @@ mark {
   transition: max-height .3s ease;
 }
 .why-vote-pills { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
-.pill--band { background: rgba(24,35,15,.1); color: var(--yellow-ink); font-weight: 700; }
+.pill--band { background: rgba(24,35,15,.1); color: var(--ink); font-weight: 700; }
 .why-vote-actions { display: flex; justify-content: flex-start; margin-top: var(--space-3); }
 .why-vote-toggle {
   display: inline-flex;
@@ -243,7 +250,7 @@ mark {
   font-family: var(--font-body);
   font-weight: 700;
   font-size: 0.92rem;
-  color: var(--forest);
+  color: var(--ink);
   cursor: pointer;
   transition: color var(--dur) var(--ease-out);
 }
@@ -265,8 +272,16 @@ mark {
 .section-title { font-family: var(--font-display); font-weight: 700; font-size: 1.5rem; margin: 6px 0 4px; color: var(--ink); }
 .section-sub { color: var(--muted); font-size: 0.9rem; margin: 0; }
 
-.corp-filter-pills { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+/* Single non-wrapping, horizontally-scrollable row (same pattern as .cat-nav/
+   .ward-subnav elsewhere in this codebase) rather than wrapping onto a
+   second line when all 6 pills don't fit narrow mobile widths. */
+.corp-filter-pills {
+  display: flex; flex-wrap: nowrap; overflow-x: auto; gap: var(--space-1);
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.corp-filter-pills::-webkit-scrollbar { display: none; }
 .corp-filter-pill {
+  flex-shrink: 0;
   min-height: 36px; padding: 6px 14px;
   border-radius: 999px; border: 1px solid var(--line2);
   background: var(--surface); color: var(--muted);
@@ -279,19 +294,21 @@ mark {
 
 .ward-explorer-layout { display: flex; flex-direction: column; gap: var(--space-4); }
 .ward-browse { display: flex; flex-direction: column; gap: var(--space-2); }
-.ward-browse-head { display: flex; align-items: center; justify-content: space-between; }
+.ward-browse-head { display: flex; align-items: center; }
 .ward-browse-title { font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; }
-.ward-browse-viewall {
-  background: none; border: none; cursor: pointer;
-  color: var(--green-d); font-family: var(--font-stat); font-weight: 600; font-size: 0.85rem;
-}
-.ward-list--browse { max-height: none; }
+.ward-list--browse { max-height: 320px; }
 
 @media (min-width: 900px) {
   .ward-explorer-head { flex-direction: row; align-items: flex-end; justify-content: space-between; }
   .ward-explorer-layout { flex-direction: row; align-items: flex-start; gap: var(--space-5); }
-  .ward-explorer-layout .map-corp { flex: 1.3; margin: 0; }
+  /* Explicit height (not just flex-basis) so the map matches the browse
+     list's real rendered height — .ward-list--browse's own max-height was
+     previously losing a same-specificity cascade fight to the later, more
+     generic `.ward-list { max-height: 480px }` responsive rule, leaving the
+     map (fixed 350px) visibly shorter than the list next to it. */
+  .ward-explorer-layout .map-corp { flex: 1.3; height: 480px; margin: 0; }
   .ward-browse { flex: 1; }
+  .ward-explorer-layout .ward-list--browse { max-height: 480px; }
 }
 
 .map-caption { color: var(--hint); font-size: 0.85rem; margin: var(--space-2) 0; }
@@ -300,10 +317,30 @@ mark {
 
 /* -- the basics -- */
 
-.basics-section { margin: var(--space-6) 0; }
+.basics-section { background: var(--surface); padding-top: var(--space-6); padding-bottom: var(--space-6); margin-top: 0; margin-bottom: 0; }
+.basics-band-inner { display: flex; flex-direction: column; gap: var(--space-4); }
+.basics-sub { color: var(--muted); font-size: 0.9rem; margin: 4px 0 0; }
 .basics-list { margin-top: var(--space-3); display: flex; flex-direction: column; gap: var(--space-2); }
+/* .basics-item also carries the shared .panel class, which sets its own
+   margin: var(--space-3) 0 — left in place, that doubles up with this flex
+   column's own `gap`, producing ~32px between items instead of 8px. */
+.basics-list .basics-item { margin: 0; }
 .basics-item summary { display: flex; align-items: baseline; gap: var(--space-2); }
+/* display:flex above suppresses <summary>'s native disclosure triangle (it
+   only renders when display computes to list-item) — .basics-chevron is an
+   explicit replacement, not a fallback, so these hide any residual native
+   marker defensively. */
+.basics-item summary::-webkit-details-marker, .basics-item summary::marker { display: none; }
 .basics-num { font-family: var(--font-stat); font-weight: 800; color: var(--red); font-size: 0.85rem; }
+.basics-chevron { margin-left: auto; flex-shrink: 0; align-self: center; color: var(--muted); transition: transform var(--dur) var(--ease-out); }
+.basics-item[open] .basics-chevron { transform: rotate(180deg); }
+
+@media (min-width: 900px) {
+  .basics-band-inner { flex-direction: row; align-items: flex-start; gap: var(--space-6); }
+  .basics-head-col { flex: 0 0 320px; }
+  .basics-list-col { flex: 1; }
+  .basics-list-col .basics-list { margin-top: 0; }
+}
 
 .panel {
   background: var(--surface);
@@ -320,13 +357,17 @@ mark {
 
 /* -- methodology teaser band -- */
 
-.methodology-band { background: var(--sage); color: var(--sage-ink); padding-top: var(--space-6); padding-bottom: var(--space-6); margin-top: var(--space-6); margin-bottom: 0; }
+.methodology-band { background: var(--sage); color: var(--sage-ink); padding-top: var(--space-6); padding-bottom: var(--space-6); margin-top: 0; margin-bottom: 0; }
 .methodology-band-inner { display: flex; flex-direction: column; gap: var(--space-4); align-items: flex-start; }
 .methodology-band .section-title { color: var(--sage-ink); }
 .methodology-band .eyebrow--dark { color: var(--forest); border: none; padding: 0; }
+.methodology-band-cta { display: flex; flex-direction: column; align-items: flex-start; }
+.meth-band-sources { margin: var(--space-2) 0 0; font-size: 0.8rem; color: var(--sage-ink); opacity: .75; }
 
 @media (min-width: 900px) {
   .methodology-band-inner { flex-direction: row; align-items: center; justify-content: space-between; }
+  .methodology-band-cta { align-items: flex-end; }
+  .meth-band-sources { text-align: right; }
 }
 
 /* -- ward search & list (home view) -- */
@@ -1056,7 +1097,13 @@ mark {
 
 /* -- footer -- */
 
-.site-footer { margin-top: var(--space-7); background: var(--forest); color: var(--on-forest); }
+/* No margin-top here — .container's own bottom padding is the single source
+   of pre-footer clearance on every view; a separate footer margin was
+   redundant everywhere except Home (whose #homeContainer has that padding
+   zeroed since its last section is already a full-bleed colored band), where
+   it was the actual cause of a visible cream gap between that band and the
+   footer. */
+.site-footer { background: var(--forest); color: var(--on-forest); }
 .footer-inner { padding-top: var(--space-6); padding-bottom: var(--space-5); }
 
 .footer-cols {
@@ -1143,9 +1190,16 @@ mark {
 }
 
 @media (max-width: 520px) {
-  .cover { padding: 24px 0 40px; }
+  /* Longhand only — the shorthand `padding` here would reset the shared
+     full-bleed rule's horizontal clamp() padding back to 0, leaving .cover's
+     content flush against the screen edges. */
+  .cover { padding-top: 24px; padding-bottom: 40px; }
   .why-vote { padding: var(--space-2) var(--space-4); }
   .find-controls { flex-direction: column; }
+  /* .find-search-wrap's flex-basis (220px) applies to the main axis, which is
+     height once .find-controls switches to a column direction here — without
+     resetting it to auto, the search box stretches to a 220px-tall box. */
+  .find-search-wrap { flex: 1 1 auto; }
   .find-search-wrap, #findLocate { width: 100%; }
   .map-corp { height: 270px; }
   .map-ward { height: 350px; }

@@ -31,7 +31,6 @@ export function initHeader({ onNavigate, onBack }) {
       </div>
       <nav class="site-header-nav" id="headerNav" aria-label="Primary">${navLinksHtml()}</nav>
       <div class="site-header-actions">
-        <a href="#" class="btn btn-primary site-header-cta" id="headerCta" data-view="home">Find my ward &rarr;</a>
         <button type="button" class="site-header-menu-btn" id="headerMenuBtn" aria-label="Menu" aria-expanded="false">${MENU_ICON}</button>
       </div>
     </div>
