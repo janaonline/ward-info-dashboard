@@ -35,8 +35,16 @@ a { color: inherit; }
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  padding-top: var(--space-3);
-  padding-bottom: var(--space-3);
+  padding-top: var(--space-4);
+  padding-bottom: var(--space-4);
+}
+/* .site-header-inner also carries .container for its horizontal max-width/
+   padding, but .container's own padding rule adds a large bottom-only
+   clearance meant for page content above the footer — applied here it makes
+   the box asymmetric (tiny top, huge bottom), so align-items:center centers
+   the nav row within that lopsided box and it reads as stuck to the top. */
+.site-header-inner.container {
+  padding: 0 clamp(14px, 4vw, 24px);
 }
 
 .site-header-brand {
@@ -119,15 +127,6 @@ a { color: inherit; }
 
 .site-header-actions { display: flex; align-items: center; gap: var(--space-3); }
 
-/* .site-header-actions-scoped, not a bare .site-header-cta selector: components.css
-   loads after base.css and its .btn rule (display:inline-flex) shares the same
-   single-class specificity, so a bare selector here would lose that cascade tie
-   and the CTA would never actually hide on mobile. */
-.site-header-actions .site-header-cta {
-  display: none;
-  white-space: nowrap;
-}
-
 .site-header-menu-btn {
   display: inline-flex;
   align-items: center;
@@ -162,8 +161,11 @@ a { color: inherit; }
 @media (min-width: 900px) {
   .site-header-back { display: none; }
   .site-header-title { display: none; }
-  .site-header-nav { display: flex; }
-  .site-header-actions .site-header-cta { display: inline-flex; }
+  /* margin-left:auto (not justify-content:space-between's 3-way split) is what
+     keeps nav flush against the right edge now that .site-header-actions has
+     no visible content at this width (menu button is hidden here too, since
+     the CTA that used to occupy this slot was removed). */
+  .site-header-nav { display: flex; margin-left: auto; }
   .site-header-menu-btn { display: none; }
 }
 
@@ -185,6 +187,11 @@ a { color: inherit; }
   margin: 0 auto;
   padding: 0 clamp(14px, 4vw, 24px) calc(var(--space-7) + env(safe-area-inset-bottom));
 }
+/* Home's last section is itself a full-bleed sage band (.methodology-band) —
+   .container's page-content bottom clearance would otherwise show up as a
+   visible strip of the page's cream background between that band and the
+   footer. The footer supplies its own top padding, so this is safe to zero. */
+#homeContainer.container { padding-bottom: 0; }
 
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }

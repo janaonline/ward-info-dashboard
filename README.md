@@ -22,7 +22,7 @@ The site deploys to [Vercel](https://vercel.com) as a static project — no fram
 
 ## Features
 
-A persistent site header (logo + Home/Methodology/Voter FAQs nav + "Find my ward" CTA on desktop; logo + hamburger menu on mobile, or a back-chevron + page/ward title on mobile for every non-home view) sits above all 4 views, replacing the theme toggle and floating buttons an earlier version of this site had.
+A persistent site header (logo + Home/Methodology/Voter FAQs nav on desktop; logo + hamburger menu on mobile, or a back-chevron + page/ward title on mobile for every non-home view) sits above all 4 views, replacing the theme toggle and floating buttons an earlier version of this site had.
 
 **Home** — the landing view and the single place to find your ward. A dark hero carries the headline, a search box (all 369 wards, by name/ward number/corporation/assembly constituency, with a live autosuggestion dropdown — instant local matches from the first letter typed, plus debounced landmark lookups via the public OpenStreetMap Nominatim API, cross-checked against ward boundaries before being shown), and a 2×2 stat tile row (wards/corporations/councillor-per-ward/years since the last poll). A full-width "Why vote?" band follows, then a "Ward Explorer" section pairing the corporation choropleth map with a browsable ward list — corporation filter pills here actually filter both the map and the list, not just the map. Four accordion panels explain the GBA, the ward councillor role, and how the site's data works, and a closing band links out to the Methodology page.
 

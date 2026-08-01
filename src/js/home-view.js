@@ -14,10 +14,10 @@ const NOMINATIM_EMAIL = 'sss@gmail.com';
 const LANDMARK_MIN_LEN = 3;
 const LANDMARK_DEBOUNCE_MS = 400;
 const SUGGEST_CAP = 6;
-const BROWSE_CAP = 6;
 
 const BALLOT_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h16v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M4 10l3-6h10l3 6"/><path d="M9.5 13.5l2 2 4-4"/></svg>';
 const ARROW_ICON = '<svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+const CHEVRON_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
 
 const CORP_FILTERS = ['All', 'North', 'East', 'West', 'South', 'Central'];
 
@@ -30,37 +30,12 @@ function matchesCorp(w, corp) {
   return corp === 'All' || w.corporation === corp;
 }
 
-function renderList(W, corp) {
-  const listEl = document.getElementById('findList');
-  const all = Object.values(W).filter(w => matchesCorp(w, corp));
-  all.sort((a, b) => a.ward_id - b.ward_id);
-  const shown = all.slice(0, 400);
-
-  listEl.innerHTML = shown.map(w => `
-    <li class="ward-row" data-uid="${esc(w.uid)}">
-      <span class="ward-row-text">
-        <span class="ward-row-name">${esc(w.ward_name)}</span>
-        <span class="ward-row-meta">Ward ${fmt(w.ward_id)} &middot; ${esc(w.corporation)}</span>
-      </span>
-      <span class="ward-row-arrow" aria-hidden="true">${ARROW_ICON}</span>
-    </li>
-  `).join('');
-
-  document.getElementById('findCount').textContent =
-    `${all.length} ward${all.length === 1 ? '' : 's'}${all.length > 400 ? ' (showing first 400)' : ''}`;
-
-  listEl.querySelectorAll('.ward-row').forEach(row => {
-    row.addEventListener('click', () => onOpenWardRef(row.dataset.uid));
-  });
-}
-
 function renderBrowseList(W, corp) {
   const listEl = document.getElementById('browseList');
   const all = Object.values(W).filter(w => matchesCorp(w, corp));
   all.sort((a, b) => a.ward_id - b.ward_id);
-  const shown = all.slice(0, BROWSE_CAP);
 
-  listEl.innerHTML = shown.map(w => `
+  listEl.innerHTML = all.map(w => `
     <li class="ward-row" data-uid="${esc(w.uid)}">
       <span class="ward-row-text">
         <span class="ward-row-name">${esc(w.ward_name)}</span>
@@ -82,7 +57,6 @@ function setActiveCorp(corp) {
   });
   if (wardsRef) {
     renderBrowseList(wardsRef, corp);
-    renderList(wardsRef, corp);
   }
   if (corpMap && corpMap.getLayer('wards-fill')) {
     const filter = corp === 'All' ? null : ['==', ['get', 'corporation'], corp];
@@ -234,24 +208,27 @@ export function initHomeView({ W, meta }, { onOpenWard, onMethodology }) {
   container.innerHTML = `
     <div class="cover">
       <div class="band-inner">
-      <div class="eyebrow"><span class="eyebrow-dot"></span> Make an informed choice</div>
-      <h1 class="headline">Know your ward before you vote.</h1>
-      <p class="hero-subtitle">This election, Bengaluru will elect ward councillors under the Greater Bengaluru Authority (GBA) for the first time. Understand your neighbourhood, explore the candidates, and see the infrastructure around you.</p>
+      <div class="cover-layout">
+        <div class="cover-main">
+          <div class="eyebrow"><span class="eyebrow-dot"></span> Make an informed choice</div>
+          <h1 class="headline">This election, Bengaluru will elect ward councillors under the Greater Bengaluru Authority (GBA) for the first time.</h1>
+          <p class="hero-subtitle">Before you vote, understand your neighbourhood, explore the candidates, see the public infrastructure around you, and learn how your local government shapes everyday life.</p>
 
-      <div class="find-controls">
-        <div class="find-search-wrap">
-          <input id="findSearch" type="search" placeholder="Search ward or area" autocomplete="off">
-          <ul id="wardSuggest" class="ward-suggest" hidden></ul>
+          <div class="find-controls">
+            <div class="find-search-wrap">
+              <input id="findSearch" type="search" placeholder="Search ward or area" autocomplete="off">
+              <ul id="wardSuggest" class="ward-suggest" hidden></ul>
+            </div>
+            <button id="findLocate" class="btn btn-secondary" type="button">Use my location</button>
+          </div>
         </div>
-        <button id="findSearchBtn" class="btn btn-primary" type="button">Search</button>
-        <button id="findLocate" class="btn btn-secondary" type="button">Use my location</button>
-      </div>
 
-      <div class="hero-stats">
-        <div class="hero-stat"><span class="hero-stat-num">${fmt(meta.n_wards)}</span><span class="hero-stat-label">wards</span></div>
-        <div class="hero-stat"><span class="hero-stat-num">${String(nCorps).padStart(2, '0')}</span><span class="hero-stat-label">corporations</span></div>
-        <div class="hero-stat"><span class="hero-stat-num">01</span><span class="hero-stat-label">councillor / ward</span></div>
-        <div class="hero-stat hero-stat--alert"><span class="hero-stat-num">10</span><span class="hero-stat-label">yrs since last poll</span></div>
+        <div class="cover-stats hero-stats">
+          <div class="hero-stat"><span class="hero-stat-num">${fmt(meta.n_wards)}</span><span class="hero-stat-label">wards</span></div>
+          <div class="hero-stat"><span class="hero-stat-num">${String(nCorps).padStart(2, '0')}</span><span class="hero-stat-label">corporations</span></div>
+          <div class="hero-stat"><span class="hero-stat-num">01</span><span class="hero-stat-label">councillor / ward</span></div>
+          <div class="hero-stat hero-stat--alert"><span class="hero-stat-num">10</span><span class="hero-stat-label">yrs since last poll</span></div>
+        </div>
       </div>
       </div>
     </div>
@@ -263,11 +240,11 @@ export function initHomeView({ W, meta }, { onOpenWard, onMethodology }) {
             <span class="why-vote-icon" aria-hidden="true">${BALLOT_ICON}</span>
             <span class="eyebrow eyebrow--dark">Why vote?</span>
           </div>
-          <h2 id="whyVoteTitle" class="why-vote-title">Bengaluru hasn't voted locally since 2015.</h2>
+          <h2 id="whyVoteTitle" class="why-vote-title">Why your vote in the ward election matters.</h2>
         </div>
         <div class="why-vote-body-col">
           <div class="why-vote-body">
-            <p>For nearly a decade the city has functioned without elected corporators, leaving neighbourhoods without direct, accountable representation. Every ward elects one councillor who works on local civic issues such as roads, parks, sanitation, drainage, and streetlights.</p>
+            <p>Bengaluru has not held local body elections since 2015, and for nearly a decade the city has functioned without elected corporators, leaving neighbourhoods without direct, accountable representation in the system.</p>
             <div class="why-vote-more" id="whyVoteMore">
               <p>In that time, the city has continued to spend significant public funds, INR 38,455 crore annually, yet much of this remains difficult to trace, and for citizens there has been little clarity on how decisions are made or whom to hold responsible when services fall short.</p>
               <p>What this looks like on the ground is not abstract: roads that remain damaged, garbage that is not cleared on time, drains that overflow during rains, footpaths that are unusable, and streetlights that do not function consistently, all without an elected representative whose role is to take these issues up and demand answers.</p>
@@ -290,7 +267,7 @@ export function initHomeView({ W, meta }, { onOpenWard, onMethodology }) {
         <div>
           <span class="eyebrow eyebrow--red">Ward explorer</span>
           <h2 class="section-title">Find your neighbourhood on the map.</h2>
-          <p class="section-sub">Greater Bengaluru Authority has ${fmt(nCorps)} municipal corporations and ${fmt(meta.n_wards)} wards. Pick a corporation, then a ward.</p>
+          <p class="section-sub">Greater Bengaluru Authority has ${fmt(nCorps)} municipal corporations and ${fmt(meta.n_wards)} wards.</p>
         </div>
         <div class="corp-filter-pills" role="group" aria-label="Filter by corporation">
           ${CORP_FILTERS.map(c => `<button type="button" class="corp-filter-pill${c === 'All' ? ' active' : ''}" data-corp="${esc(c)}">${esc(c)}</button>`).join('')}
@@ -301,7 +278,6 @@ export function initHomeView({ W, meta }, { onOpenWard, onMethodology }) {
         <div class="ward-browse">
           <div class="ward-browse-head">
             <span class="ward-browse-title">Browse wards</span>
-            <button type="button" id="viewAllWards" class="ward-browse-viewall">View all ${fmt(meta.n_wards)} &rarr;</button>
           </div>
           <ul id="browseList" class="ward-list ward-list--browse"></ul>
         </div>
@@ -311,32 +287,37 @@ export function initHomeView({ W, meta }, { onOpenWard, onMethodology }) {
           <span class="legend-chip"><span class="chip-dot" style="background:${color}"></span>${name}</span>
         `).join('')}
       </div>
-      <p id="findCount" class="find-count" hidden></p>
-      <ul id="findList" class="ward-list" hidden></ul>
     </section>
 
     <section class="basics-section">
-      <span class="eyebrow eyebrow--red">The basics</span>
-      <h2 class="section-title">Four things worth understanding.</h2>
-      <div class="basics-list">
-        <details class="panel basics-item" open>
-          <summary><span class="basics-num">01</span> What is the Greater Bengaluru Authority?</summary>
-          <p>The Greater Bengaluru Authority (GBA) is the apex civic body for the Bengaluru metropolitan region. It coordinates planning, infrastructure and governance across the city. Under the Greater Bengaluru Governance Act, 2024, the erstwhile Bruhat Bengaluru Mahanagara Palike (BBMP) has been reconstituted into multiple City Corporations (currently five), which now perform municipal functions within the Greater Bengaluru Area under the overarching coordination and supervision of the Greater Bengaluru Authority and its Executive Committee.</p>
-        </details>
-        <details class="panel basics-item">
-          <summary><span class="basics-num">02</span> What is a ward councillor?</summary>
-          <p>A ward councillor is your elected representative in local government. They represent your neighbourhood, raise local issues, oversee civic works, and help ensure municipal services respond to residents' needs.</p>
-        </details>
-        <details class="panel basics-item">
-          <summary><span class="basics-num">03</span> How does this dashboard work?</summary>
-          <p>This platform presents ward-level civic information for Bengaluru, overlapping ward boundaries with open datasets on public amenities&mdash;bus stops, metro, schools, parks, lakes and more&mdash;to indicate how well each area is served and where provision is lacking.</p>
-          <p>Its purpose is to make civic data accessible and usable for residents, supporting an understanding of local conditions based on evidence and data. Ahead of elections, this can help citizens ask their candidates specific, informed questions.</p>
-          <p>The intention is to develop this into a consolidated source of ward-level information for Bengaluru.</p>
-        </details>
-        <details class="panel basics-item">
-          <summary><span class="basics-num">04</span> About the data</summary>
-          <p>Ward-level data compiled from ${meta.source || 'public GBA/BBMP sources'} as of ${meta.generated || 'the latest available update'}. See the methodology page for full sourcing and caveats.</p>
-        </details>
+      <div class="basics-band-inner band-inner">
+        <div class="basics-head-col">
+          <span class="eyebrow eyebrow--red">The basics</span>
+          <h2 class="section-title">Four things worth understanding.</h2>
+          <p class="basics-sub">Short explainers on how the new authority, your councillor, and this dashboard work.</p>
+        </div>
+        <div class="basics-list-col">
+          <div class="basics-list">
+            <details class="panel basics-item" open>
+              <summary><span class="basics-num">01</span> What is the Greater Bengaluru Authority?<span class="basics-chevron" aria-hidden="true">${CHEVRON_ICON}</span></summary>
+              <p>The Greater Bengaluru Authority (GBA) is the apex civic body for the Bengaluru metropolitan region. It coordinates planning, infrastructure and governance across the city. Under the Greater Bengaluru Governance Act, 2024, the erstwhile Bruhat Bengaluru Mahanagara Palike (BBMP) has been reconstituted into multiple City Corporations (currently five), which now perform municipal functions within the Greater Bengaluru Area under the overarching coordination and supervision of the Greater Bengaluru Authority and its Executive Committee.</p>
+            </details>
+            <details class="panel basics-item">
+              <summary><span class="basics-num">02</span> What is a ward councillor?<span class="basics-chevron" aria-hidden="true">${CHEVRON_ICON}</span></summary>
+              <p>A ward councillor is your elected representative in local government. They represent your neighbourhood, raise local issues, oversee civic works, and help ensure municipal services respond to residents' needs.</p>
+            </details>
+            <details class="panel basics-item">
+              <summary><span class="basics-num">03</span> How does this dashboard work?<span class="basics-chevron" aria-hidden="true">${CHEVRON_ICON}</span></summary>
+              <p>This platform presents ward-level civic information for Bengaluru, overlapping ward boundaries with open datasets on public amenities&mdash;bus stops, metro, schools, parks, lakes and more&mdash;to indicate how well each area is served and where provision is lacking.</p>
+              <p>Its purpose is to make civic data accessible and usable for residents, supporting an understanding of local conditions based on evidence and data. Ahead of elections, this can help citizens ask their candidates specific, informed questions.</p>
+              <p>The intention is to develop this into a consolidated source of ward-level information for Bengaluru.</p>
+            </details>
+            <details class="panel basics-item">
+              <summary><span class="basics-num">04</span> About the data<span class="basics-chevron" aria-hidden="true">${CHEVRON_ICON}</span></summary>
+              <p>Ward-level data compiled from ${meta.source || 'public GBA/BBMP sources'} as of ${meta.generated || 'the latest available update'}. See the methodology page for full sourcing and caveats.</p>
+            </details>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -346,25 +327,20 @@ export function initHomeView({ W, meta }, { onOpenWard, onMethodology }) {
           <span class="eyebrow eyebrow--dark">Methodology</span>
           <h2 class="section-title">Every number here is traceable to a public source.</h2>
         </div>
-        <button type="button" id="methodologyTeaserBtn" class="btn btn-primary">Read the methodology &rarr;</button>
+        <div class="methodology-band-cta">
+          <button type="button" id="methodologyTeaserBtn" class="btn btn-primary">Read the methodology &rarr;</button>
+          <p class="meth-band-sources">Sources &middot; KGIS &middot; KSRSAC</p>
+        </div>
       </div>
     </section>
   `;
 
   initWhyVoteToggle();
 
-  renderList(W, 'All');
   renderBrowseList(W, 'All');
 
   document.getElementById('methodologyTeaserBtn').addEventListener('click', () => {
     if (onMethodology) onMethodology();
-  });
-
-  document.getElementById('viewAllWards').addEventListener('click', () => {
-    setActiveCorp('All');
-    document.getElementById('findList').hidden = false;
-    document.getElementById('findCount').hidden = false;
-    document.getElementById('findList').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
   document.querySelectorAll('.corp-filter-pill').forEach(btn => {
@@ -402,14 +378,6 @@ export function initHomeView({ W, meta }, { onOpenWard, onMethodology }) {
     if (e.key === 'Enter' && latestLocalMatches.length) onOpenWardRef(latestLocalMatches[0]);
   });
 
-  document.getElementById('findSearchBtn').addEventListener('click', () => {
-    if (latestLocalMatches.length) {
-      onOpenWardRef(latestLocalMatches[0]);
-    } else {
-      document.getElementById('findSearch').focus();
-    }
-  });
-
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.find-search-wrap')) renderSuggestions(W, []);
   });
@@ -432,7 +400,7 @@ export function initHomeView({ W, meta }, { onOpenWard, onMethodology }) {
 
   if (!corpMap) {
     const isDesktopWidth = window.matchMedia('(min-width: 900px)').matches;
-    const defaultView = { center: [77.5946, 12.9716], zoom: isDesktopWidth ? 9.3 : 9 };
+    const defaultView = { center: [77.5946, 12.9840], zoom: isDesktopWidth ? 9.9 : 9 };
     corpMap = createMap('homeCorpMap', defaultView);
     corpMap.on('load', () => {
       const geojson = buildWardPolygonsGeoJSON(W);
