@@ -192,6 +192,8 @@ a { color: inherit; }
    visible strip of the page's cream background between that band and the
    footer. The footer supplies its own top padding, so this is safe to zero. */
 #homeContainer.container { padding-bottom: 0; }
+/* Ward detail's last section is likewise a full-bleed band (.feedback-band). */
+#wardContainer.container { padding-bottom: 0; }
 
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }

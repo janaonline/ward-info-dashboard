@@ -68,9 +68,11 @@ const SUBNAV_ITEMS = [
 function renderSubnav() {
   return `
     <nav class="ward-subnav" id="wardSubnav" aria-label="Ward sections">
-      ${SUBNAV_ITEMS.map((item, i) => `
-        <button type="button" class="ward-subnav-btn${item.desktopOnly ? ' subnav-desktop-only' : ''}${i === 0 ? ' active' : ''}" data-target="${item.id}">${esc(item.shortLabel || item.label)}</button>
-      `).join('')}
+      <div class="band-inner">
+        ${SUBNAV_ITEMS.map((item, i) => `
+          <button type="button" class="ward-subnav-btn${item.desktopOnly ? ' subnav-desktop-only' : ''}${i === 0 ? ' active' : ''}" data-target="${item.id}">${esc(item.shortLabel || item.label)}</button>
+        `).join('')}
+      </div>
     </nav>
   `;
 }
@@ -174,8 +176,9 @@ function demographicsParts(w) {
 }
 
 function badgesHtml(w) {
-  const badges = [esc(w.corporation)];
-  if (w.assembly) badges.push(esc(w.assembly));
+  const badges = [`Corporation: ${esc(w.corporation)}`];
+  if (!isBlank(w.zone_name)) badges.push(`Zone: ${esc(w.zone_name)}`);
+  if (w.assembly) badges.push(`Assembly: ${esc(w.assembly)}`);
   if (!isBlank(w.reservation)) badges.push(esc(w.reservation));
   return badges.map(b => `<span class="pill pill--outline-dark">${b}</span>`).join('');
 }
@@ -217,28 +220,30 @@ function renderOverview(w) {
   const oldWards = oldWardsText(w);
   return `
     <section class="sec" id="overview">
-      <span class="eyebrow eyebrow--red">Overview</span>
-      <h3>How this ward came to be.</h3>
-      <div class="whead-origin-block">
-        <span class="label">Formed from old wards</span>
-        ${oldWards ? `
-          <div class="oldwards-list">
-            ${oldWards.map(o => `
-              <div class="oldward-row">
-                <span class="oldward-name">${esc(o.name)}</span>
-                <span class="oldward-track"><span class="oldward-fill" style="width:${o.pct != null ? Math.max(0, Math.min(100, Number(o.pct))) : 0}%"></span></span>
-                <span class="oldward-pct">${o.pct != null ? `${o.pct}%` : ''}</span>
-              </div>
-            `).join('')}
+      <div class="band-inner">
+        <span class="eyebrow eyebrow--red">Overview</span>
+        <h3>How this ward came to be.</h3>
+        <div class="whead-origin-block">
+          <span class="label">Formed from old wards</span>
+          ${oldWards ? `
+            <div class="oldwards-list">
+              ${oldWards.map(o => `
+                <div class="oldward-row">
+                  <span class="oldward-name">${esc(o.name)}</span>
+                  <span class="oldward-track"><span class="oldward-fill" style="width:${o.pct != null ? Math.max(0, Math.min(100, Number(o.pct))) : 0}%"></span></span>
+                  <span class="oldward-pct">${o.pct != null ? `${o.pct}%` : ''}</span>
+                </div>
+              `).join('')}
+            </div>
+          ` : `<p>Not available</p>`}
+        </div>
+        <div class="whead-origin-block">
+          <span class="label">Key areas</span>
+          <div class="key-areas-pills">
+            ${w.neighbourhoods && w.neighbourhoods.length
+              ? w.neighbourhoods.map(n => `<span class="pill">${esc(n)}</span>`).join('')
+              : `<p>${neighbourhoodsText(w)}</p>`}
           </div>
-        ` : `<p>Not available</p>`}
-      </div>
-      <div class="whead-origin-block">
-        <span class="label">Key areas</span>
-        <div class="key-areas-pills">
-          ${w.neighbourhoods && w.neighbourhoods.length
-            ? w.neighbourhoods.map(n => `<span class="pill">${esc(n)}</span>`).join('')
-            : `<p>${neighbourhoodsText(w)}</p>`}
         </div>
       </div>
     </section>
@@ -248,18 +253,20 @@ function renderOverview(w) {
 function renderCandidates(w) {
   return `
     <section class="sec sec--tint" id="candidates">
-      <h3>Who is contesting the election in your ward? <span class="pill pill-soon">Coming soon</span></h3>
-      <p class="cand-intro">Placeholders for Ward ${fmt(w.ward_id)}. Photo, party, symbol, affidavit and manifesto will load here once candidates are declared.</p>
-      <div class="candgrid-row">
-        ${[1, 2, 3].map(n => `
-          <div class="candcard">
-            <div class="candphoto"></div>
-            <div class="candname">Candidate ${n}</div>
-            <div class="candparty">Party</div>
-            <div class="cand-detail"><span class="k">Affidavit</span> assets, cases, education</div>
-            <div class="cand-detail"><span class="k">Manifesto</span> stated priorities for the ward</div>
-          </div>
-        `).join('')}
+      <div class="band-inner">
+        <h3>Who is contesting the election in your ward? <span class="pill pill-soon">Coming soon</span></h3>
+        <p class="cand-intro">Placeholders for Ward ${fmt(w.ward_id)}. Photo, party, symbol, affidavit and manifesto will load here once candidates are declared.</p>
+        <div class="candgrid-row">
+          ${[1, 2, 3].map(n => `
+            <div class="candcard">
+              <div class="candphoto"></div>
+              <div class="candname">Candidate ${n}</div>
+              <div class="candparty">Party</div>
+              <div class="cand-detail"><span class="k">Affidavit</span> assets, cases, education</div>
+              <div class="cand-detail"><span class="k">Manifesto</span> stated priorities for the ward</div>
+            </div>
+          `).join('')}
+        </div>
       </div>
     </section>
   `;
@@ -330,25 +337,27 @@ function renderWardMap(uid, W, w) {
   const initialCount = activeLayer ? layerPoints(uid, activeLayer, W).length : 0;
   const walkEligible = activeLayer ? LAYER[activeLayer].walk : false;
   return `
-    <section class="sec sec--dark" id="ward-map">
-      <span class="eyebrow eyebrow--dark">Ward map</span>
-      <h3>Everything within a 15-minute walk.</h3>
-      <p class="sec--dark-sub">Toggle the 800m walk reach to see how much of ${esc(w.ward_name)} is actually served by each amenity type.</p>
-      <div class="wardmap-frame">
-        <div id="wardMap" class="map map-ward" aria-label="Map of ${esc(w.ward_name)}"></div>
-        ${activeLayer ? `
-          <div class="wardmap-badge" id="wardMapBadge">
-            <span class="wardmap-badge-dot" style="background:${LAYER[activeLayer].color}" aria-hidden="true"></span>
-            <span id="wardMapBadgeLabel">Showing: ${esc(amenityLabel(activeLayer, uid, W, w))} (${fmt(initialCount)})</span>
-          </div>
-        ` : ''}
-      </div>
-      <div class="wardmap-toolbar">
-        <label class="buffer-toggle"><input type="checkbox" id="bufferToggle" ${bufferOn ? 'checked' : ''} ${walkEligible ? '' : 'disabled'}> Show 800m walk reach</label>
-        <button class="btn btn-secondary btn-sm" id="wardMapReset" type="button"><span aria-hidden="true">${RESET_ICON}</span>Reset</button>
-      </div>
-      <div class="amenity-filters">
-        ${renderAmenityFilters(uid, W, w)}
+    <section class="sec" id="ward-map">
+      <div class="band-inner">
+        <span class="eyebrow eyebrow--red">Ward map</span>
+        <h3>Everything within a 15-minute walk.</h3>
+        <p class="sec-sub">Toggle the 800m walk reach to see how much of ${esc(w.ward_name)} is actually served by each amenity type.</p>
+        <div class="wardmap-frame">
+          <div id="wardMap" class="map map-ward" aria-label="Map of ${esc(w.ward_name)}"></div>
+          ${activeLayer ? `
+            <div class="wardmap-badge" id="wardMapBadge">
+              <span class="wardmap-badge-dot" style="background:${LAYER[activeLayer].color}" aria-hidden="true"></span>
+              <span id="wardMapBadgeLabel">Showing: ${esc(amenityLabel(activeLayer, uid, W, w))} (${fmt(initialCount)})</span>
+            </div>
+          ` : ''}
+        </div>
+        <div class="wardmap-toolbar">
+          <label class="buffer-toggle"><input type="checkbox" id="bufferToggle" ${bufferOn ? 'checked' : ''} ${walkEligible ? '' : 'disabled'}> Show 800m walk reach</label>
+          <button class="btn btn-secondary btn-sm" id="wardMapReset" type="button"><span aria-hidden="true">${RESET_ICON}</span>Reset</button>
+        </div>
+        <div class="amenity-filters">
+          ${renderAmenityFilters(uid, W, w)}
+        </div>
       </div>
     </section>
   `;
@@ -407,13 +416,11 @@ function renderBenchmarkBlock(key, label, count, w) {
   return `<div class="am-benchmark"><p class="am-benchmark-desc">${b.text}</p></div>`;
 }
 
-const AMENITIES_VISIBLE_CAP = 6;
-
 function renderAmenities(uid, W, w) {
   const rows = amenityRows(uid, W, w).filter(([key]) => !VULNERABILITY_KEYS.includes(key));
   const cardHtml = ([key, label, count]) => {
     const b = benchmarkFor(key, label, count, w);
-    const tone = b && b.kind === 'bar' ? b.tone : null;
+    const tone = b ? b.tone : null;
     return `
       <div class="amrow amcard${tone ? ` amcard--${tone}` : ''}" data-layer="${key}">
         <span class="am-icon" aria-hidden="true">${LAYER[key].icon}</span>
@@ -423,27 +430,21 @@ function renderAmenities(uid, W, w) {
       </div>
     `;
   };
-  const visible = rows.slice(0, AMENITIES_VISIBLE_CAP);
-  const rest = rows.slice(AMENITIES_VISIBLE_CAP);
   return `
     <section class="sec" id="amenities">
-      <span class="eyebrow eyebrow--red">Amenities</span>
-      <h3>What&rsquo;s actually here &mdash; and what isn&rsquo;t.</h3>
-      <p class="sec-sub">Counts measured against URDPFI-based benchmarks for a ward this size.</p>
-      <div class="amenities-legend">
-        <span><span class="legend-dot legend-dot--green"></span>Benchmark met</span>
-        <span><span class="legend-dot legend-dot--red"></span>Under-served</span>
-        <span><span class="legend-dot legend-dot--blue"></span>Geography based</span>
-      </div>
-      <div class="amgrid amgrid-benchmarks">
-        ${visible.map(cardHtml).join('')}
-      </div>
-      ${rest.length ? `
-        <div class="amgrid amgrid-benchmarks amgrid-extra" id="amenitiesExtra" hidden>
-          ${rest.map(cardHtml).join('')}
+      <div class="band-inner">
+        <span class="eyebrow eyebrow--red">Amenities</span>
+        <h3>What&rsquo;s actually here &mdash; and what isn&rsquo;t.</h3>
+        <p class="sec-sub">Counts measured against URDPFI-based benchmarks for a ward this size.</p>
+        <div class="amenities-legend">
+          <span><span class="legend-dot legend-dot--green"></span>Benchmark met</span>
+          <span><span class="legend-dot legend-dot--red"></span>Under-served</span>
+          <span><span class="legend-dot legend-dot--blue"></span>Geography based</span>
         </div>
-        <button type="button" class="btn btn-secondary amenities-showall" id="amenitiesShowAll">Show all ${fmt(rows.length)} amenities</button>
-      ` : ''}
+        <div class="amgrid amgrid-benchmarks">
+          ${rows.map(cardHtml).join('')}
+        </div>
+      </div>
     </section>
   `;
 }
@@ -489,29 +490,31 @@ function renderSafetyClimate(uid, W, w) {
   const rows = amenityRows(uid, W, w).filter(([key]) => VULNERABILITY_KEYS.includes(key));
   return `
     <section class="sec safety-climate-wrap" id="safety-climate">
-      <div class="safety-card sec--dark">
-        <span class="eyebrow eyebrow--dark">Safety &amp; climate</span>
-        <h3>Vulnerability hotspots.</h3>
-        <div class="amgrid">
-          ${rows.map(([key, label, count]) => `
-            <div class="amrow" data-layer="${key}">
-              <span class="am-icon" aria-hidden="true">${LAYER[key].icon}</span>
-              <span class="am-label">${esc(label)}</span>
-              <span class="cnt">${fmt(count || 0)}</span>
-            </div>
-          `).join('')}
+      <div class="band-inner">
+        <div class="safety-card sec--dark">
+          <span class="eyebrow eyebrow--dark">Safety &amp; climate</span>
+          <h3>Vulnerability hotspots.</h3>
+          <div class="amgrid">
+            ${rows.map(([key, label, count]) => `
+              <div class="amrow" data-layer="${key}">
+                <span class="am-icon" aria-hidden="true">${LAYER[key].icon}</span>
+                <span class="am-label">${esc(label)}</span>
+                <span class="cnt">${fmt(count || 0)}</span>
+              </div>
+            `).join('')}
+          </div>
+          ${renderTemperatureCard(w)}
         </div>
-        ${renderTemperatureCard(w)}
-      </div>
-      <div class="sahaaya-card">
-        <span class="eyebrow eyebrow--red">BBMP Sahaaya</span>
-        <h3>What neighbours complain about most.</h3>
-        <p class="sec-sub">Most-reported civic complaints in this ward</p>
-        <ol class="sahaaya-ranked">
-          <li><span class="sahaaya-rank">01</span><span class="sahaaya-name">Roads &amp; potholes</span><span class="sahaaya-bar"><span style="width:100%"></span></span></li>
-          <li><span class="sahaaya-rank">02</span><span class="sahaaya-name">Garbage &amp; sanitation</span><span class="sahaaya-bar"><span style="width:70%"></span></span></li>
-          <li><span class="sahaaya-rank">03</span><span class="sahaaya-name">Water, drains &amp; flooding</span><span class="sahaaya-bar"><span style="width:45%"></span></span></li>
-        </ol>
+        <div class="sahaaya-card sec--dark">
+          <span class="eyebrow eyebrow--dark">BBMP Sahaaya</span>
+          <h3>What neighbours complain about most.</h3>
+          <p class="sec-sub">Most-reported civic complaints in this ward</p>
+          <ol class="sahaaya-ranked">
+            <li><span class="sahaaya-rank">01</span><span class="sahaaya-name">Roads &amp; potholes</span><span class="sahaaya-bar"><span class="sahaaya-bar-fill--yellow" style="width:100%"></span></span></li>
+            <li><span class="sahaaya-rank">02</span><span class="sahaaya-name">Garbage &amp; sanitation</span><span class="sahaaya-bar"><span class="sahaaya-bar-fill--light-green" style="width:70%"></span></span></li>
+            <li><span class="sahaaya-rank">03</span><span class="sahaaya-name">Water, drains &amp; flooding</span><span class="sahaaya-bar"><span class="sahaaya-bar-fill--blue" style="width:45%"></span></span></li>
+          </ol>
+        </div>
       </div>
     </section>
   `;
@@ -537,10 +540,12 @@ function renderAskCandidates(w) {
   const questions = suggestedQuestions(w);
   return `
     <section class="sec" id="ask-candidates">
-      <span class="eyebrow eyebrow--red">Ask your candidates</span>
-      <h3>Five questions this ward&rsquo;s data suggests.</h3>
-      <p class="sec-sub">Generated from the gaps above.</p>
-      <ol class="qlist qlist--numbered">${questions.map((q, i) => `<li><span class="q-num">${String(i + 1).padStart(2, '0')}</span><span>${esc(q)}</span></li>`).join('')}</ol>
+      <div class="band-inner">
+        <span class="eyebrow eyebrow--red">Ask your candidates</span>
+        <h3>Five questions this ward&rsquo;s data suggests.</h3>
+        <p class="sec-sub">Generated from the gaps above.</p>
+        <ol class="qlist qlist--numbered">${questions.map((q, i) => `<li><span class="q-num">${String(i + 1).padStart(2, '0')}</span><span>${esc(q)}</span></li>`).join('')}</ol>
+      </div>
     </section>
   `;
 }
@@ -652,14 +657,6 @@ function wireLayerClicks(uid, W) {
       bufferOn = false;
       if (bufferToggle) bufferToggle.checked = false;
       setLayer(uid, W, defaultLayer(uid, W));
-    });
-  }
-  const showAllBtn = document.getElementById('amenitiesShowAll');
-  if (showAllBtn) {
-    showAllBtn.addEventListener('click', () => {
-      const extra = document.getElementById('amenitiesExtra');
-      extra.hidden = false;
-      showAllBtn.hidden = true;
     });
   }
 }
