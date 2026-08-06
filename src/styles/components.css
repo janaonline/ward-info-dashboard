@@ -160,7 +160,8 @@ mark {
    own max-width scale so the actual content still lines up with every other
    section on the page. */
 .cover, .why-vote-band, .methodology-band, .whead, .facts-band, .feedback-band, .basics-section,
-#overview, #candidates, #ward-map, #amenities, #safety-climate, #ask-candidates, #wardSubnav {
+#overview, #candidates, #ward-map, #amenities, #safety-climate, #ask-candidates, #wardSubnav,
+#methHero, #methAiNote, #methStep1, #methStep2, #methStep3, #methSources {
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
   padding-left: clamp(14px, 4vw, 24px);
@@ -599,6 +600,13 @@ mark {
 .sec--dark .meth-list a { color: var(--green); }
 .sec--dark .meth-list a:hover { color: var(--on-forest); }
 
+/* -- sage-card section (Methodology step 2) -- */
+.sec--sage { background: var(--sage); color: var(--sage-ink); border-color: var(--sage); }
+.sec--sage h3 { color: var(--sage-ink); }
+.sec--sage .meth-list, .sec--sage .sec-sub { color: var(--sage-ink); }
+.sec--sage .meth-list a { color: var(--green-d); }
+.sec--sage .meth-list a:hover { color: var(--green); }
+
 .wardmap-toolbar {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
   gap: var(--space-3); margin: var(--space-3) 0;
@@ -1024,20 +1032,57 @@ mark {
 .callout-icon { flex-shrink: 0; margin-top: 2px; }
 .callout p { margin: 0; font-size: 0.92rem; line-height: 1.55; }
 
+#methAiNote {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  background: var(--yellow); color: var(--yellow-ink);
+  padding-top: var(--space-5); padding-bottom: var(--space-5);
+}
+/* Strip .callout's own boxed-card shell here — inside this full-bleed yellow
+   band it should read as a plain row, not a card-on-a-card; .faq-key-dates
+   (voter-faq-view.js) reuses the shared, unmodified .callout base above. */
+#methAiNote .callout {
+  align-items: center;
+  margin: 0; padding: 0; background: none; border: none; box-shadow: none;
+  color: var(--yellow-ink);
+}
+
 .meth-list {
+  list-style: none;
   display: flex; flex-direction: column; gap: var(--space-3);
-  padding-left: 20px; margin: 0; color: var(--ink);
+  padding-left: 0; margin: 0; color: var(--ink);
   font-size: 0.95rem; line-height: 1.6;
 }
 .meth-list a { color: var(--green-d); overflow-wrap: anywhere; }
 .meth-list a:hover { color: var(--green); }
 
-#methodologyContainer .sec { margin: var(--space-4) 0; padding-top: var(--space-3); padding-bottom: var(--space-3); }
-#methodologyContainer .sec h3 { margin-bottom: var(--space-2); }
-#methodologyContainer .callout { margin: var(--space-3) 0 var(--space-4); padding-top: var(--space-3); padding-bottom: var(--space-3); }
-#methodologyContainer .meth-list { gap: var(--space-2); }
+/* -- methodology step badge (Step 1/2/3) -- */
+.meth-step-inner { display: flex; flex-direction: column; gap: var(--space-4); }
+.meth-step-badge { display: flex; flex-direction: row; align-items: center; gap: var(--space-3); }
+.meth-step-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; flex-shrink: 0;
+  border-radius: 999px; background: var(--forest); color: var(--on-forest);
+  font-family: var(--font-stat); font-weight: 800; font-size: 1.1rem;
+}
+.sec--dark .meth-step-num { background: var(--red); color: #fff; }
+.meth-step-label {
+  font-family: var(--font-stat); font-weight: 700; font-size: 0.78rem;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--red);
+}
+.sec--dark .meth-step-label { color: var(--on-forest); }
+.meth-step-content { flex: 1; min-width: 0; }
 
-.meth-hero { display: flex; flex-direction: column; gap: var(--space-4); margin: var(--space-5) 0; }
+/* -- methodology hero band -- */
+#methHero {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  background: var(--surface-2); color: var(--ink);
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
+#methHero .whead-breadcrumb { color: var(--muted); margin: 0 0 var(--space-3); }
+#methHero .whead-breadcrumb span { color: var(--ink); }
+#methHero .eyebrow--red { margin-bottom: var(--space-2); display: inline-block; }
+
+.meth-hero { display: flex; flex-direction: column; gap: var(--space-4); }
 .meth-statcard {
   border: 1px solid var(--line); border-radius: var(--radius-l); overflow: hidden;
   box-shadow: var(--shadow-1);
@@ -1054,7 +1099,20 @@ mark {
 
 .meth-pills { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-4); }
 
+/* -- methodology step 1 (white) -- */
+#methStep1 {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  background: var(--surface);
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
+
+/* -- methodology step 2 (sage) -- */
+#methStep2 {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
 .meth-mini-stats { display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4); }
+.meth-stat-arrow { display: flex; align-items: center; justify-content: center; color: inherit; opacity: .55; transform: rotate(90deg); }
 .mini-stat {
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m);
   padding: var(--space-4);
@@ -1067,23 +1125,40 @@ mark {
 .mini-stat-d { font-size: 0.85rem; color: var(--muted); }
 .mini-stat--dark .mini-stat-d { color: var(--on-forest-muted); }
 
+/* -- methodology step 3 (dark) -- */
+#methStep3 {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
+
 @media (min-width: 900px) {
   .meth-hero { flex-direction: row; align-items: flex-start; justify-content: space-between; gap: var(--space-6); }
   .meth-hero > div:first-child { flex: 1.4; }
   .meth-statcard { flex: 1; max-width: 340px; }
-  .meth-mini-stats { flex-direction: row; }
+  .meth-mini-stats { flex-direction: row; align-items: stretch; }
   .mini-stat { flex: 1; }
+  .meth-stat-arrow { transform: none; flex: 0 0 auto; }
+  .meth-step-inner { flex-direction: row; align-items: flex-start; gap: var(--space-6); }
+  .meth-step-badge { flex: 0 0 140px; flex-direction: column; align-items: flex-start; gap: var(--space-3); }
 }
 
-.sources-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-3); margin-top: var(--space-4); }
+/* -- methodology sources band -- */
+#methSources {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  background: var(--surface);
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
+.sources-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-4); margin-top: var(--space-5); }
+@media (min-width: 640px) { .sources-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 900px) { .sources-grid { grid-template-columns: repeat(4, 1fr); gap: var(--space-5); } }
 .source-card {
   display: flex; flex-direction: column; gap: 4px;
   padding: var(--space-4); border-radius: var(--radius-m);
-  background: var(--surface); border: 1px solid var(--line);
+  background: var(--surface-2); border: none; box-shadow: none;
   text-decoration: none; color: inherit;
   transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) ease;
 }
-.source-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); }
+.source-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-1); }
 .source-num { font-family: var(--font-stat); font-weight: 700; color: var(--red); font-size: 0.78rem; }
 .source-name { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-display); font-weight: 700; }
 .source-desc { color: var(--muted); font-size: 0.82rem; }

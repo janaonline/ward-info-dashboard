@@ -194,6 +194,8 @@ a { color: inherit; }
 #homeContainer.container { padding-bottom: 0; }
 /* Ward detail's last section is likewise a full-bleed band (.feedback-band). */
 #wardContainer.container { padding-bottom: 0; }
+/* Methodology's last section is likewise a full-bleed band (.feedback-band). */
+#methodologyContainer.container { padding-bottom: 0; }
 
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
