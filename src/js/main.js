@@ -50,6 +50,8 @@ async function boot() {
     navigateTo('ward');
   };
 
+  initHeader({ onNavigate: navigateTo, onBack: goBack });
+
   initHomeView({ W, meta }, { onOpenWard: handleOpenWard, onMethodology: () => navigateTo('methodology') });
 
   initWardView({ W, benchmarks });
@@ -59,8 +61,6 @@ async function boot() {
   initVoterFaqView();
 
   initFooter({ onNavigate: navigateTo, onMethodology: () => navigateTo('methodology') });
-
-  initHeader({ onNavigate: navigateTo, onBack: goBack });
 
   loadingIndicator.setAttribute('hidden', '');
 

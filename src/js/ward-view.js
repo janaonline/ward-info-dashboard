@@ -588,7 +588,7 @@ function renderFeedback() {
     <section class="sec feedback-band" id="feedback">
       <div class="band-inner feedback-inner">
         <div>
-          <span class="eyebrow eyebrow--dark">Feedback</span>
+          <span class="eyebrow eyebrow--red">Feedback</span>
           <h3>Spotted something wrong? Let us know.</h3>
           <p class="cand-intro">Help us improve ward-level information by reporting missing details, incorrect information, or civic issues you've observed.</p>
         </div>
