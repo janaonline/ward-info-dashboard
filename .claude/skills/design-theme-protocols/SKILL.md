@@ -22,9 +22,10 @@ Two tiers of strictness:
 
 | Token | Value | Use for |
 |---|---|---|
-| `--bg` | `#f2e9d8` | page background (cream/beige) |
+| `--bg` | `#F3F6F4` | page background (cool near-white — the sibling surface tokens below stay cream/beige) |
 | `--surface` | `#ffffff` | raised elements: buttons, inputs, pills, map tooltip, white cards |
 | `--surface-2` | `#ece1cb` | card fill (`.sec`), hover states |
+| `--surface-3` | `#fbfaf6` | ward-detail Ward Map section background (`#ward-map`) — a distinct, subtly warmer off-white from `--surface`, not a general-purpose alternative to it |
 | `--inset` | `#e6d8bd` | recessed placeholder fill (`.candphoto` gradient, progress-bar tracks) |
 | `--ink` | `#18230f` | body/paragraph-length text on light surfaces (tier 1, see §2) |
 | `--muted` | `#57624a` | inline metadata text (tier 2) |
@@ -39,14 +40,14 @@ Two tiers of strictness:
 | `--on-forest-line` | `rgba(242,234,217,.14)` | hairline borders on `--forest` surfaces |
 | `--green` | `#3d7a40` | primary/positive accent, benchmark "met" tier |
 | `--green-d` | `#2a5c2c` | primary-dark (button hover, link hover) |
-| `--green-soft` | `#dcecd2` | tinted fill (`.sec--tint`, active legend chip) |
+| `--green-soft` | `#dcecd2` | tinted fill (active legend chip) |
 | `--green-ring` | `#b8d9ac` | focus rings, hover border tint |
 | `--red` | `#c1392b` | alert/bad, benchmark "under-served" tier, Voter FAQ hero band |
 | `--red-d` | `#a12d20` | alert-dark |
 | `--red-soft` | `#f8ded8` | alert tint fill |
 | `--red-ring` | `#e7a99b` | alert focus/border tint |
 | `--yellow` | `#f0b429` | mustard accent: highlighter/warn, CTA/badge fills, Why-vote and Did-you-know bands |
-| `--yellow-soft` | `#fbe8b6` | `<mark>`, `.callout`, `.pill-soon`, `.rule-chip`, Feedback band fill |
+| `--yellow-soft` | `#fbe8b6` | `<mark>`, `.callout`, `.pill-soon`, `.rule-chip` |
 | `--yellow-ink` | `#6b4a06` | text on yellow-soft/yellow surfaces |
 | `--yellow-line` | `#e3c37a` | `.callout` border |
 | `--sage` | `#ccdabd` | Methodology teaser band fill |
@@ -60,9 +61,9 @@ Two tiers of strictness:
 | `--cyan` | `#0891b2` | Amenities benchmark-badge tone: "Geography based" |
 | `--gray` | `#6b7280` | Amenities benchmark-badge tone: "Planning based" / fallback; neutral tint for `.am-benchmark-track` |
 | `--orange` | `#c2660a` | Amenities benchmark-badge tone: "Activity based"; progress-bar "Moderate" (40–74%) fill tier |
-| `--light-green` | `#7cb342` | Amenities progress-bar "Good" (75–99%) fill tier; also a Voter-FAQ topic-tile color (`.faq-topic-tile--6`) |
+| `--light-green` | `#7cb342` | Amenities progress-bar "Good" (75–99%) fill tier; also a Voter-FAQ topic-tile color (`.faq-topic-tile--6`); also the ward-detail Feedback band's full-bleed background (`.feedback-band`) |
 
-The benchmark-badge/progress-tier tokens (`--blue`/`--teal`/`--indigo`/`--cyan`/`--gray`/`--orange`/`--light-green`) are scoped to the Amenities benchmark UI per an explicit requester color-mapping — not a general license to use these hues elsewhere, though `--blue`/`--light-green` were reused as-is (not duplicated) for two of the Voter FAQ topic tiles' 8-color set. `--green`/`--red` are reused as-is for the progress-bar "Excellent"/"Poor" tiers and the badge "Environmental" category.
+The benchmark-badge/progress-tier tokens (`--blue`/`--teal`/`--indigo`/`--cyan`/`--gray`/`--orange`/`--light-green`) are scoped to the Amenities benchmark UI per an explicit requester color-mapping — not a general license to use these hues elsewhere, though `--blue`/`--light-green` were reused as-is (not duplicated) for two of the Voter FAQ topic tiles' 8-color set, and `--light-green` was reused a second time (confirmed with the requester) as the ward-detail Feedback band's background in the 2026 full-bleed redesign, replacing `--yellow-soft`. `--green`/`--red` are reused as-is for the progress-bar "Excellent"/"Poor" tiers and the badge "Environmental" category.
 
 ### Radius scale
 
@@ -106,10 +107,10 @@ Selectors below are real, current selectors from `src/styles/components.css`/`ba
 
 | Component | Selector(s) | Purpose / token usage | Example usage |
 |---|---|---|---|
-| Card shell | `.sec` | Every major section block: `--surface-2` bg, `--line` border, `--radius-l`, `--shadow-1`, `--space-5`/`--space-6` padding | ward-detail Overview/Amenities/Ask-your-candidates, methodology steps |
-| Card shell — dark | `.sec--dark` | Same shell, `--forest` bg + `--on-forest` text (also overrides `.meth-list`/`.buffer-toggle`/`.am-icon`/`.amrow` colors inside it) | ward-view Ward map + Safety & climate, methodology step 3 |
-| Card shell — tinted | `.sec--tint` | Same shell, `--green-soft` bg | ward-view Candidates |
-| Full-bleed colored band | `.cover`, `.why-vote-band`, `.methodology-band`, `.whead`, `.facts-band`, `.feedback-band` | Break out of the enclosing `.container`'s max-width via `margin-left/right: calc(50% - 50vw)` + matching `padding-left/right`, so the background spans the full viewport while `.band-inner` (a child wrapper) re-applies `.container`'s own max-width scale to keep content aligned. Each has its own background/text-color pairing (dark forest, yellow, sage, yellow-soft) — see their own rules in `components.css`, don't invent a new bleed mechanism | home hero/why-vote/methodology-teaser, ward-detail head band + Did-you-know + Feedback |
+| Card shell | `.sec` | Boxed-card defaults (`--surface-2` bg, `--line` border, `--radius-l`, `--shadow-1`, `--space-5`/`--space-6` padding) — still the base for methodology steps, but every ward-detail section neutralizes this shell via its own ID override (margin/border/radius/shadow → none) and goes full-bleed instead (see "Full-bleed colored band" below) | methodology steps; ward-detail sections are full-bleed, not boxed, as of the 2026 full-bleed redesign |
+| Card shell — dark | `.sec--dark` | Same shell, `--forest` bg + `--on-forest` text (also overrides `.meth-list`/`.buffer-toggle`/`.am-icon`/`.amrow` colors inside it) | ward-view Ward map + Safety & climate's `.safety-card` sub-card, methodology step 3 |
+| Card shell — tinted | `.sec--tint` | Same shell, `--surface-2` bg (was `--green-soft` before the 2026 full-bleed redesign — this section is single-purpose to Candidates, so it was repurposed rather than adding a new modifier) | ward-view Candidates |
+| Full-bleed colored band | `.cover`, `.why-vote-band`, `.methodology-band`, `.whead`, `.facts-band`, `.feedback-band`, `#overview`, `#candidates`, `#ward-map`, `#amenities`, `#safety-climate`, `#ask-candidates` | Break out of the enclosing `.container`'s max-width via `margin-left/right: calc(50% - 50vw)` + matching `padding-left/right`, so the background spans the full viewport while `.band-inner` (a child wrapper) re-applies `.container`'s own max-width scale to keep content aligned. Each has its own background/text-color pairing (dark forest, yellow, sage, light-green, or a plain `--surface`/`--surface-2`/`--surface-3`/`--bg`) — see their own rules in `components.css`, don't invent a new bleed mechanism. The ID-keyed ward-detail sections additionally neutralize the inherited `.sec` box shell via an ID-scoped override (§ Card shell above). `#ward-map`'s map canvas (`.wardmap-frame`/`#wardMap`) is deliberately *not* full-bleed — after an earlier pass made it reach the true viewport edge, that was reverted so the map sits inset inside the same `.band-inner` as the section's heading/toolbar, like every other section's content; only the section's own background is full-bleed | home hero/why-vote/methodology-teaser, ward-detail head band + every major section + Did-you-know + Feedback |
 | Hero lede/subtitle | `.faq-lede` (top-margin-only variant), `.hero-subtitle` (symmetric-margin variant) | One-sentence paragraph directly under a `.headline`: sentence-length copy, `0.95rem`, `max-width: 64ch` for line length | voter-FAQ hero, home hero |
 | Hero/stat tile | `.hero-stats`/`.hero-stat` (+ `.hero-stat--alert` red, `.hero-stat--highlight` yellow) | 2-column grid of dark tiles, big number + small label | home hero (wards/corporations/councillor/yrs-since-poll), ward-view head band (population/male/female/booths) |
 | Primary button | `.btn.btn-primary` | Solid `--green-d` CTA | ward-view Feedback CTA, voter-FAQ hero |
@@ -118,7 +119,7 @@ Selectors below are real, current selectors from `src/styles/components.css`/`ba
 | Small button | `.btn.btn-sm` | `36px` min-height variant of `.btn` | ward-view share buttons, map Reset button |
 | Pill/badge | `.pill`, `.pill.pill-soon`, `.pill--fill-yellow`, `.pill--outline-dark` | `--surface` bg + `--muted` text by default; `pill-soon` swaps to `--yellow-soft`/`--yellow-ink`; `--fill-yellow`/`--outline-dark` are `--forest`-surface variants (ward badge row) | ward head badges, key-areas pills, methodology tag pills |
 | Benchmark progress bar | `.am-benchmark-track`/`.am-benchmark-fill` (+ `--green`/`--light-green`/`--orange`/`--red` tone modifiers)/`.am-benchmark-ratio` | Neutral gray track; fill color is a performance tier (`progressTone()` in `ward-view.js`), never flat | Amenities-grid rows with a numeric CSV benchmark |
-| Colored amenity card | `.amrow.amcard` (+ `.amcard--green`/`--light-green`/`--orange`/`--red`) | Solid-tone card wrapping a bar-kind Amenities row (same `progressTone()` result as its own benchmark bar) — still carries the base `.amrow`/`data-layer` so `wireLayerClicks()`'s click-wiring is untouched; has its own hover overrides (`.amrow.amcard--<tone>.is-clickable:hover`) so hover doesn't flash to plain `--surface` | ward-view Amenities grid |
+| Neutral amenity list row | `.amgrid-benchmarks .amrow.amcard` (+ `.amcard--green`/`--light-green`/`--orange`/`--red`/`--blue`/`--teal`/`--indigo`/`--cyan`/`--gray`) | Every Amenities row (all 11, one uniform grid — an earlier "first 3 as solid-color hero cards" tier was tried and removed): neutral background, `border-bottom`/`border-right` dividers (dashboard-list feel), tone color only on `.am-icon` (+ its light-tint circular halo, `#amenities .am-icon`, via `color-mix(in srgb, currentColor 15%, var(--surface))`), `.am-label`, `.cnt` — the benchmark bar/badge (`.am-benchmark-fill--{tone}`/`.am-benchmark-badge--{tone}`) are independently tone-colored and need no override. Still carries the base `.amrow`/`data-layer` so `wireLayerClicks()`'s click-wiring is untouched; has its own hover override (`.amgrid-benchmarks .amrow.amcard.is-clickable:hover`) so hover reads as a neutral `--surface-2` tint, not a solid tone-fill flash | ward-view Amenities grid, all rows |
 | Benchmark badge | `.am-benchmark-badge` (+ `--blue`/`--teal`/`--indigo`/`--cyan`/`--gray`/`--orange`/`--green` tone modifiers) | Outlined pill, color keyed by category via `BADGE_TONES` in `ward-view.js` | Amenities-grid rows with no numeric CSV benchmark |
 | List row | `.ward-row` (+ `.ward-row-text`/`.ward-row-arrow`), `.ward-suggest-row` | 44px min-height, hover = `--surface-2` bg + `--green` left-border + arrow shift, active = `--green-soft` | home ward list/browse list, autosuggest dropdown |
 | Filter pill (functional) | `.corp-filter-pill` (+ `.active`) | Segmented pill row, `.active` = `--forest` fill | home Ward Explorer corporation filter |

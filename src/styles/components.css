@@ -82,6 +82,12 @@ mark {
 .map-corp { height: 350px; margin: 16px 0; }
 .map-ward { height: 430px; margin: 10px 0; }
 
+/* Ward Map's canvas is edge-to-edge (see .wardmap-frame's own full-bleed
+   trick), so it must not keep .map's shared rounded-card treatment — the
+   home page's inset .map-corp instance is untouched since it doesn't carry
+   this ID. */
+#wardMap { border-radius: 0; border: none; box-shadow: none; }
+
 .map-reset-btn { position: absolute; top: var(--space-2); right: var(--space-2); z-index: 2; }
 /* .wardmap-badge sits at top/right: var(--space-3) on the same box (.wardmap-frame
    tightly wraps #wardMap) — push the reset button below it there only. */
@@ -134,7 +140,7 @@ mark {
 }
 .chip-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 
-.sec, .whead, .why-vote {
+.sec, .why-vote {
   margin: var(--space-6) 0;
   padding: var(--space-5);
   background: var(--surface-2);
@@ -153,7 +159,8 @@ mark {
    the background bleed full-width while .band-inner re-applies .container's
    own max-width scale so the actual content still lines up with every other
    section on the page. */
-.cover, .why-vote-band, .methodology-band, .whead, .facts-band, .feedback-band, .basics-section {
+.cover, .why-vote-band, .methodology-band, .whead, .facts-band, .feedback-band, .basics-section,
+#overview, #candidates, #ward-map, #amenities, #safety-climate, #ask-candidates, #wardSubnav {
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
   padding-left: clamp(14px, 4vw, 24px);
@@ -434,6 +441,11 @@ mark {
 /* -- ward view -- */
 
 .whead {
+  margin-top: 0;
+  margin-bottom: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
   background: var(--forest);
   color: var(--on-forest);
   padding-top: var(--space-5);
@@ -450,7 +462,7 @@ mark {
 .pill--fill-yellow { background: var(--yellow); color: var(--forest); font-weight: 700; }
 .pill--outline-dark { background: none; border: 1px solid var(--on-forest-line); color: var(--on-forest); }
 .whead-share { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-.whead-stats { margin-top: var(--space-2); max-width: none; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.whead-stats { margin-top: var(--space-2); max-width: none; grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .hero-stat--highlight { background: var(--yellow); }
 .hero-stat--highlight .hero-stat-num { color: var(--forest); }
 .hero-stat--highlight .hero-stat-label { color: var(--forest); opacity: .8; }
@@ -476,16 +488,20 @@ mark {
 
 /* -- ward sticky sub-nav -- */
 
+/* Full-bleed background (see the full-bleed selector list above, #wardSubnav
+   is in it) — the tab buttons themselves live in .band-inner below, which
+   keeps them aligned with the rest of the page's content column instead of
+   spreading across the now-edge-to-edge background. */
 .ward-subnav {
   position: sticky; z-index: 30;
   background: var(--surface); border-bottom: 1px solid var(--line);
+}
+.ward-subnav .band-inner {
   display: flex; flex-wrap: nowrap; overflow-x: auto; gap: var(--space-1);
-  padding: 0 clamp(14px, 4vw, 24px);
-  margin: 0 calc(-1 * clamp(14px, 4vw, 24px)) var(--space-5);
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
-.ward-subnav::-webkit-scrollbar { display: none; }
+.ward-subnav .band-inner::-webkit-scrollbar { display: none; }
 .ward-subnav-btn {
   flex-shrink: 0; white-space: nowrap; cursor: pointer;
   min-height: 44px;
@@ -502,11 +518,42 @@ mark {
 
 .sec-sub { color: var(--muted); font-size: 0.9rem; margin: 0 0 var(--space-3); }
 
-.sec--tint { background: var(--green-soft); }
+/* Full-bleed section shells: every ward-detail section below neutralizes the
+   shared .sec card shell (margin/border/radius/shadow) via its own ID, since
+   .sec's default is a boxed, inset card and these sections instead bleed
+   edge-to-edge with their own full-width background color (see the full-bleed
+   selector list above and .band-inner, which re-applies .container's max-width
+   scale to each section's actual content). */
+#overview {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  background: var(--surface);
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
+#candidates {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
+#ward-map {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  background: var(--surface-3); color: var(--ink);
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
+#amenities {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  background: var(--surface);
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
+#ask-candidates {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  background: var(--bg);
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
+
+.sec--tint { background: var(--surface-2); }
 .candgrid h3 { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
 .pill-soon { background: var(--yellow-soft); color: var(--yellow-ink); }
 .cand-intro { color: var(--ink); font-size: 0.9rem; margin: 0 0 var(--space-3); }
-.candgrid-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-3); }
+.candgrid-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-4); }
 .candcard {
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m);
   padding: var(--space-4); text-align: center;
@@ -603,6 +650,18 @@ mark {
 .am-icon { display: flex; color: var(--muted); }
 .am-icon svg { width: 18px; height: 18px; }
 .amrow-static .am-icon { flex-shrink: 0; margin-top: 2px; }
+/* Icon halo (Amenities only — scoped by #amenities so Vulnerability hotspots'
+   and the Temperature card's plain/dark-bg icons are untouched): a light
+   circular tint of the icon's own color. One rule serves every tone because
+   currentColor resolves to whatever `color` this element already has by the
+   time `background` computes — the per-tone `.am-icon` color rules above/
+   below already set that, in the same cascade pass. */
+#amenities .am-icon {
+  align-items: center; justify-content: center;
+  width: 36px; height: 36px; flex-shrink: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 15%, var(--surface));
+}
 .cnt { font-family: var(--font-stat); font-weight: 700; }
 .am-temp-text { color: var(--ink); }
 .am-temp-delta { color: var(--muted); }
@@ -615,6 +674,78 @@ mark {
    its own (unaffected, no benchmark blocks) grid behavior. */
 @media (min-width: 900px) {
   .amgrid-benchmarks { align-items: start; }
+}
+
+/* Every Amenities row (all 11 — no more "first 3 stay big and colored"
+   hero tier, removed in a 2026 follow-up pass) renders as a neutral,
+   divider-lined list row: .amcard's own base rule (further down) supplies
+   the solid card-fill background used elsewhere (e.g. the Temperature card),
+   but that's overridden to `none` here, so color reads on the count/label/
+   icon text and the icon's halo background only (see #amenities .am-icon
+   below), never as a full card fill. The benchmark bar/badge are already
+   independently tone-colored via .am-benchmark-fill--{tone}/
+   .am-benchmark-badge--{tone} and need no change here. */
+.amgrid-benchmarks .amrow.amcard {
+  border-radius: 0;
+  padding: 10px var(--space-2);
+  border-bottom: 1px solid var(--line);
+  background: none;
+  color: inherit;
+}
+.amgrid-benchmarks .amcard--green .am-icon, .amgrid-benchmarks .amcard--green .am-label, .amgrid-benchmarks .amcard--green .cnt { color: var(--green); }
+.amgrid-benchmarks .amcard--light-green .am-icon, .amgrid-benchmarks .amcard--light-green .am-label, .amgrid-benchmarks .amcard--light-green .cnt { color: var(--light-green); }
+.amgrid-benchmarks .amcard--orange .am-icon, .amgrid-benchmarks .amcard--orange .am-label, .amgrid-benchmarks .amcard--orange .cnt { color: var(--orange); }
+.amgrid-benchmarks .amcard--red .am-icon, .amgrid-benchmarks .amcard--red .am-label, .amgrid-benchmarks .amcard--red .cnt { color: var(--red); }
+/* Badge-kind rows (no numeric population benchmark: Bus stops/Metro stations/
+   Lakes/Ponds) now get the same treatment as bar-kind rows, using the tone
+   already computed by BADGE_TONES in ward-view.js (previously only applied
+   to the small .am-benchmark-badge chip, not the row's icon/label/count). */
+.amgrid-benchmarks .amcard--blue .am-icon, .amgrid-benchmarks .amcard--blue .am-label, .amgrid-benchmarks .amcard--blue .cnt { color: var(--blue); }
+.amgrid-benchmarks .amcard--teal .am-icon, .amgrid-benchmarks .amcard--teal .am-label, .amgrid-benchmarks .amcard--teal .cnt { color: var(--teal); }
+.amgrid-benchmarks .amcard--indigo .am-icon, .amgrid-benchmarks .amcard--indigo .am-label, .amgrid-benchmarks .amcard--indigo .cnt { color: var(--indigo); }
+.amgrid-benchmarks .amcard--cyan .am-icon, .amgrid-benchmarks .amcard--cyan .am-label, .amgrid-benchmarks .amcard--cyan .cnt { color: var(--cyan); }
+.amgrid-benchmarks .amcard--gray .am-icon, .amgrid-benchmarks .amcard--gray .am-label, .amgrid-benchmarks .amcard--gray .cnt { color: var(--gray); }
+.amgrid-benchmarks .amcard--green .am-benchmark-ratio, .amgrid-benchmarks .amcard--orange .am-benchmark-ratio, .amgrid-benchmarks .amcard--red .am-benchmark-ratio,
+.amgrid-benchmarks .amcard--green .am-benchmark-desc, .amgrid-benchmarks .amcard--orange .am-benchmark-desc, .amgrid-benchmarks .amcard--red .am-benchmark-desc {
+  color: var(--muted);
+}
+.amgrid-benchmarks .amcard--green .am-benchmark-track, .amgrid-benchmarks .amcard--orange .am-benchmark-track, .amgrid-benchmarks .amcard--red .am-benchmark-track {
+  background: color-mix(in srgb, var(--gray) 25%, var(--surface-2));
+}
+.amgrid-benchmarks .amcard--green .am-benchmark-fill, .amgrid-benchmarks .amcard--orange .am-benchmark-fill, .amgrid-benchmarks .amcard--red .am-benchmark-fill {
+  background: currentColor;
+}
+/* Neutral hover for the now-borderless list rows, instead of re-applying a
+   solid tone-fill background (.amrow.amcard--{tone}.is-clickable:hover). */
+.amgrid-benchmarks .amrow.amcard.is-clickable:hover { background: var(--surface-2); border-left-color: var(--green); }
+
+/* A fixed, always-3-column grid at the >=900px layout, plus a vertical divider
+   between columns. Both are ID-scoped (specificity (1,0,0)), which is what
+   makes this reliable: the generic .amgrid rule (see Responsive section)
+   sets its own grid-template-columns/gap on the same element (.amgrid is
+   still one of this element's classes) with only class specificity (0,1,0)
+   — a plain class-vs-class rule earlier in the file quietly losing to one
+   added later bit this project twice already (the .whead/.facts-band margin
+   bug, the #ward-map full-bleed bug), so this is deliberately ID-scoped to
+   make the win unconditional rather than order-dependent. repeat(3, 1fr) is
+   a real fixed column count (not auto-fit, which previously made the 3
+   "hero" cards render as an uneven, misaligned wrap) — 11 rows lay out as
+   3+3+3+2, a normal/expected partial last row, not a layout bug. The divider
+   itself is column-gap:0 plus border-right only (never border-left) on every
+   cell, so shared edges between adjacent cells are drawn exactly once with no
+   doubling and no need to special-case the last column. Scoped to
+   .amgrid-benchmarks only — Vulnerability hotspots' plain .amgrid is
+   untouched. */
+@media (min-width: 900px) {
+  #amenities .amgrid-benchmarks {
+    grid-template-columns: repeat(3, 1fr);
+    column-gap: 0;
+  }
+  #amenities .amgrid-benchmarks .amrow.amcard {
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+    border-right: 1px solid var(--line);
+  }
 }
 
 /* Benchmark sub-row: spans columns 2-3 of .amrow's existing 3-col grid (auto 1fr
@@ -776,9 +907,6 @@ mark {
 .legend-dot--red { background: var(--red); }
 .legend-dot--blue { background: var(--blue); }
 
-.amgrid-extra[hidden] { display: none; }
-.amenities-showall { display: block; margin: var(--space-4) auto 0; }
-
 .temp-card {
   display: flex; align-items: center; gap: var(--space-3);
   margin-top: var(--space-3); padding: var(--space-3) var(--space-4);
@@ -789,8 +917,17 @@ mark {
 .temp-card-text { font-family: var(--font-stat); font-weight: 700; font-size: 1.3rem; }
 .temp-card-delta { display: block; font-family: var(--font-body); font-weight: 400; font-size: 0.8rem; opacity: .85; margin-top: 2px; }
 
-.facts-band { background: var(--yellow); color: var(--yellow-ink); padding-top: var(--space-6); padding-bottom: var(--space-6); margin-top: var(--space-6); margin-bottom: 0; }
+.facts-band {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  background: var(--yellow); color: var(--yellow-ink);
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
 .facts-band h3 { color: var(--forest); font-size: 1.4rem; }
+/* .eyebrow--dark's base color is --yellow (for dark --forest backgrounds) —
+   this band's own background is also --yellow, so without this override the
+   "Did you know?" label is invisible. Same fix already applied to
+   .why-vote-head/.methodology-band/.feedback-band's own .eyebrow--dark. */
+.facts-band .eyebrow--dark { color: var(--forest); }
 .factslist { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-3); }
 .fact {
   background: rgba(255,255,255,.55); border-radius: var(--radius-m); padding: var(--space-3) var(--space-4);
@@ -802,19 +939,38 @@ mark {
   .fact { flex: 1; }
 }
 
-.safety-climate-wrap { display: flex; flex-direction: column; gap: var(--space-4); background: none; border: none; box-shadow: none; padding: 0; }
-.safety-card, .sahaaya-card { padding: var(--space-5); border-radius: var(--radius-l); box-shadow: var(--shadow-1); }
-.safety-card { border: 1px solid var(--forest-2); }
-.sahaaya-card { background: var(--surface-2); border: 1px solid var(--line); }
+#safety-climate {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  background: var(--forest); color: var(--on-forest);
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
+/* Targets #safety-climate's .band-inner, not .safety-climate-wrap (the outer
+   <section>) — .safety-card/.sahaaya-card are children of that .band-inner
+   (every full-bleed section wraps its content in one, to stay aligned with
+   the page's max-width scale), not direct children of the section, so a
+   flex rule on .safety-climate-wrap itself has no visible effect. */
+#safety-climate .band-inner { display: flex; flex-direction: column; gap: var(--space-4); }
+/* Neither .safety-card nor .sahaaya-card has radius/border/shadow/background
+   of its own — both carry .sec--dark in the markup, so the whole band reads
+   seamless, matching the reference design (an earlier version gave
+   .sahaaya-card its own light card shell; that was reverted). */
+.safety-card { padding: var(--space-5); }
+.sahaaya-card { padding: var(--space-5); }
 .sahaaya-ranked { list-style: none; margin: var(--space-3) 0 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); }
 .sahaaya-ranked li { display: grid; grid-template-columns: auto 1fr; column-gap: var(--space-2); row-gap: 4px; align-items: center; }
-.sahaaya-rank { font-family: var(--font-stat); font-weight: 800; color: var(--red); font-size: 0.85rem; }
+.sahaaya-rank { font-family: var(--font-stat); font-weight: 800; color: var(--yellow); font-size: 0.85rem; }
 .sahaaya-name { font-weight: 600; }
-.sahaaya-bar { grid-column: 2 / -1; height: 8px; border-radius: 999px; background: var(--inset); overflow: hidden; }
-.sahaaya-bar span { display: block; height: 100%; border-radius: 999px; background: var(--yellow); }
+.sahaaya-bar { grid-column: 2 / -1; height: 8px; border-radius: 999px; background: var(--forest-2); overflow: hidden; }
+.sahaaya-bar span { display: block; height: 100%; border-radius: 999px; }
+/* Each ranked complaint gets its own fill tone (see renderSafetyClimate() in
+   ward-view.js) rather than a flat color for all three, matching the
+   reference design. */
+.sahaaya-bar-fill--yellow { background: var(--yellow); }
+.sahaaya-bar-fill--light-green { background: var(--light-green); }
+.sahaaya-bar-fill--blue { background: var(--blue); }
 
 @media (min-width: 900px) {
-  .safety-climate-wrap { flex-direction: row; }
+  #safety-climate .band-inner { flex-direction: row; }
   .safety-card, .sahaaya-card { flex: 1; }
 }
 
@@ -826,7 +982,12 @@ mark {
 }
 .q-num { font-family: var(--font-stat); font-weight: 800; color: var(--red); flex-shrink: 0; }
 
-.feedback-band { background: var(--yellow-soft); padding-top: var(--space-6); padding-bottom: var(--space-6); margin-top: var(--space-6); margin-bottom: 0; }
+.feedback-band {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  background: var(--light-green); color: var(--forest);
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
+.feedback-band .eyebrow--dark { color: var(--forest); }
 .feedback-inner { display: flex; flex-direction: column; gap: var(--space-4); align-items: flex-start; }
 .feedback-actions { display: flex; }
 @media (min-width: 900px) {
@@ -1218,4 +1379,5 @@ mark {
   .headline { font-size: clamp(1.7rem, 7vw, 2rem); }
   #homeContainer .headline { font-size: clamp(1.5rem, 6.5vw, 1.8rem); }
   .container { padding-left: 12px; padding-right: 12px; }
+  .whead-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

@@ -55,14 +55,13 @@ export const CORP_COLORS = {
 const CARTO_SUBDOMAINS = ['a', 'b', 'c', 'd'];
 
 // This design has no light/dark theme toggle — every map (home choropleth,
-// ward detail) always sits on the dark CARTO basemap to match the dark map
-// cards throughout the mockups.
+// ward detail) always sits on the light CARTO basemap.
 export function tileUrl() {
-  return CARTO_SUBDOMAINS.map(s => `https://${s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png`);
+  return CARTO_SUBDOMAINS.map(s => `https://${s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png`);
 }
 
 export function labelTileUrl() {
-  return CARTO_SUBDOMAINS.map(s => `https://${s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}.png`);
+  return CARTO_SUBDOMAINS.map(s => `https://${s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png`);
 }
 
 // ---- geometry helpers (keyed by uid; supports GeoJSON Polygon and MultiPolygon) ----
@@ -374,7 +373,8 @@ export function addChoroplethLayer(map, geojson) {
     id: 'wards-line',
     type: 'line',
     source: 'wards',
-    paint: { 'line-color': '#ffffff', 'line-width': 0.5 },
+    // dark, not white — visible against the light CARTO basemap (white would vanish)
+    paint: { 'line-color': '#18230f', 'line-width': 0.5 },
   });
   map.addLayer({
     id: 'wards-line-hover',

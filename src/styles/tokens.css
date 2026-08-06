@@ -1,6 +1,6 @@
 :root {
-  /* page surfaces (cream/beige paper look) */
-  --bg:#f2e9d8; --surface:#ffffff; --surface-2:#ece1cb; --inset:#e6d8bd;
+  /* page surfaces (--bg is a cool near-white; --surface/--surface-2/--surface-3/--inset stay cream/beige) */
+  --bg:#F3F6F4; --surface:#ffffff; --surface-2:#ece1cb; --surface-3:#fbfaf6; --inset:#e6d8bd;
   --ink:#18230f; --muted:#57624a; --hint:#7d8a70;
   --line:rgba(24,35,15,.12); --line2:rgba(24,35,15,.20);
 
