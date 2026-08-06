@@ -60,9 +60,9 @@ const SUBNAV_ITEMS = [
   { id: 'candidates', label: 'Candidates' },
   { id: 'ward-map', label: 'Ward map', shortLabel: 'Map' },
   { id: 'amenities', label: 'Amenities' },
-  { id: 'safety-climate', label: 'Safety & climate', desktopOnly: true },
-  { id: 'ask-candidates', label: 'Ask your candidates', desktopOnly: true },
-  { id: 'feedback', label: 'Feedback', desktopOnly: true },
+  { id: 'safety-climate', label: 'Safety & climate' },
+  { id: 'ask-candidates', label: 'Ask your candidates' },
+  { id: 'feedback', label: 'Feedback' },
 ];
 
 function renderSubnav() {
@@ -70,7 +70,7 @@ function renderSubnav() {
     <nav class="ward-subnav" id="wardSubnav" aria-label="Ward sections">
       <div class="band-inner">
         ${SUBNAV_ITEMS.map((item, i) => `
-          <button type="button" class="ward-subnav-btn${item.desktopOnly ? ' subnav-desktop-only' : ''}${i === 0 ? ' active' : ''}" data-target="${item.id}">${esc(item.shortLabel || item.label)}</button>
+          <button type="button" class="ward-subnav-btn${i === 0 ? ' active' : ''}" data-target="${item.id}">${esc(item.shortLabel || item.label)}</button>
         `).join('')}
       </div>
     </nav>
@@ -91,8 +91,41 @@ function initWardSubnav() {
     .map(btn => document.getElementById(btn.dataset.target))
     .filter(Boolean);
 
+  // Sticky header + sticky sub-nav both occupy the viewport's top region, so
+  // scrollIntoView({block:'start'}) on a target section would otherwise tuck
+  // its top underneath them — .category's scroll-margin-top in
+  // voter-faq-view.js's .cat-nav solves the identical problem, and this
+  // mirrors it exactly, scoped to #wardContainer instead of #voterFaqContainer.
+  function updateSubnavClearance() {
+    const topOffset = parseFloat(getComputedStyle(nav).top) || 0;
+    const clearance = topOffset + nav.getBoundingClientRect().height;
+    document.getElementById('wardContainer')?.style.setProperty('--ward-subnav-clearance', `${clearance}px`);
+  }
+  new ResizeObserver(updateSubnavClearance).observe(nav);
+  updateSubnavClearance();
+
+  let activeId = null;
+  let followTimer = null;
   function setActive(id) {
+    if (id === activeId) return;
+    activeId = id;
     buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.target === id));
+    // Keep the active tab visible/centered in the horizontally scrolling nav
+    // (same pattern as voter-faq-view.js's .cat-nav). block:'nearest' matters,
+    // not just inline:'center' — overflow-x:auto makes .band-inner's paired
+    // overflow-y compute to auto too (per the CSS overflow spec), making it
+    // its own nearest scrolling ancestor on both axes, so this can't leak
+    // into scrolling the page itself vertically. Debounced (not fired
+    // immediately) — mobile browsers commonly ignore/defer a programmatic
+    // scroll issued while the user's own touch-scroll gesture is still
+    // active, and firing on every rapid scroll-spy transition during a fast
+    // scroll would also cancel/restart the animation before it can run;
+    // waiting for scrolling to pause briefly avoids both.
+    clearTimeout(followTimer);
+    followTimer = setTimeout(() => {
+      nav.querySelector(`.ward-subnav-btn[data-target="${id}"]`)
+        ?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }, 120);
   }
 
   buttons.forEach(btn => {
@@ -179,7 +212,7 @@ function badgesHtml(w) {
   const badges = [`Corporation: ${esc(w.corporation)}`];
   if (!isBlank(w.zone_name)) badges.push(`Zone: ${esc(w.zone_name)}`);
   if (w.assembly) badges.push(`Assembly: ${esc(w.assembly)}`);
-  if (!isBlank(w.reservation)) badges.push(esc(w.reservation));
+  if (!isBlank(w.reservation)) badges.push(`Reservation: ${esc(w.reservation)}`);
   return badges.map(b => `<span class="pill pill--outline-dark">${b}</span>`).join('');
 }
 
@@ -241,7 +274,7 @@ function renderOverview(w) {
           <span class="label">Key areas</span>
           <div class="key-areas-pills">
             ${w.neighbourhoods && w.neighbourhoods.length
-              ? w.neighbourhoods.map(n => `<span class="pill">${esc(n)}</span>`).join('')
+              ? w.neighbourhoods.map(n => `<span class="pill pill--band">${esc(n)}</span>`).join('')
               : `<p>${neighbourhoodsText(w)}</p>`}
           </div>
         </div>
@@ -480,8 +513,8 @@ function renderTemperatureCard(w) {
       <span class="am-icon" aria-hidden="true">${TEMPERATURE_ICON}</span>
       <span class="temp-card-text">
         ${t.current == null ? 'N/A' : `${t.current}&deg;C <span class="temp-card-delta">${t.deltaText}</span>`}
-        <a class="temp-info-link" href="${TEMPERATURE_PDF_URL}" target="_blank" rel="noopener" title="About this temperature data" aria-label="About this temperature data (opens PDF in a new tab)">${INFO_ICON}</a>
       </span>
+      <a class="temp-info-link" href="${TEMPERATURE_PDF_URL}" target="_blank" rel="noopener" title="About this temperature data" aria-label="About this temperature data (opens PDF in a new tab)">${INFO_ICON}</a>
     </div>
   `;
 }
@@ -641,7 +674,10 @@ function wireLayerClicks(uid, W) {
   document.querySelectorAll('.amrow').forEach(row => {
     if (layerPoints(uid, row.dataset.layer, W).length > 0) {
       row.classList.add('is-clickable');
-      row.addEventListener('click', () => setLayer(uid, W, row.dataset.layer));
+      row.addEventListener('click', () => {
+        setLayer(uid, W, row.dataset.layer);
+        document.getElementById('ward-map')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
     }
   });
   const bufferToggle = document.getElementById('bufferToggle');
