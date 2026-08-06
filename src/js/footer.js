@@ -85,13 +85,11 @@ export function initFooter({ onNavigate, onMethodology }) {
         <div class="footer-col">
           <span class="footer-col-title">Explore</span>
           <a href="#" data-nav="home">Home</a>
-          <a href="#" data-nav="home">All 369 wards</a>
           <a href="#" data-nav="voter-faq">Voter FAQs</a>
         </div>
         <div class="footer-col">
           <span class="footer-col-title">Data</span>
           <a href="#" id="footerMethodologyLink">Methodology</a>
-          <a href="#" id="footerAboutDataLink">About the data</a>
           <a href="${esc(FEEDBACK_FORM_URL)}" target="_blank" rel="noopener">Report an issue</a>
         </div>
         <div class="footer-col">
@@ -112,10 +110,6 @@ export function initFooter({ onNavigate, onMethodology }) {
     a.addEventListener('click', (e) => { e.preventDefault(); onNavigate(a.dataset.nav); });
   });
   document.getElementById('footerMethodologyLink').addEventListener('click', (e) => {
-    e.preventDefault();
-    onMethodology();
-  });
-  document.getElementById('footerAboutDataLink').addEventListener('click', (e) => {
     e.preventDefault();
     onMethodology();
   });

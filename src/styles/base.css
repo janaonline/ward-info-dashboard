@@ -40,11 +40,16 @@ a { color: inherit; }
 }
 /* .site-header-inner also carries .container for its horizontal max-width/
    padding, but .container's own padding rule adds a large bottom-only
-   clearance meant for page content above the footer — applied here it makes
-   the box asymmetric (tiny top, huge bottom), so align-items:center centers
-   the nav row within that lopsided box and it reads as stuck to the top. */
+   clearance meant for page content above the footer — applied here it's
+   overridden with the vertical padding this header actually wants instead,
+   so align-items:center centers the nav row within a symmetric box. This
+   combo selector (two classes) is more specific than .site-header-inner
+   alone above, and wins regardless of source order — so the real vertical
+   sizing lives here, not in the longhand padding-top/bottom above (those
+   are the pre-.container-override baseline, kept for when .container isn't
+   present, though in practice .site-header-inner always carries it). */
 .site-header-inner.container {
-  padding: 0 clamp(14px, 4vw, 24px);
+  padding: var(--space-5) clamp(14px, 4vw, 24px);
 }
 
 .site-header-brand {
@@ -192,10 +197,11 @@ a { color: inherit; }
    visible strip of the page's cream background between that band and the
    footer. The footer supplies its own top padding, so this is safe to zero. */
 #homeContainer.container { padding-bottom: 0; }
-/* Ward detail's last section is likewise a full-bleed band (.feedback-band). */
-#wardContainer.container { padding-bottom: 0; }
-/* Methodology's last section is likewise a full-bleed band (.feedback-band). */
-#methodologyContainer.container { padding-bottom: 0; }
+/* Ward detail's and Methodology's last sections (.feedback-band) are no
+   longer full-bleed bands — they're now inset .panel-style cards, so both
+   containers fall back to .container's own natural bottom padding above for
+   normal pre-footer spacing (unlike #homeContainer, which still ends on a
+   genuine full-bleed band). */
 
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }

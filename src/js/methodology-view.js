@@ -123,11 +123,12 @@ export function initMethodologyView({ meta }) {
     <section class="sec feedback-band" id="methFeedback">
       <div class="band-inner feedback-inner">
         <div>
-          <h3>Found an error in your ward?</h3>
-          <p class="cand-intro">We welcome corrections on any ward's data.</p>
+          <span class="eyebrow eyebrow--red">Feedback</span>
+          <h3>Spotted something wrong? Let us know.</h3>
+          <p class="cand-intro">Help us improve ward-level information by reporting missing details, incorrect information, or civic issues you've observed.</p>
         </div>
         <div class="feedback-actions">
-          <a class="btn btn-primary" href="${FEEDBACK_FORM_URL}" target="_blank" rel="noopener">Submit feedback</a>
+          <a class="btn btn-primary" href="${FEEDBACK_FORM_URL}" target="_blank" rel="noopener" aria-label="Submit feedback (opens in a new tab)">Submit feedback<span aria-hidden="true">${EXTERNAL_LINK_ICON}</span></a>
         </div>
       </div>
     </section>

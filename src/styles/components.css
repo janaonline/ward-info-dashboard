@@ -159,9 +159,10 @@ mark {
    the background bleed full-width while .band-inner re-applies .container's
    own max-width scale so the actual content still lines up with every other
    section on the page. */
-.cover, .why-vote-band, .methodology-band, .whead, .facts-band, .feedback-band, .basics-section,
+.cover, .why-vote-band, .methodology-band, .whead, .facts-band, .basics-section,
 #overview, #candidates, #ward-map, #amenities, #safety-climate, #ask-candidates, #wardSubnav,
-#methHero, #methAiNote, #methStep1, #methStep2, #methStep3, #methSources {
+#methHero, #methAiNote, #methStep1, #methStep2, #methStep3, #methSources,
+.faq-topic-section, .faq-section, .cat-nav {
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
   padding-left: clamp(14px, 4vw, 24px);
@@ -197,8 +198,8 @@ mark {
 .headline {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(1.9rem, 6vw, 2.6rem);
-  line-height: 1.15;
+  font-size: clamp(1.9rem, 6vw, 3rem);
+  line-height: 1.12;
   margin: 14px 0 10px;
 }
 .headline mark { white-space: nowrap; }
@@ -1007,12 +1008,17 @@ mark {
 }
 .q-num { font-family: var(--font-stat); font-weight: 800; color: var(--red); flex-shrink: 0; }
 
+/* Styled to match .panel/.basics-item (see "the basics" section above): a
+   plain inset bordered card, not a full-bleed colored band. .sec's own base
+   rule already supplies border/box-shadow identical to .panel's, so only the
+   properties that actually differ are redeclared here. */
 .feedback-band {
-  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
-  background: var(--light-green); color: var(--forest);
-  padding-top: var(--space-6); padding-bottom: var(--space-6);
+  background: var(--surface);
+  border-radius: var(--radius-m);
+  padding: var(--space-4);
+  margin: var(--space-3) 0;
+  color: var(--ink);
 }
-.feedback-band .eyebrow--dark { color: var(--forest); }
 .feedback-inner { display: flex; flex-direction: column; gap: var(--space-4); align-items: flex-start; }
 .feedback-actions { display: flex; }
 @media (min-width: 900px) {
@@ -1179,7 +1185,7 @@ mark {
    not the page's usual yellow alert box — still the same structural component. */
 .faq-key-dates { background: #fff; color: var(--ink); border-color: #fff; flex-direction: column; align-items: flex-start; }
 .faq-key-dates-eyebrow { text-transform: uppercase; font-size: 0.7rem; letter-spacing: .05em; color: var(--muted); font-weight: 700; margin: 0 0 4px; }
-.faq-key-dates p:nth-child(2) { font-family: var(--font-display); font-weight: 800; font-size: 1.6rem; margin: 0 0 var(--space-2); }
+.faq-key-dates p:nth-child(2) { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.8rem, 4vw, 2.4rem); margin: 0 0 var(--space-2); }
 .faq-key-dates p:last-child { color: var(--muted); font-size: 0.88rem; margin: 0; }
 
 @media (min-width: 900px) {
@@ -1188,19 +1194,26 @@ mark {
   .faq-key-dates { flex: 1; max-width: 360px; }
 }
 
-.faq-topic-section { margin: var(--space-6) 0; }
+.faq-topic-section { background: var(--surface-2); padding-top: var(--space-6); padding-bottom: var(--space-6); margin-top: 0; margin-bottom: 0; }
+.faq-topic-intro-row { display: flex; flex-direction: column; gap: var(--space-4); }
+.faq-topic-intro-row .faq-intro { margin-bottom: 0; }
+@media (min-width: 900px) {
+  .faq-topic-intro-row { flex-direction: row; align-items: flex-end; justify-content: space-between; gap: var(--space-5); }
+  .faq-topic-intro-row .faq-intro { flex: 1; max-width: 60ch; }
+  .faq-topic-intro-row .faq-search { flex: 0 0 380px; }
+}
 .faq-topic-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-3); margin-top: var(--space-4); }
 .faq-topic-tile {
   text-align: left; cursor: pointer; border: none; border-radius: var(--radius-l);
-  padding: var(--space-4); min-height: 110px;
+  padding: var(--space-5); min-height: 150px;
   display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-4);
   color: var(--ink); background: var(--surface-2);
   transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) ease;
 }
 .faq-topic-tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); }
-.faq-topic-num { font-family: var(--font-stat); font-weight: 800; font-size: 0.78rem; opacity: .75; }
-.faq-topic-label { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; line-height: 1.25; }
-.faq-topic-count { font-size: 0.78rem; opacity: .75; }
+.faq-topic-num { font-family: var(--font-stat); font-weight: 800; font-size: 0.8rem; opacity: .75; }
+.faq-topic-label { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; line-height: 1.25; }
+.faq-topic-count { font-size: 0.8rem; opacity: .75; }
 .faq-topic-tile--1 { background: var(--forest); color: var(--on-forest); }
 .faq-topic-tile--2 { background: var(--red); color: #fff; }
 .faq-topic-tile--3 { background: var(--yellow); color: var(--forest); }
@@ -1214,7 +1227,7 @@ mark {
   .faq-topic-grid { grid-template-columns: repeat(4, 1fr); }
 }
 
-.faq-section { padding-bottom: var(--space-4); }
+.faq-section { background: var(--surface); padding-top: var(--space-6); padding-bottom: var(--space-6); margin-top: 0; margin-bottom: 0; }
 .faq-intro { max-width: 60ch; margin-bottom: var(--space-5); }
 .faq-intro p { color: var(--muted); font-size: 0.9rem; margin: var(--space-2) 0 0; }
 
@@ -1224,39 +1237,87 @@ mark {
   gap: var(--space-5);
 }
 
+/* On mobile this contributes no box of its own — display:contents promotes
+   .faq-intro (visible) and .faq-sidebar-nav (display:none below) straight
+   into .faq-layout's own flex column, so mobile's visual order (intro text,
+   then the sticky .cat-nav chip bar, then content) is unchanged from before
+   this sidebar existed. */
+.faq-sidebar-col { display: contents; }
+.faq-sidebar-nav { display: none; }
+.faq-sidebar-nav button {
+  text-align: left; cursor: pointer; border: none; background: none;
+  min-height: 44px; padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-m);
+  font-family: var(--font-body); font-weight: 600; font-size: 0.9rem; color: var(--muted);
+  transition: background-color var(--dur) ease, color var(--dur) ease;
+}
+.faq-sidebar-nav button:hover { background: var(--surface-2); color: var(--ink); }
+.faq-sidebar-nav button.active { background: var(--surface-2); color: var(--ink); font-weight: 700; }
+
+@media (min-width: 900px) {
+  .faq-layout { flex-direction: row; align-items: flex-start; gap: var(--space-6); }
+  .faq-sidebar-col {
+    display: flex; flex-direction: column; gap: var(--space-4);
+    flex: 0 0 260px;
+    position: sticky; /* top set in JS from #siteHeader.offsetHeight + 12, see initVoterFaqView() */
+  }
+  .faq-sidebar-col .faq-intro { margin-bottom: 0; }
+  .faq-sidebar-nav { display: flex; flex-direction: column; gap: 2px; }
+  .faq-content { flex: 1; min-width: 0; }
+}
+
+/* Same [hidden]-vs-author-display gotcha .cat-nav already had to solve
+   (native [hidden] loses to any author display rule on specificity). */
+#voterFaqContainer .faq-sidebar-nav[hidden] { display: none; }
+
+/* Styled to exactly match .ward-subnav (ward-view.js's sticky sub-nav) —
+   same background/text-color/placement treatment, mirrored verbatim: full-
+   bleed background (see the full-bleed selector list above, .cat-nav is in
+   it) with the chip buttons themselves living in .band-inner below, which
+   keeps them aligned with the rest of the page's content column instead of
+   spreading across the now-edge-to-edge background. */
 .cat-nav {
-  /* Sticky at every width, not just desktop — the same layout/offset
-     formula everywhere is what makes mobile and desktop behave identically.
-     Docks flush against the true top (env(safe-area-inset-top) is 0 outside
-     a notched/PWA context, matching .topcluster's own safe-area handling) —
-     a nonzero offset here left a gap where content showed through above the
-     docked bar. No separate clearance from .topcluster is needed: this nav
-     lives inside #voterFaqContainer.container, whose own right padding
-     already keeps all content at least ~34px short of the toggle's left
-     edge at every width, so there's nothing for it to collide with. */
+  /* Sticky at every width the chip bar renders at (mobile only — desktop
+     switches to .faq-sidebar-nav, see the media query below). Docks flush
+     against the true top (env(safe-area-inset-top) is 0 outside a notched/
+     PWA context) — a nonzero offset here left a gap where content showed
+     through above the docked bar. */
   position: sticky;
   top: env(safe-area-inset-top);
   z-index: 30;
-  background: var(--bg);
+  background: var(--surface);
   border-bottom: 1px solid var(--line);
-  display: flex; flex-direction: row; flex-wrap: nowrap; overflow-x: auto; gap: 6px;
-  padding: var(--space-2) 0;
-  margin: 0 0 var(--space-2);
+}
+.cat-nav .band-inner {
+  display: flex; flex-wrap: nowrap; overflow-x: auto; gap: var(--space-1);
   -webkit-overflow-scrolling: touch;
+  /* Explicit hint that this element owns horizontal panning — sitting this
+     close to a position:sticky ancestor (.cat-nav), a touch-drag here is
+     otherwise ambiguous to some mobile browsers about which axis/element it
+     should scroll, and can default to scrolling the page instead. */
+  touch-action: pan-x;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* legacy Edge/IE */
 }
-.cat-nav::-webkit-scrollbar { display: none; } /* Chrome, Chromium Edge, Safari */
+.cat-nav .band-inner::-webkit-scrollbar { display: none; } /* Chrome, Chromium Edge, Safari */
 .cat-nav button {
-  cursor: pointer; box-sizing: border-box; flex-shrink: 0; white-space: nowrap;
+  flex-shrink: 0; white-space: nowrap; cursor: pointer;
   min-height: 44px;
-  font-family: var(--font-body); font-weight: 600; font-size: 0.85rem; color: var(--muted);
   background: none; border: none; border-bottom: 3px solid transparent;
   padding: var(--space-2) var(--space-3);
-  transition: color var(--dur) ease, background-color var(--dur) ease, border-color var(--dur) ease;
+  font-family: var(--font-stat); font-weight: 600; font-size: 0.85rem; color: var(--muted);
+  transition: color var(--dur) ease, border-color var(--dur) ease;
 }
-.cat-nav button:hover { background: var(--surface); color: var(--ink); }
-.cat-nav button.active { color: var(--green-d); background: var(--surface); border-bottom-color: var(--green-d); font-weight: 700; }
+.cat-nav button:hover { color: var(--ink); }
+.cat-nav button.active { color: var(--green-d); border-bottom-color: var(--green-d); }
+
+/* Desktop switches to .faq-sidebar-nav instead — placed after .cat-nav's own
+   unconditional base rule (which sets display:flex) so this wins the
+   cascade at equal specificity; declared earlier in the file it would lose
+   to that later, unconditional rule regardless of the media query matching. */
+@media (min-width: 900px) {
+  .cat-nav { display: none; }
+}
 
 /* Set from JS (voter-faq-view.js, via ResizeObserver on .cat-nav) to the
    nav's actual rendered height plus its sticky offset — the nav can wrap
@@ -1266,28 +1327,41 @@ mark {
    instant before the observer's first measurement lands. */
 .category { scroll-margin-top: var(--faq-nav-clearance, 70px); }
 
-.accordion-item {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-s);
-  margin-bottom: var(--space-2);
-  overflow: hidden;
+.accordion-item { border-bottom: 1px solid var(--line); }
+.accordion-item:last-child { border-bottom: none; }
+/* Flat divided list: only the open item gets a highlighted background — no
+   per-item box/border at rest, matching the reference's "read straight
+   through" look rather than the previous stacked-card treatment. */
+.accordion-item[data-open="true"] {
+  background: var(--surface-2);
+  border-radius: var(--radius-m);
+  border-bottom: none;
 }
-.accordion-item:last-child { margin-bottom: 0; }
 .accordion-trigger {
   all: unset; box-sizing: border-box; width: 100%; cursor: pointer;
   display: flex; justify-content: space-between; align-items: center; gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  font-family: var(--font-body); font-weight: 600; font-size: 0.92rem; color: var(--ink);
-  min-height: 44px;
+  padding: var(--space-4) var(--space-2);
+  font-family: var(--font-body); font-weight: 700; font-size: 0.95rem; color: var(--ink);
+  min-height: 44px; border-radius: var(--radius-m);
+  transition: background-color var(--dur) ease;
 }
 .accordion-trigger:hover { background: var(--surface-2); }
-.accordion-trigger .chevron { width: 9px; height: 9px; flex-shrink: 0; color: var(--green-d); transition: transform var(--dur) var(--ease-out); }
-.accordion-item[data-open="true"] .chevron { transform: rotate(90deg); }
-.accordion-item[data-open="true"] .accordion-trigger { border-bottom: 1px solid var(--line); }
+/* Circular chevron badge styled directly on the existing <svg class="chevron">
+   — no new wrapper element needed. Closed points down, open points up and
+   inverts to a filled dark badge. */
+.accordion-trigger .chevron {
+  width: 28px; height: 28px; flex-shrink: 0; box-sizing: border-box; padding: 8px;
+  border-radius: 50%; background: var(--surface-2); color: var(--muted);
+  transform: rotate(90deg);
+  transition: transform var(--dur) var(--ease-out), background-color var(--dur) ease, color var(--dur) ease;
+}
+.accordion-item[data-open="true"] .chevron {
+  background: var(--forest); color: var(--on-forest);
+  transform: rotate(-90deg);
+}
 
 .accordion-panel { max-height: 0; overflow: hidden; transition: max-height .25s ease; }
-.accordion-panel-inner { padding: 0 var(--space-4) var(--space-4); font-size: 0.92rem; color: var(--ink); line-height: 1.6; }
+.accordion-panel-inner { padding: 0 var(--space-3) var(--space-4) var(--space-2); font-size: 0.92rem; color: var(--muted); line-height: 1.6; }
 .accordion-panel-inner p { margin: var(--space-3) 0 0; }
 .accordion-panel-inner p:first-child { margin-top: var(--space-3); }
 .accordion-panel-inner ul { margin: var(--space-2) 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: var(--space-2); }
@@ -1307,13 +1381,27 @@ mark {
 #voterFaqContainer .cover { padding-bottom: var(--space-5); }
 #voterFaqContainer .callout { margin-top: var(--space-3); margin-bottom: var(--space-4); }
 
-#voterFaqContainer .category { margin: var(--space-4) 0; padding-top: var(--space-4); padding-bottom: var(--space-4); }
-#voterFaqContainer .category:first-child { margin-top: 0; }
+/* No boxed .sec card shell at the category level in the flat-list design —
+   .category keeps the "sec category" classes in markup (harmless, fully
+   neutralized here), same convention ward-view.js uses for its own
+   full-bleed sections rather than removing the shared class outright. */
+#voterFaqContainer .category { background: none; border: none; box-shadow: none; border-radius: 0; margin: 0 0 var(--space-6); padding: 0; }
 #voterFaqContainer .category:last-child { margin-bottom: 0; }
-#voterFaqContainer .category h3 { margin-bottom: var(--space-2); }
 
-.faq-search { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); margin: 0 0 var(--space-5); }
-.faq-search-box { position: relative; width: 100%; max-width: 640px; }
+/* ID-scoped so this reliably wins over the shared ".sec h3" rule (same
+   specificity as a bare class selector on the h3 itself would otherwise lose
+   the cascade tie). */
+#voterFaqContainer .category-heading {
+  font-family: var(--font-display); font-weight: 700; font-size: 1.3rem;
+  color: var(--ink); margin: 0 0 var(--space-4);
+}
+#voterFaqContainer .category-num {
+  color: var(--red); font-family: var(--font-stat); font-weight: 800;
+  margin-right: var(--space-2);
+}
+
+.faq-search { display: flex; flex-direction: column; gap: var(--space-2); margin: 0; }
+.faq-search-box { position: relative; width: 100%; }
 .faq-search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--hint); pointer-events: none; }
 .faq-search-input {
   width: 100%; box-sizing: border-box; min-height: 44px; padding: 12px 44px 12px 42px;
@@ -1332,7 +1420,7 @@ mark {
 }
 .faq-search-clear:hover { background: var(--surface-2); color: var(--ink); }
 .faq-search-clear[hidden] { display: none; }
-.faq-search-summary { color: var(--hint); font-size: 0.85rem; text-align: center; margin: 0; }
+.faq-search-summary { color: var(--hint); font-size: 0.85rem; text-align: left; margin: 0; }
 .faq-search-summary[hidden] { display: none; }
 
 .faq-empty { text-align: center; padding: var(--space-6) var(--space-4); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-l); }

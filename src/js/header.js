@@ -15,7 +15,8 @@ const VIEW_TITLES = {
 };
 
 function navLinksHtml(extraClass = '') {
-  return NAV_ITEMS.map(item => `<a href="#" class="${extraClass}" data-view="${item.view}">${item.label}</a>`).join('');
+  return NAV_ITEMS.map(item => `<a href="#" class="${extraClass}" data-view="${item.view}">${item.label}</a>`).join('')
+    + `<a href="https://opencity.in/" class="${extraClass}" target="_blank" rel="noopener">OpenCity</a>`;
 }
 
 export function initHeader({ onNavigate, onBack }) {

@@ -171,9 +171,18 @@ function renderCategory(cat) {
     </div>
   `).join('');
 
+  // cat.heading is always verbatim "N. Rest of heading" — split purely for a
+  // red-numeral/black-text visual treatment, never stored back, CATEGORIES
+  // itself untouched. Defensive fallback if a future heading ever doesn't
+  // start "N. " (renders unsplit rather than throwing).
+  const headingMatch = cat.heading.match(/^(\d+)\.\s+(.*)$/);
+  const headingHtml = headingMatch
+    ? `<span class="category-num">${headingMatch[1]}</span>${headingMatch[2]}`
+    : cat.heading;
+
   return `
     <section class="sec category" id="${cat.id}">
-      <h3>${cat.heading}</h3>
+      <h3 class="category-heading">${headingHtml}</h3>
       ${items}
     </section>
   `;
@@ -206,55 +215,66 @@ export function initVoterFaqView() {
     </div>
 
     <section class="faq-topic-section">
-      <div class="faq-intro">
-        <span class="eyebrow eyebrow--red">Browse by topic</span>
-        <h2 class="section-title">Eight topics, start anywhere.</h2>
-        <p>Grouped by what you actually need to figure out.</p>
-      </div>
-      <div class="faq-topic-grid" id="faqTopicGrid">
-        ${CATEGORIES.map((c, i) => `
-          <button type="button" class="faq-topic-tile faq-topic-tile--${(i % 8) + 1}" data-target="${c.id}">
-            <span class="faq-topic-num">${String(i + 1).padStart(2, '0')}</span>
-            <span class="faq-topic-label">${c.nav.replace(/^\d+\.\s*/, '')}</span>
-            <span class="faq-topic-count">${c.items.length} question${c.items.length === 1 ? '' : 's'}</span>
-          </button>
-        `).join('')}
+      <div class="band-inner">
+        <div class="faq-topic-intro-row">
+          <div class="faq-intro">
+            <span class="eyebrow eyebrow--red">Browse by topic</span>
+            <h2 class="section-title">Eight topics, start anywhere.</h2>
+            <p>Grouped by what you actually need to figure out.</p>
+          </div>
+          <div class="faq-search">
+            <div class="faq-search-box">
+              <svg class="faq-search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+              <input type="text" id="faqSearchInput" class="faq-search-input" placeholder="Search voter FAQs..." aria-label="Search voter FAQs" autocomplete="off" spellcheck="false" />
+              <button type="button" id="faqSearchClear" class="faq-search-clear" aria-label="Clear search" hidden>&times;</button>
+            </div>
+            <p class="faq-search-summary" id="faqSearchSummary" aria-live="polite" hidden></p>
+          </div>
+        </div>
+        <div class="faq-topic-grid" id="faqTopicGrid">
+          ${CATEGORIES.map((c, i) => `
+            <button type="button" class="faq-topic-tile faq-topic-tile--${(i % 8) + 1}" data-target="${c.id}">
+              <span class="faq-topic-num">${String(i + 1).padStart(2, '0')}</span>
+              <span class="faq-topic-label">${c.nav.replace(/^\d+\.\s*/, '')}</span>
+              <span class="faq-topic-count">${c.items.length} question${c.items.length === 1 ? '' : 's'}</span>
+            </button>
+          `).join('')}
+        </div>
       </div>
     </section>
 
-    <div class="faq-search">
-      <div class="faq-search-box">
-        <svg class="faq-search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-        <input type="text" id="faqSearchInput" class="faq-search-input" placeholder="Search voter FAQs..." aria-label="Search voter FAQs" autocomplete="off" spellcheck="false" />
-        <button type="button" id="faqSearchClear" class="faq-search-clear" aria-label="Clear search" hidden>&times;</button>
-      </div>
-      <p class="faq-search-summary" id="faqSearchSummary" aria-live="polite" hidden></p>
-    </div>
-
     <section class="faq-section">
-      <div class="faq-intro">
-        <span class="eyebrow eyebrow--red">All questions</span>
-        <h2 class="section-title">Read straight through.</h2>
-      </div>
-
-      <div class="faq-layout">
-        <nav class="cat-nav" aria-label="FAQ categories">
-          ${CATEGORIES.map((c, i) => `<button type="button" data-target="${c.id}" class="${i === 0 ? 'active' : ''}">${c.nav}</button>`).join('')}
-        </nav>
-        <div>
-          ${CATEGORIES.map(renderCategory).join('')}
-        </div>
-        <div class="faq-empty" id="faqEmptyState" hidden>
-          <div class="faq-empty-icon" aria-hidden="true">&#128269;</div>
-          <h3>No FAQs matched your search.</h3>
-          <p>Try searching for:</p>
-          <div class="faq-empty-chips">
-            <button type="button" class="pill faq-empty-chip" data-suggest="Ward">Ward</button>
-            <button type="button" class="pill faq-empty-chip" data-suggest="Voter ID">Voter ID</button>
-            <button type="button" class="pill faq-empty-chip" data-suggest="Polling Station">Polling Station</button>
-            <button type="button" class="pill faq-empty-chip" data-suggest="Corporator">Corporator</button>
+      <div class="band-inner">
+        <div class="faq-layout">
+          <div class="faq-sidebar-col">
+            <div class="faq-intro">
+              <span class="eyebrow eyebrow--red">All questions</span>
+              <h2 class="section-title">Read straight through.</h2>
+            </div>
+            <nav class="faq-sidebar-nav" aria-label="FAQ categories">
+              ${CATEGORIES.map((c, i) => `<button type="button" data-target="${c.id}" class="${i === 0 ? 'active' : ''}">${c.nav}</button>`).join('')}
+            </nav>
           </div>
-          <button type="button" class="btn btn-secondary" id="faqEmptyClear">Clear Search</button>
+          <nav class="cat-nav" aria-label="FAQ categories">
+            <div class="band-inner">
+              ${CATEGORIES.map((c, i) => `<button type="button" data-target="${c.id}" class="${i === 0 ? 'active' : ''}">${c.nav}</button>`).join('')}
+            </div>
+          </nav>
+          <div class="faq-content">
+            ${CATEGORIES.map(renderCategory).join('')}
+            <div class="faq-empty" id="faqEmptyState" hidden>
+              <div class="faq-empty-icon" aria-hidden="true">&#128269;</div>
+              <h3>No FAQs matched your search.</h3>
+              <p>Try searching for:</p>
+              <div class="faq-empty-chips">
+                <button type="button" class="pill faq-empty-chip" data-suggest="Ward">Ward</button>
+                <button type="button" class="pill faq-empty-chip" data-suggest="Voter ID">Voter ID</button>
+                <button type="button" class="pill faq-empty-chip" data-suggest="Polling Station">Polling Station</button>
+                <button type="button" class="pill faq-empty-chip" data-suggest="Corporator">Corporator</button>
+              </div>
+              <button type="button" class="btn btn-secondary" id="faqEmptyClear">Clear Search</button>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -347,6 +367,7 @@ export function initVoterFaqView() {
     const regex = hasQuery ? new RegExp(escapeRegExp(query), 'gi') : null;
 
     navEl.hidden = hasQuery;
+    sidebarNavEl.hidden = hasQuery;
     searchClear.hidden = !hasQuery;
 
     // Unhide every section first so scrollHeight measurements below are
@@ -410,7 +431,10 @@ export function initVoterFaqView() {
   });
 
   const navEl = container.querySelector('.cat-nav');
+  const sidebarColEl = container.querySelector('.faq-sidebar-col');
+  const sidebarNavEl = container.querySelector('.faq-sidebar-nav');
   const catButtons = navEl.querySelectorAll('button');
+  const sidebarButtons = sidebarNavEl.querySelectorAll('button');
   const sections = [...container.querySelectorAll('.category')];
   const categoryEntries = sections.map(sectionEl => ({
     sectionEl,
@@ -425,11 +449,13 @@ export function initVoterFaqView() {
     if (id === activeId) return;
     activeId = id;
     catButtons.forEach(b => b.classList.toggle('active', b.dataset.target === id));
+    sidebarButtons.forEach(b => b.classList.toggle('active', b.dataset.target === id));
     // Keep the active chip visible/centered in the horizontally scrolling
-    // nav. Scoped to .cat-nav itself: overflow-x:auto makes its paired
-    // overflow-y compute to auto too (per the CSS overflow spec), so it's
-    // its own nearest scrolling ancestor on both axes — block:'nearest'
-    // can't leak into scrolling the page itself.
+    // mobile nav. Scoped to .cat-nav itself: overflow-x:auto makes its
+    // paired overflow-y compute to auto too (per the CSS overflow spec), so
+    // it's its own nearest scrolling ancestor on both axes — block:'nearest'
+    // can't leak into scrolling the page itself. The desktop sidebar list
+    // never overflows/scrolls, so it needs no equivalent follow call.
     navEl.querySelector(`button[data-target="${id}"]`)
       ?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
   }
@@ -479,7 +505,7 @@ function jumpToCategory(id) {
     releaseSuppressTimer = setTimeout(releaseScrollSpySuppression, 1000);
   }
 
-  catButtons.forEach(btn => {
+  [...catButtons, ...sidebarButtons].forEach(btn => {
     btn.addEventListener('click', () => jumpToCategory(btn.dataset.target));
   });
 
@@ -487,23 +513,36 @@ function jumpToCategory(id) {
     tile.addEventListener('click', () => jumpToCategory(tile.dataset.target));
   });
 
-  // The sticky site header sits above .cat-nav on every view — dock the FAQ
-  // nav just below it, the same way ward-view.js's sub-nav measures
-  // #siteHeader's own rendered height rather than hardcoding an offset.
+  // The sticky site header sits above .cat-nav/.faq-sidebar-col on every
+  // view — dock both just below it, the same way ward-view.js's sub-nav
+  // measures #siteHeader's own rendered height rather than hardcoding an
+  // offset. The sidebar gets a small extra +12px so it doesn't sit flush
+  // against the header the way the chip bar (which has its own padding) does.
   const siteHeader = document.getElementById('siteHeader');
-  if (siteHeader) navEl.style.top = `${siteHeader.offsetHeight}px`;
+  if (siteHeader) {
+    navEl.style.top = `${siteHeader.offsetHeight}px`;
+    sidebarColEl.style.top = `${siteHeader.offsetHeight + 12}px`;
+  }
 
-  // The nav no longer wraps (always single-row, horizontal-scroll instead),
+  // .cat-nav no longer wraps (always single-row, horizontal-scroll instead),
   // so its height is normally constant — still measured via ResizeObserver
   // rather than hardcoded, so this stays correct if content/font-loading
   // ever shifts it slightly, and .category's scroll-margin-top (components.css)
-  // always clears however tall the docked nav currently is.
+  // always clears however tall the docked nav currently is. On desktop
+  // (>=900px) .cat-nav is display:none and contributes no docked height at
+  // all — getBoundingClientRect()/ResizeObserver on a hidden element is
+  // unreliable across browsers, so clearance is computed from matchMedia
+  // rather than trusting .cat-nav's rect unconditionally on that side.
+  const desktopMq = window.matchMedia('(min-width: 900px)');
   function updateNavClearance() {
-    const topOffset = parseFloat(getComputedStyle(navEl).top) || 0;
-    const clearance = topOffset + navEl.getBoundingClientRect().height + 12;
+    const headerHeight = siteHeader ? siteHeader.offsetHeight : 0;
+    const clearance = desktopMq.matches
+      ? headerHeight + 12
+      : (parseFloat(getComputedStyle(navEl).top) || 0) + navEl.getBoundingClientRect().height + 12;
     container.style.setProperty('--faq-nav-clearance', `${clearance}px`);
   }
   new ResizeObserver(updateNavClearance).observe(navEl);
+  desktopMq.addEventListener('change', updateNavClearance);
   updateNavClearance();
 
   const observer = new IntersectionObserver(updateActiveCategory, { rootMargin: '-40% 0px -50% 0px' });
