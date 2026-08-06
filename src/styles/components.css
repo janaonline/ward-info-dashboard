@@ -159,7 +159,7 @@ mark {
    the background bleed full-width while .band-inner re-applies .container's
    own max-width scale so the actual content still lines up with every other
    section on the page. */
-.cover, .why-vote-band, .methodology-band, .whead, .facts-band, .basics-section,
+.cover, .why-vote-band, .methodology-band, .whead, .facts-band, .feedback-band, .basics-section,
 #overview, #candidates, #ward-map, #amenities, #safety-climate, #ask-candidates, #wardSubnav,
 #methHero, #methAiNote, #methStep1, #methStep2, #methStep3, #methSources,
 .faq-topic-section, .faq-section, .cat-nav {
@@ -1012,14 +1012,24 @@ mark {
    plain inset bordered card, not a full-bleed colored band. .sec's own base
    rule already supplies border/box-shadow identical to .panel's, so only the
    properties that actually differ are redeclared here. */
+/* .feedback-band: full-bleed spacing wrapper only, no color of its own — the
+   visible .panel-style card lives on .feedback-inner (which already carries
+   .band-inner, so it inherits the same width/centering every other
+   section's content uses, rather than .container's own narrower content
+   width — see the full-bleed selector list above and .band-inner). */
 .feedback-band {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none; background: none;
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
+.feedback-inner {
+  display: flex; flex-direction: column; gap: var(--space-4); align-items: flex-start;
   background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: var(--radius-m);
+  box-shadow: var(--shadow-1);
   padding: var(--space-4);
-  margin: var(--space-3) 0;
   color: var(--ink);
 }
-.feedback-inner { display: flex; flex-direction: column; gap: var(--space-4); align-items: flex-start; }
 .feedback-actions { display: flex; }
 @media (min-width: 900px) {
   .feedback-inner { flex-direction: row; align-items: center; justify-content: space-between; }
@@ -1048,7 +1058,7 @@ mark {
    (voter-faq-view.js) reuses the shared, unmodified .callout base above. */
 #methAiNote .callout {
   align-items: center;
-  margin: 0; padding: 0; background: none; border: none; box-shadow: none;
+  margin: 0 auto; padding: 0; background: none; border: none; box-shadow: none;
   color: var(--yellow-ink);
 }
 
