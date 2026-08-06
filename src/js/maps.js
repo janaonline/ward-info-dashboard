@@ -291,6 +291,20 @@ export function createMap(containerId, { center = [77.5946, 12.9716], zoom = 10.
     attributionControl: { compact: true },
   });
 
+  // MapLibre's compact AttributionControl starts expanded by default (a library
+  // quirk: attribution_control.js's _updateCompact() adds "maplibregl-compact-show"
+  // once the style's sources actually populate real attribution text, regardless
+  // of screen width) — collapse it to icon-only once that's happened, mirroring
+  // exactly what a user clicking the (i) toggle once would already do; the
+  // toggle itself is untouched and still opens/closes it correctly. Right after
+  // `new maplibregl.Map(...)` returns is too early — the control still reads
+  // "maplibregl-attrib-empty" at that instant, before the source data (and its
+  // "attribution" string) has been processed, so `map.once('load', ...)` is used
+  // instead of doing this inline here.
+  map.once('load', () => {
+    map.getContainer().querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show');
+  });
+
   _liveMaps.add(map);
   return map;
 }

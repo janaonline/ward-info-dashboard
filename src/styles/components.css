@@ -462,7 +462,7 @@ mark {
 .pill--fill-yellow { background: var(--yellow); color: var(--forest); font-weight: 700; }
 .pill--outline-dark { background: none; border: 1px solid var(--on-forest-line); color: var(--on-forest); }
 .whead-share { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-.whead-stats { margin-top: var(--space-2); max-width: none; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.whead-stats { margin-top: var(--space-2); max-width: none; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
 .hero-stat--highlight { background: var(--yellow); }
 .hero-stat--highlight .hero-stat-num { color: var(--forest); }
 .hero-stat--highlight .hero-stat-label { color: var(--forest); opacity: .8; }
@@ -499,6 +499,11 @@ mark {
 .ward-subnav .band-inner {
   display: flex; flex-wrap: nowrap; overflow-x: auto; gap: var(--space-1);
   -webkit-overflow-scrolling: touch;
+  /* Explicit hint that this element owns horizontal panning — sitting this
+     close to a position:sticky ancestor (.ward-subnav), a touch-drag here is
+     otherwise ambiguous to some mobile browsers about which axis/element it
+     should scroll, and can default to scrolling the page instead. */
+  touch-action: pan-x;
   scrollbar-width: none;
 }
 .ward-subnav .band-inner::-webkit-scrollbar { display: none; }
@@ -512,8 +517,14 @@ mark {
 }
 .ward-subnav-btn:hover { color: var(--ink); }
 .ward-subnav-btn.active { color: var(--green-d); border-bottom-color: var(--green-d); }
-@media (max-width: 899px) {
-  .subnav-desktop-only { display: none; }
+/* Lets scrollIntoView({block:'start'}) (initWardSubnav()'s click handler)
+   leave room for the sticky header + this sticky sub-nav instead of tucking
+   a section's top underneath them — same mechanism/reasoning as .category's
+   scroll-margin-top for voter-faq-view.js's .cat-nav. --ward-subnav-clearance
+   is set at runtime (a ResizeObserver on #wardSubnav), same convention as
+   --faq-nav-clearance: expected absent from tokens.css's static definitions. */
+#overview, #candidates, #ward-map, #amenities, #safety-climate, #ask-candidates, #feedback {
+  scroll-margin-top: var(--ward-subnav-clearance, 110px);
 }
 
 .sec-sub { color: var(--muted); font-size: 0.9rem; margin: 0 0 var(--space-3); }
@@ -553,8 +564,14 @@ mark {
 .candgrid h3 { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
 .pill-soon { background: var(--yellow-soft); color: var(--yellow-ink); }
 .cand-intro { color: var(--ink); font-size: 0.9rem; margin: 0 0 var(--space-3); }
-.candgrid-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-4); }
+.candgrid-row {
+  display: flex; flex-wrap: nowrap; overflow-x: auto; gap: var(--space-4);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.candgrid-row::-webkit-scrollbar { display: none; }
 .candcard {
+  flex: 1 0 200px;
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m);
   padding: var(--space-4); text-align: center;
   box-shadow: var(--shadow-1);
@@ -862,11 +879,11 @@ mark {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   width: 16px;
   height: 16px;
-  margin-left: var(--space-1);
-  vertical-align: middle;
-  color: var(--muted);
+  margin-left: auto;
+  color: rgba(255,255,255,.85);
   border-radius: var(--radius-s);
   transition: background-color var(--dur) ease, color var(--dur) ease;
 }
@@ -883,7 +900,7 @@ mark {
   transform: translate(-50%, -50%);
 }
 .temp-info-link svg { width: 16px; height: 16px; }
-.temp-info-link:hover, .temp-info-link:focus-visible { color: var(--ink); background: var(--surface); }
+.temp-info-link:hover, .temp-info-link:focus-visible { color: #fff; background: rgba(255,255,255,.15); }
 
 /* Performance-tone amenity cards (Amenities grid) — reuses the .amrow shell/
    click-wiring, just tints the card background by the same progressTone()
@@ -1379,5 +1396,4 @@ mark {
   .headline { font-size: clamp(1.7rem, 7vw, 2rem); }
   #homeContainer .headline { font-size: clamp(1.5rem, 6.5vw, 1.8rem); }
   .container { padding-left: 12px; padding-right: 12px; }
-  .whead-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
