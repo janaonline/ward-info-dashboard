@@ -27,6 +27,11 @@
   --footer-logo-bg:#ffffff;
   --footer-logo-fallback-ink:#18230f;
 
+  /* footer surface + text — a deliberate one-off, decoupled from the shared
+     --forest/--on-forest* family the header/hero bands/dark cards still use. */
+  --footer-bg:#000000;
+  --footer-text:#c8e537;
+
   /* kept for back-compat, no longer brand-critical */
   --violet:#6d4bd6;
 

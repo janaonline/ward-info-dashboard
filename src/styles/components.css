@@ -1454,44 +1454,53 @@ mark {
    zeroed since its last section is already a full-bleed colored band), where
    it was the actual cause of a visible cream gap between that band and the
    footer. */
-.site-footer { background: var(--forest); color: var(--on-forest); }
+.site-footer { background: var(--footer-bg); color: var(--footer-text); }
 .footer-inner { padding-top: var(--space-6); padding-bottom: var(--space-5); }
 
 .footer-cols {
   display: flex; flex-direction: column; gap: var(--space-6);
-  padding-bottom: var(--space-5);
-  border-bottom: 1px solid var(--on-forest-line);
 }
 .footer-col { display: flex; flex-direction: column; gap: var(--space-2); }
 .footer-col-title {
   font-family: var(--font-display); font-weight: 700; font-size: 0.78rem;
-  text-transform: uppercase; letter-spacing: .05em; color: var(--yellow);
+  text-transform: uppercase; letter-spacing: .05em; color: var(--footer-text);
   margin-bottom: var(--space-1);
 }
 .footer-col a {
-  text-decoration: none; color: var(--on-forest-muted); font-size: 0.92rem;
-  transition: color var(--dur) ease;
+  text-decoration: none; color: var(--footer-text); font-size: 0.92rem;
+  transition: opacity var(--dur) ease;
 }
-.footer-col a:hover { color: var(--on-forest); }
+.footer-col a:hover { opacity: .75; }
 
 .footer-col-brand { gap: var(--space-3); max-width: 32ch; }
 .footer-logo-wordmark {
   display: inline-flex; align-items: center; gap: var(--space-2);
-  font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; color: var(--on-forest);
+  font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; color: var(--footer-text);
 }
 .footer-logo-badge {
   display: inline-flex; align-items: center; justify-content: center;
   width: 26px; height: 26px; border-radius: var(--radius-s);
   background: var(--yellow); color: var(--forest); font-weight: 800; font-size: 0.85rem;
 }
-.footer-blurb { color: var(--on-forest-muted); font-size: 0.88rem; line-height: 1.55; margin: 0; }
+.footer-blurb { color: var(--footer-text); font-size: 0.88rem; line-height: 1.55; margin: 0; }
 
 .footer-orgs { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-1); }
 .footer-org-group { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
 .footer-org-badge {
+  position: relative;
   display: inline-flex; align-items: center; justify-content: center;
   padding: 8px 14px; background: var(--footer-logo-bg);
   border-radius: var(--radius-m);
+  transition: opacity var(--dur) ease;
+}
+.footer-org-badge:hover { opacity: .75; }
+/* Invisible hit-slop: keeps the real touch target at 44x44px without
+   inflating the visible chip (same technique as .temp-info-link). */
+.footer-org-badge::before {
+  content: '';
+  position: absolute; top: 50%; left: 50%;
+  width: 44px; height: 44px;
+  transform: translate(-50%, -50%);
 }
 .footer-logo { height: 20px; width: auto; display: block; }
 .footer-org-fallback {
@@ -1501,21 +1510,21 @@ mark {
 .footer-org-social { display: flex; align-items: center; gap: var(--space-1); flex-wrap: wrap; }
 .footer-social-link {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 36px; height: 36px; border-radius: 50%; color: var(--on-forest-muted);
-  transition: color var(--dur) ease, background-color var(--dur) ease;
+  width: 36px; height: 36px; border-radius: 50%; color: var(--footer-text);
+  transition: opacity var(--dur) ease, background-color var(--dur) ease;
 }
-.footer-social-link:hover { color: var(--on-forest); background: var(--forest-2); }
+.footer-social-link:hover { opacity: .75; background: color-mix(in srgb, var(--footer-text) 15%, var(--footer-bg)); }
 
-.footer-bottom {
-  display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-2);
-  padding-top: var(--space-4);
-  color: var(--on-forest-muted); font-size: 0.8rem;
-}
+.footer-col-opencity { gap: var(--space-3); }
+.footer-opencity-logo { height: 32px; width: auto; display: block; align-self: flex-start; }
+.footer-opencity-cols { display: flex; gap: var(--space-6); flex-wrap: wrap; }
 
 @media (min-width: 900px) {
   .footer-cols { flex-direction: row; justify-content: space-between; gap: var(--space-5); }
-  .footer-col-brand { flex: 1 1 260px; }
   .footer-col { flex: 0 0 auto; min-width: 140px; }
+  .footer-col-links, .footer-col-opencity {
+    border-left: 1px solid var(--on-forest-line); padding-left: var(--space-6);
+  }
 }
 
 /* -- responsive -- */
