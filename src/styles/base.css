@@ -25,8 +25,8 @@ a { color: inherit; }
   position: sticky;
   top: 0;
   z-index: 50;
-  background: var(--forest);
-  color: var(--on-forest);
+  background: var(--surface-3);
+  color: var(--ink);
   padding-top: env(safe-area-inset-top);
 }
 
@@ -69,11 +69,11 @@ a { color: inherit; }
   border-radius: var(--radius-s);
   border: none;
   background: transparent;
-  color: var(--on-forest);
+  color: var(--ink);
   cursor: pointer;
   transition: background-color var(--dur) var(--ease-out);
 }
-.site-header-back:hover { background: var(--forest-2); }
+.site-header-back:hover { background: var(--surface-2); }
 .site-header-back[hidden] { display: none; }
 
 .site-header-logo {
@@ -81,7 +81,7 @@ a { color: inherit; }
   align-items: center;
   gap: var(--space-2);
   text-decoration: none;
-  color: var(--on-forest);
+  color: var(--ink);
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 1.05rem;
@@ -102,6 +102,48 @@ a { color: inherit; }
 }
 .site-header-logo[hidden] { display: none; }
 
+.site-header-partners {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.site-header-partners[hidden] { display: none; }
+
+.site-header-sep {
+  width: 1px;
+  height: 20px;
+  background: var(--line2);
+  flex-shrink: 0;
+}
+
+.site-header-partner-link {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.site-header-star {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--muted);
+}
+
+.site-header-partner-logo {
+  display: block;
+  width: auto;
+}
+.site-header-partner-logo--opencity { height: 24px; }
+.site-header-partner-logo--janaagraha { height: 19px; }
+
+@media (max-width: 520px) {
+  .site-header-partner-logo--opencity { height: 18px; }
+  .site-header-partner-logo--janaagraha { height: 14px; }
+  .site-header-star svg { width: 11px; height: 11px; }
+  .site-header-partners { gap: var(--space-1); }
+}
+
 .site-header-title {
   font-family: var(--font-display);
   font-weight: 700;
@@ -119,7 +161,7 @@ a { color: inherit; }
 }
 .site-header-nav a {
   text-decoration: none;
-  color: var(--on-forest-muted);
+  color: var(--ink);
   font-family: var(--font-stat);
   font-weight: 600;
   font-size: 0.92rem;
@@ -127,8 +169,16 @@ a { color: inherit; }
   border-bottom: 2px solid transparent;
   transition: color var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out);
 }
-.site-header-nav a:hover { color: var(--on-forest); }
-.site-header-nav a.active { color: var(--yellow); border-bottom-color: var(--yellow); }
+.site-header-nav a:hover { color: var(--ink); }
+.site-header-nav a.active { color: var(--yellow-ink); border-bottom-color: var(--yellow); }
+
+.site-header-nav a.site-header-nav-emphasis,
+.site-header-mobile-menu a.site-header-nav-emphasis {
+  font-weight: 900;
+  border: 1px solid var(--ink);
+  border-radius: var(--radius-s);
+  padding: var(--space-1) var(--space-2);
+}
 
 .site-header-actions { display: flex; align-items: center; gap: var(--space-3); }
 
@@ -141,13 +191,13 @@ a { color: inherit; }
   border-radius: var(--radius-s);
   border: none;
   background: transparent;
-  color: var(--on-forest);
+  color: var(--ink);
   cursor: pointer;
 }
-.site-header-menu-btn:hover { background: var(--forest-2); }
+.site-header-menu-btn:hover { background: var(--surface-2); }
 
 .site-header-mobile-menu {
-  border-top: 1px solid var(--on-forest-line);
+  border-top: 1px solid var(--line);
   padding: var(--space-3) clamp(14px, 4vw, 24px) var(--space-4);
   display: flex;
   flex-direction: column;
@@ -156,12 +206,12 @@ a { color: inherit; }
 .site-header-mobile-menu[hidden] { display: none; }
 .site-header-mobile-menu a {
   text-decoration: none;
-  color: var(--on-forest);
+  color: var(--ink);
   font-family: var(--font-stat);
   font-weight: 600;
   padding: var(--space-2) 0;
 }
-.site-header-mobile-menu a.active { color: var(--yellow); }
+.site-header-mobile-menu a.active { color: var(--yellow-ink); }
 
 @media (min-width: 900px) {
   /* .site-header-back is intentionally NOT force-hidden here (unlike title,
@@ -176,7 +226,10 @@ a { color: inherit; }
      branding entirely on every non-home view, since nothing here was filling
      that slot the way mobile's title does. */
   .site-header-logo[hidden] { display: inline-flex; }
+  .site-header-partners[hidden] { display: flex; }
   .site-header-title { display: none; }
+  .site-header-partner-logo--opencity { height: 28px; }
+  .site-header-partner-logo--janaagraha { height: 22px; }
   /* margin-left:auto (not justify-content:space-between's 3-way split) is what
      keeps nav flush against the right edge now that .site-header-actions has
      no visible content at this width (menu button is hidden here too, since
