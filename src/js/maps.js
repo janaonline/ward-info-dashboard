@@ -53,15 +53,16 @@ export const CORP_COLORS = {
 };
 
 const CARTO_SUBDOMAINS = ['a', 'b', 'c', 'd'];
+const CARTO_API_KEY = 'cb1_2q66_1_a116d0d80567857353fd48de';
 
 // This design has no light/dark theme toggle — every map (home choropleth,
 // ward detail) always sits on the light CARTO basemap.
 export function tileUrl() {
-  return CARTO_SUBDOMAINS.map(s => `https://${s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png`);
+  return CARTO_SUBDOMAINS.map(s => `https://${s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png?key=${CARTO_API_KEY}`);
 }
 
 export function labelTileUrl() {
-  return CARTO_SUBDOMAINS.map(s => `https://${s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png`);
+  return CARTO_SUBDOMAINS.map(s => `https://${s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png?key=${CARTO_API_KEY}`);
 }
 
 // ---- geometry helpers (keyed by uid; supports GeoJSON Polygon and MultiPolygon) ----
