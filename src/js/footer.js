@@ -5,18 +5,19 @@ import { FEEDBACK_FORM_URL } from './constants.js';
 const SOCIAL_LINKS = {
   janaagraha: {
     youtube: 'https://www.youtube.com/janaagraha',
-    linkedin: 'https://www.linkedin.com/company/janaagraha/',
+    linkedin: 'https://www.linkedin.com/company/janaagraha-centre-for-citizenship-and-democracy/',
     x: 'https://x.com/Janaagraha1',
     instagram: 'https://www.instagram.com/janaagraha/?hl=en',
     facebook: 'https://www.facebook.com/janaagraha',
   },
-  oorvani: {
-    linkedin: 'https://www.linkedin.com/company/oorvani-foundation/',
-    x: 'https://x.com/oorvani',
+  opencity: {
+    x: 'https://x.com/opencity_in',
+    linkedin: 'https://www.linkedin.com/showcase/opencity-in/',
+    instagram: 'https://www.instagram.com/opencity.in',
   },
 };
 
-const ORG_LABELS = { janaagraha: 'Janaagraha', oorvani: 'Oorvani Foundation' };
+const ORG_LABELS = { janaagraha: 'Janaagraha', opencity: 'OpenCity' };
 const NETWORK_LABELS = {
   youtube: 'YouTube',
   linkedin: 'LinkedIn',
@@ -35,24 +36,21 @@ const SOCIAL_ICONS = {
   facebook: `${SVG_OPEN}<path d="M13.5 22v-8.4h2.8l.42-3.26h-3.22V8.24c0-.95.26-1.59 1.62-1.59h1.73V3.7A23 23 0 0 0 14.3 3.5c-2.5 0-4.2 1.53-4.2 4.33v2.5H7.28v3.27h2.8V22z"/></svg>`,
 };
 
-function socialRow(org) {
+function socialRow(org, order) {
   const links = SOCIAL_LINKS[org];
-  const order = org === 'janaagraha'
-    ? ['youtube', 'linkedin', 'x', 'instagram', 'facebook']
-    : ['linkedin', 'x'];
   return order
     .filter(k => links[k])
     .map(k => `<a class="footer-social-link" href="${esc(links[k])}" target="_blank" rel="noopener" aria-label="${ORG_LABELS[org]} on ${NETWORK_LABELS[k]}">${SOCIAL_ICONS[k]}</a>`)
     .join('');
 }
 
-function logoBlock(name, alt) {
+function logoBlock(name, alt, href) {
   return `
-    <span class="footer-org-badge">
+    <a class="footer-org-badge" href="${esc(href)}" target="_blank" rel="noopener" aria-label="${esc(alt)} website">
       <img src="public/logos/${name}-logo.png" alt="${esc(alt)}" class="footer-logo"
            onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
       <span class="footer-org-fallback">${esc(alt)}</span>
-    </span>
+    </a>
   `;
 }
 
@@ -70,38 +68,37 @@ export function initFooter({ onNavigate, onMethodology }) {
           <span class="footer-logo-wordmark">
             <span class="footer-logo-badge" aria-hidden="true">W</span> Ward Info
           </span>
-          <p class="footer-blurb">Made with <span aria-hidden="true">&#10084;&#65039;</span> for Bengaluru, so every voter can understand their ward before they vote.</p>
+          <p class="footer-blurb">A joint project by</p>
           <div class="footer-orgs">
             <div class="footer-org-group">
-              ${logoBlock('janaagraha', 'Janaagraha')}
-              <div class="footer-org-social" role="group" aria-label="${ORG_LABELS.janaagraha} social links">${socialRow('janaagraha')}</div>
+              ${logoBlock('janaagraha', 'Janaagraha', 'https://www.janaagraha.org')}
+              ${logoBlock('oorvani', 'Oorvani Foundation', 'https://oorvani.org')}
             </div>
-            <div class="footer-org-group">
-              ${logoBlock('oorvani', 'Oorvani Foundation')}
-              <div class="footer-org-social" role="group" aria-label="${ORG_LABELS.oorvani} social links">${socialRow('oorvani')}</div>
-            </div>
+            <div class="footer-org-social" role="group" aria-label="${ORG_LABELS.janaagraha} social links">${socialRow('janaagraha', ['instagram', 'linkedin', 'x'])}</div>
           </div>
         </div>
-        <div class="footer-col">
+        <div class="footer-col footer-col-links">
           <span class="footer-col-title">Explore</span>
           <a href="#" data-nav="home">Home</a>
           <a href="#" data-nav="voter-faq">Voter FAQs</a>
-        </div>
-        <div class="footer-col">
-          <span class="footer-col-title">Data</span>
           <a href="#" id="footerMethodologyLink">Methodology</a>
           <a href="${esc(FEEDBACK_FORM_URL)}" target="_blank" rel="noopener">Report an issue</a>
         </div>
-        <div class="footer-col">
-          <span class="footer-col-title">Sources</span>
-          <a href="https://kgis.karnataka.gov.in/" target="_blank" rel="noopener">KGIS &middot; KSRSAC</a>
-          <a href="https://sahaaya.bbmp.gov.in/" target="_blank" rel="noopener">BBMP Sahaaya</a>
-          <a href="https://opencity.in/" target="_blank" rel="noopener">OpenCity</a>
+        <div class="footer-col footer-col-opencity">
+          <img src="public/logos/opencity-logo.png" alt="OpenCity" class="footer-opencity-logo">
+          <div class="footer-opencity-cols">
+            <div class="footer-col">
+              <a href="https://opencity.in/about-us/" target="_blank" rel="noopener">About Us</a>
+              <a href="https://opencity.in/subscribe/" target="_blank" rel="noopener">Subscribe</a>
+              <a href="https://opencity.in/terms-and-conditions/" target="_blank" rel="noopener">Terms &amp; Conditions</a>
+            </div>
+            <div class="footer-col">
+              <a href="https://opencity.in/faqs/" target="_blank" rel="noopener">FAQs &amp; Attribution</a>
+              <a href="https://oorvani.org/support-us" target="_blank" rel="noopener">Donate</a>
+            </div>
+          </div>
+          <div class="footer-org-social" role="group" aria-label="${ORG_LABELS.opencity} social links">${socialRow('opencity', ['instagram', 'linkedin', 'x'])}</div>
         </div>
-      </div>
-      <div class="footer-bottom">
-        <span>&copy; 2026 Ward Info. Data licensed for public use.</span>
-        <span>&copy; CARTO &copy; OpenStreetMap contributors</span>
       </div>
     </div>
   `;

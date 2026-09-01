@@ -52,8 +52,10 @@ Two tiers of strictness:
 | `--yellow-line` | `#e3c37a` | `.callout` border |
 | `--sage` | `#ccdabd` | Methodology teaser band fill |
 | `--sage-ink` | `#28371c` | text on `--sage` |
-| `--footer-logo-bg` | `#ffffff` | fixed-light chip behind partner logos on the dark footer |
+| `--footer-logo-bg` | `#ffffff` | fixed-light chip behind partner logos on the footer |
 | `--footer-logo-fallback-ink` | `#18230f` | fallback text on that chip |
+| `--footer-bg` | `#000000` | footer surface — a deliberate one-off, decoupled from `--forest` (which the header/hero bands/dark cards still use) |
+| `--footer-text` | `#c8e537` | all footer text (wordmark, blurb, column titles, links, social icons) — one uniform lime, not the 3-tier `--on-forest*` hierarchy |
 | `--violet` | `#6d4bd6` | kept for back-compat only, not brand-critical — don't build new UI on this |
 | `--blue` | `#2563c9` | Amenities-grid benchmark-badge tone: "Network standard"; also a Voter-FAQ topic-tile color (`.faq-topic-tile--7`) |
 | `--teal` | `#0f8a7e` | Amenities benchmark-badge tone: "Accessibility based" |
@@ -137,7 +139,7 @@ Selectors below are real, current selectors from `src/styles/components.css`/`ba
 | Interactive map popup | `.ward-popup` (+ `.ward-popup-body`/`-name`/`-btn`) | Pinned, click-triggered Popup override: `--surface` bg, `--radius-m`, `--shadow-2`, `.btn.btn-primary` reused verbatim for the action button | home choropleth's click-to-navigate ward popup |
 | Site header chrome | `.site-header`, `.site-header-nav`, `.site-header-menu-btn`, `.site-header-mobile-menu` | Persistent `--forest` bar; desktop = logo+nav (nav flush right via `margin-left:auto`, no CTA), mobile = logo+hamburger (home) or back-chevron+title+hamburger (other views) | `src/js/header.js`, every view |
 | Sticky sub-nav | `.ward-subnav`/`.ward-subnav-btn`, `.cat-nav`/button (voter-FAQ) | Horizontal-scroll tab bar, `position: sticky`, `top` set in JS from `#siteHeader`'s `offsetHeight` | ward-detail 7-tab sub-nav, voter-FAQ category nav |
-| Footer primitives | `.footer-cols`, `.footer-col`, `.footer-col-brand`, `.footer-org*`, `.footer-social-link`, `.footer-bottom` | Dark, full-bleed multi-column link footer | `src/js/footer.js` |
+| Footer primitives | `.footer-cols`, `.footer-col`, `.footer-col-brand`, `.footer-col-links`, `.footer-col-opencity`, `.footer-opencity-cols`, `.footer-opencity-logo`, `.footer-org*`, `.footer-social-link` | Full-bleed 3-column link footer (Brand/Explore/OpenCity), `--footer-bg` (black) background + `--footer-text` (lime) text — its own token pair, not the shared `--forest`/`--on-forest*` family; `--on-forest-line` border-left dividers on `.footer-col-links`/`.footer-col-opencity` at ≥900px (no separate divider element); no bottom bar (removed) | `src/js/footer.js` |
 | Inline info-icon link | `.temp-info-link` | Small tooltip+external-link icon embedded mid-sentence, full 44×44px touch target via padding around a smaller glyph | ward-view Temperature card's link to `Temperature_2015_2026.pdf` |
 
 When none of these fit, build a new component (tier 2, §4) — do not force an unrelated fit.
