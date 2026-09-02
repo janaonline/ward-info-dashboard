@@ -803,6 +803,16 @@ export function openWard(uid, { onOpenWard, onNavigateHome } = {}) {
         if (!e.features.length) return;
         const { name, num } = e.features[0].properties;
         if (!name) return;
+
+        // --- analytics: map interaction (canvas click, not a DOM click —
+        // analytics.js's generic delegation listener can't see this) ---
+        window.dataLayer?.push({
+          event: 'map_interaction',
+          map_context: 'ward-detail',
+          interaction_type: 'amenity_marker_click',
+          ward_uid: uid || null,
+        });
+
         closeSecondaryPopup();
         secondaryTip.remove();
         const html = num ? `${esc(name)} &middot; Booth ${esc(num)}` : esc(name);
@@ -848,6 +858,16 @@ export function openWard(uid, { onOpenWard, onNavigateHome } = {}) {
         const f = e.features[0];
         const targetUid = f.properties.uid;
         const targetName = f.properties.name;
+
+        // --- analytics: map interaction (canvas click, not a DOM click —
+        // analytics.js's generic delegation listener can't see this) ---
+        window.dataLayer?.push({
+          event: 'map_interaction',
+          map_context: 'ward-detail',
+          interaction_type: 'neighbor_ward_popup',
+          ward_uid: targetUid || null,
+        });
+
         closeNeighborWardPopup();
         neighborTip.remove();
         const popup = new maplibregl.Popup({ closeButton: false, className: 'ward-popup' })
