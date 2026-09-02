@@ -429,6 +429,15 @@ export function initHomeView({ W, meta }, { onOpenWard, onMethodology }) {
         const uid = f.properties.uid;
         const name = f.properties.name;
 
+        // --- analytics: map interaction (canvas click, not a DOM click —
+        // analytics.js's generic delegation listener can't see this) ---
+        window.dataLayer?.push({
+          event: 'map_interaction',
+          map_context: 'home-choropleth',
+          interaction_type: 'ward_click',
+          ward_uid: uid || null,
+        });
+
         closeWardPopup();
         tip.remove();
 

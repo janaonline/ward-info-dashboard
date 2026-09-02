@@ -5,6 +5,7 @@ import { initMethodologyView } from './methodology-view.js';
 import { initVoterFaqView } from './voter-faq-view.js';
 import { initFooter } from './footer.js';
 import { initHeader, setHeaderState } from './header.js';
+import { initAnalytics } from './analytics.js';
 
 let currentView = 'home';
 let currentWardName = '';
@@ -19,6 +20,15 @@ function showView(name) {
   if (name === 'home') resizeHomeMap();
   if (name === 'ward') resizeWardMap();
   setHeaderState(name, name === 'ward' ? currentWardName : '');
+
+  // --- analytics: virtual pageview ---
+  const wardSuffix = name === 'ward' && location.hash ? location.hash : '';
+  window.dataLayer?.push({
+    event: 'spa_page_view',
+    page_location: location.origin + location.pathname + wardSuffix,
+    page_path: `/${name}${wardSuffix}`,
+    page_title: document.title,
+  });
 }
 
 function navigateTo(name) {
@@ -61,6 +71,8 @@ async function boot() {
   initVoterFaqView();
 
   initFooter({ onNavigate: navigateTo, onMethodology: () => navigateTo('methodology') });
+
+  initAnalytics({ getCurrentView: () => currentView });
 
   loadingIndicator.setAttribute('hidden', '');
 
