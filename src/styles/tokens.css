@@ -1,43 +1,51 @@
 :root {
-  /* surfaces / neutrals (green-ramp tints, Open City brand) */
-  --bg:#f3fce8; --surface:#ffffff; --surface-2:#eef7e0; --inset:#e4f1d3;
-  --ink:#1b2410; --muted:#54614a; --hint:#7f8d72;
-  --line:rgba(27,36,16,.10); --line2:rgba(27,36,16,.18);
+  /* page surfaces (--bg is a cool near-white; --surface/--surface-2/--surface-3/--inset stay cream/beige) */
+  --bg:#F3F6F4; --surface:#ffffff; --surface-2:#ece1cb; --surface-3:#fbfaf6; --inset:#e6d8bd;
+  --ink:#18230f; --muted:#57624a; --hint:#7d8a70;
+  --line:rgba(24,35,15,.12); --line2:rgba(24,35,15,.20);
 
-  /* brand green (primary / positive) */
-  --green:#5e9b48; --green-d:#457a31; --green-soft:#dcf1c9; --green-ring:#c6eaa0;
+  /* dark-green surface family — header, hero bands, footer, dark cards
+     (this design has no light/dark theme toggle; these are used deliberately
+     alongside the cream surfaces above on the same page, not swapped globally) */
+  --forest:#132010; --forest-2:#1b2b16; --forest-3:#25391e;
+  --on-forest:#f2ead9; --on-forest-muted:#a7b89a; --on-forest-line:rgba(242,234,217,.14);
 
-  /* brand red (alert / bad) */
-  --red:#d33a4c; --red-d:#b12a3a; --red-soft:#ffe7e6; --red-ring:#ffadac;
+  /* brand green (primary / positive / benchmark-met tier) */
+  --green:#3d7a40; --green-d:#2a5c2c; --green-soft:#dcecd2; --green-ring:#b8d9ac;
 
-  /* brand yellow (highlighter mark / warn) */
-  --yellow:#ffd527; --yellow-soft:#fff3c4; --yellow-ink:#6b5300; --yellow-line:#f0dd8a;
+  /* brand red / terracotta (alert / under-served / Voter FAQ hero band) */
+  --red:#c1392b; --red-d:#a12d20; --red-soft:#f8ded8; --red-ring:#e7a99b;
 
-  /* brand lime accent — dark-background use only (near-invisible on white) */
-  --lime:#c8e537;
+  /* brand mustard yellow (highlighter / warn / CTA accents) */
+  --yellow:#f0b429; --yellow-soft:#fbe8b6; --yellow-ink:#6b4a06; --yellow-line:#e3c37a;
+
+  /* sage (methodology band) */
+  --sage:#ccdabd; --sage-ink:#28371c;
 
   /* fixed-light chip behind partner logos — the logo art is theme-agnostic dark
-     ink, so it needs a guaranteed-light backdrop in dark mode too (same value
-     in both theme blocks, like --lime). The fallback-ink pairs with it for the
-     onerror text fallback, which also sits on that fixed-light chip. */
+     ink, so it needs a guaranteed-light backdrop even on the dark-green footer. */
   --footer-logo-bg:#ffffff;
-  --footer-logo-fallback-ink:#1b2410;
+  --footer-logo-fallback-ink:#18230f;
+
+  /* footer surface + text — a deliberate one-off, decoupled from the shared
+     --forest/--on-forest* family the header/hero bands/dark cards still use. */
+  --footer-bg:#000000;
+  --footer-text:#c8e537;
 
   /* kept for back-compat, no longer brand-critical */
   --violet:#6d4bd6;
 
   /* Amenities benchmark badges/progress tiers only (categorical color-coding,
-     confirmed with the requester) — --blue moves out of "back-compat only" to
-     back this; the rest are new. Not for general reuse elsewhere in the app. */
+     confirmed with the requester) — not for general reuse elsewhere in the app. */
   --blue:#2563c9; --teal:#0f8a7e; --indigo:#4b53c9; --cyan:#0891b2;
   --gray:#6b7280; --orange:#c2660a; --light-green:#7cb342;
 
   --radius:14px; --radius-m:11px; --radius-s:8px; --radius-l:18px;
 
   /* elevation scale (material) */
-  --shadow-1:0 1px 2px rgba(27,36,16,.06), 0 1px 3px rgba(27,36,16,.10);
-  --shadow-2:0 2px 6px rgba(27,36,16,.08), 0 8px 18px rgba(27,36,16,.12);
-  --shadow-3:0 10px 24px rgba(27,36,16,.14), 0 18px 48px rgba(27,36,16,.18);
+  --shadow-1:0 1px 2px rgba(24,35,15,.06), 0 1px 3px rgba(24,35,15,.10);
+  --shadow-2:0 2px 6px rgba(24,35,15,.08), 0 8px 18px rgba(24,35,15,.12);
+  --shadow-3:0 10px 24px rgba(24,35,15,.14), 0 18px 48px rgba(24,35,15,.18);
   --shadow:var(--shadow-2); --shadow-s:var(--shadow-1);
 
   /* spacing scale (4pt) */
@@ -50,30 +58,4 @@
   --font-body:"PT Sans", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
   --font-stat:"Manrope", var(--font-body);
   --font-display:"Manrope", system-ui, sans-serif;
-}
-
-[data-theme="dark"] {
-  --bg:#10160b; --surface:#1a2113; --surface-2:#222c18; --inset:#2a3620;
-  --ink:#eef3e6; --muted:#aab89a; --hint:#7d8b6d;
-  --line:rgba(238,243,230,.10); --line2:rgba(238,243,230,.18);
-
-  --green:#92c56e; --green-d:#c6eaa0; --green-soft:#233318; --green-ring:#3c5228;
-  --red:#f56a6d; --red-d:#ffadac; --red-soft:#3a1c1d; --red-ring:#5a2b2c;
-  --yellow:#ffd527; --yellow-soft:#3a3212; --yellow-ink:#f3dfa0; --yellow-line:#5a4d24;
-  --lime:#c8e537;
-  --footer-logo-bg:#ffffff;
-  --footer-logo-fallback-ink:#1b2410;
-  --violet:#9c85f0;
-  --blue:#5b8fe0; --teal:#5fcfc0; --indigo:#9aa3f0; --cyan:#5fd0e8;
-  --gray:#a3a9b3; --orange:#f0a860; --light-green:#a8d876;
-
-  --shadow-1:0 1px 2px rgba(0,0,0,.35), 0 1px 3px rgba(0,0,0,.45);
-  --shadow-2:0 2px 6px rgba(0,0,0,.40), 0 8px 18px rgba(0,0,0,.50);
-  --shadow-3:0 10px 24px rgba(0,0,0,.55), 0 18px 48px rgba(0,0,0,.60);
-  --shadow:var(--shadow-2); --shadow-s:var(--shadow-1);
-}
-
-[data-theme="dark"] mark { color:var(--yellow-ink); background:var(--yellow-soft); }
-[data-theme="dark"] .candphoto {
-  background: repeating-linear-gradient(135deg, var(--inset), var(--inset) 8px, #2c3830 8px, #2c3830 16px);
 }

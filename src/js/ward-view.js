@@ -14,6 +14,7 @@ let dataRef = null;
 let benchmarksRef = null;
 let activeSecondaryPopup = null;
 let activeNeighborWardPopup = null;
+let onNavigateHomeRef = null;
 
 // ---- facts & questions engine (sourced from ward_facts_questions.geojson,
 // matched to a ward by ward_name once at load time in data-loader.js) ----
@@ -39,11 +40,159 @@ function suggestedQuestions(w) {
   return orderedFields(w.factsQuestions, CANDIDATE_QUESTION_FIELDS);
 }
 
+// ---- icons ----
+
+const RESET_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>';
+const EXTERNAL_LINK_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>';
+const TEMPERATURE_ICON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14.5V5a2 2 0 0 0-4 0v9.5a4 4 0 1 0 4 0z"/></svg>';
+const INFO_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+const CHEVRON_ICON = '<svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
+const WHATSAPP_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.5A10 10 0 1 0 12 2zm0 18.2c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3 .9.9-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.6.1-.2.2-.6.8-.8 1-.1.2-.3.2-.5.1-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.2 0-.4.1-.5l.4-.5c.1-.1.2-.3.2-.4.1-.2 0-.3 0-.4-.1-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.6.3-.2.2-.8.8-.8 1.9 0 1.1.8 2.2.9 2.4.1.2 1.6 2.4 3.8 3.4.5.2.9.4 1.3.5.5.2 1 .1 1.4.1.4-.1 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1 0-.1-.2-.2-.4-.3z"/></svg>';
+const COPY_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>';
+
+const FEEDBACK_FORM_URL = 'https://forms.office.com/Pages/ResponsePage.aspx?id=durzKFDheUu_0kCRJE6V1UD6pxYgE_lDvC_e0YLsHi9UNk05RFRIUEFaS1U3VkpTMDRYTDMxR1pKSi4u';
+const TEMPERATURE_PDF_URL = 'public/data/Temperature_2015_2026.pdf';
+
+// ---- sub-nav ----
+
+const SUBNAV_ITEMS = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'candidates', label: 'Candidates' },
+  { id: 'ward-map', label: 'Ward map', shortLabel: 'Map' },
+  { id: 'amenities', label: 'Amenities' },
+  { id: 'safety-climate', label: 'Safety & climate' },
+  { id: 'ask-candidates', label: 'Ask your candidates' },
+  { id: 'feedback', label: 'Feedback' },
+];
+
+function renderSubnav() {
+  return `
+    <nav class="ward-subnav" id="wardSubnav" aria-label="Ward sections">
+      <div class="band-inner">
+        ${SUBNAV_ITEMS.map((item, i) => `
+          <button type="button" class="ward-subnav-btn${i === 0 ? ' active' : ''}" data-target="${item.id}">${esc(item.shortLabel || item.label)}</button>
+        `).join('')}
+      </div>
+    </nav>
+  `;
+}
+
+let subnavSuppressSpy = false;
+
+function initWardSubnav() {
+  const nav = document.getElementById('wardSubnav');
+  if (!nav) return;
+  const header = document.getElementById('siteHeader');
+  const headerHeight = header ? header.offsetHeight : 0;
+  nav.style.top = `${headerHeight}px`;
+
+  const buttons = Array.from(nav.querySelectorAll('.ward-subnav-btn'));
+  const sections = buttons
+    .map(btn => document.getElementById(btn.dataset.target))
+    .filter(Boolean);
+
+  // Sticky header + sticky sub-nav both occupy the viewport's top region, so
+  // scrollIntoView({block:'start'}) on a target section would otherwise tuck
+  // its top underneath them — .category's scroll-margin-top in
+  // voter-faq-view.js's .cat-nav solves the identical problem, and this
+  // mirrors it exactly, scoped to #wardContainer instead of #voterFaqContainer.
+  function updateSubnavClearance() {
+    const topOffset = parseFloat(getComputedStyle(nav).top) || 0;
+    const clearance = topOffset + nav.getBoundingClientRect().height;
+    document.getElementById('wardContainer')?.style.setProperty('--ward-subnav-clearance', `${clearance}px`);
+  }
+  new ResizeObserver(updateSubnavClearance).observe(nav);
+  updateSubnavClearance();
+
+  let activeId = null;
+  let followTimer = null;
+  function setActive(id) {
+    if (id === activeId) return;
+    activeId = id;
+    buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.target === id));
+    // Keep the active tab visible/centered in the horizontally scrolling nav
+    // (same pattern as voter-faq-view.js's .cat-nav). block:'nearest' matters,
+    // not just inline:'center' — overflow-x:auto makes .band-inner's paired
+    // overflow-y compute to auto too (per the CSS overflow spec), making it
+    // its own nearest scrolling ancestor on both axes, so this can't leak
+    // into scrolling the page itself vertically. Debounced (not fired
+    // immediately) — mobile browsers commonly ignore/defer a programmatic
+    // scroll issued while the user's own touch-scroll gesture is still
+    // active, and firing on every rapid scroll-spy transition during a fast
+    // scroll would also cancel/restart the animation before it can run;
+    // waiting for scrolling to pause briefly avoids both.
+    clearTimeout(followTimer);
+    followTimer = setTimeout(() => {
+      nav.querySelector(`.ward-subnav-btn[data-target="${id}"]`)
+        ?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }, 120);
+  }
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = document.getElementById(btn.dataset.target);
+      if (!target) return;
+      subnavSuppressSpy = true;
+      setActive(btn.dataset.target);
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(() => { subnavSuppressSpy = false; }, 900);
+    });
+  });
+
+  const observer = new IntersectionObserver(() => {
+    if (subnavSuppressSpy) return;
+    const navHeight = nav.offsetHeight;
+    const bandTop = headerHeight + navHeight + 4;
+    let current = sections[0];
+    for (const sec of sections) {
+      if (sec.getBoundingClientRect().top - bandTop <= 0) current = sec;
+    }
+    if (current) setActive(current.id);
+  }, { rootMargin: `-${headerHeight + 8}px 0px -70% 0px`, threshold: 0 });
+
+  sections.forEach(sec => observer.observe(sec));
+  window.addEventListener('scroll', () => {
+    if (subnavSuppressSpy) return;
+    const navHeight = nav.offsetHeight;
+    const bandTop = headerHeight + navHeight + 4;
+    let current = sections[0];
+    for (const sec of sections) {
+      if (sec.getBoundingClientRect().top - bandTop <= 0) current = sec;
+    }
+    if (current) setActive(current.id);
+  }, { passive: true });
+}
+
+// ---- share (relocated from footer.js — see Phase 1/3 of the redesign) ----
+
+function shareHref(uid, wardName) {
+  const shareText = encodeURIComponent(`Check out ward info for ${wardName}: `);
+  const shareUrl = encodeURIComponent(`${location.origin}${location.pathname}#ward=${uid}`);
+  return `https://wa.me/?text=${shareText}${shareUrl}`;
+}
+
+function copyUrl(uid) {
+  return `${location.origin}${location.pathname}#ward=${uid}`;
+}
+
+function wireShareButtons(uid, wardName) {
+  const copyBtn = document.getElementById('wardCopyLinkBtn');
+  if (copyBtn) {
+    const label = copyBtn.querySelector('.btn-label');
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(copyUrl(uid)).then(() => {
+        label.textContent = 'Copied!';
+        setTimeout(() => { label.textContent = 'Copy link'; }, 1500);
+      });
+    });
+  }
+}
+
 // ---- render pieces ----
 
 function oldWardsText(w) {
-  if (!w.old_wards || !w.old_wards.length) return 'Not available';
-  return w.old_wards.map(o => o.pct != null ? `${esc(o.name)} (${o.pct}%)` : esc(o.name)).join(', ');
+  if (!w.old_wards || !w.old_wards.length) return null;
+  return w.old_wards;
 }
 
 function neighbourhoodsText(w) {
@@ -53,76 +202,108 @@ function neighbourhoodsText(w) {
 
 function demographicsParts(w) {
   const parts = [];
-  if (w.pop != null) parts.push(`<strong>Total population:</strong> ${fmt(w.pop)}`);
-  if (w.male != null) parts.push(`<strong>Male:</strong> ${fmt(w.male)}`);
-  if (w.female != null) parts.push(`<strong>Female:</strong> ${fmt(w.female)}`);
+  if (w.pop != null) parts.push({ label: 'Total population', value: fmt(w.pop) });
+  if (w.male != null) parts.push({ label: 'Male', value: fmt(w.male) });
+  if (w.female != null) parts.push({ label: 'Female', value: fmt(w.female) });
   return parts;
 }
 
-function reservationText(w) {
-  return isBlank(w.reservation) ? null : esc(w.reservation);
+function badgesHtml(w) {
+  const badges = [`Corporation: ${esc(w.corporation)}`];
+  if (!isBlank(w.zone_name)) badges.push(`Zone: ${esc(w.zone_name)}`);
+  if (w.assembly) badges.push(`Assembly: ${esc(w.assembly)}`);
+  if (!isBlank(w.reservation)) badges.push(`Reservation: ${esc(w.reservation)}`);
+  return badges.map(b => `<span class="pill pill--outline-dark">${b}</span>`).join('');
 }
 
-function renderHead(w) {
+function renderHead(uid, w) {
   const demoParts = demographicsParts(w);
   if (!demoParts.length && isLocalDev()) {
     console.warn(`[demographics] No population data for ward "${w.ward_name}" (${w.uid})`);
   }
-  const reservation = reservationText(w);
-  if (!reservation && isLocalDev()) {
-    console.warn(`[reservation] No reservation data for ward "${w.ward_name}" (${w.uid})`);
-  }
   return `
     <div class="whead">
-      <h2>${esc(w.ward_name)}${w.ward_name_kn ? ` <span class="kn">${esc(w.ward_name_kn)}</span>` : ''}</h2>
-      <p class="whead-meta">Ward ${fmt(w.ward_id)} &middot; <strong>Corporation:</strong> ${esc(w.corporation)} &middot; <strong>Zone:</strong> ${esc(w.zone_name || w.zone)} &middot; <strong>Assembly:</strong> ${esc(w.assembly)}</p>
-      ${demoParts.length ? `<p class="whead-meta">${demoParts.join(' &middot; ')}</p>` : ''}
-      ${reservation ? `<p class="whead-meta"><strong>Reservation:</strong> ${reservation}</p>` : ''}
-      <div class="whead-origin">
-        <div class="whead-origin-block">
-          <span class="label">Formed from old wards</span>
-          <p>${oldWardsText(w)}</p>
+      <div class="band-inner">
+        <p class="whead-breadcrumb">
+          <a href="#" id="wheadHomeLink">Home</a> &rsaquo; ${esc(w.corporation)} &rsaquo; <span>${esc(w.ward_name)}</span>
+        </p>
+        <div class="whead-top">
+          <div>
+            <h2>${esc(w.ward_name)}${w.ward_name_kn ? ` <span class="kn">${esc(w.ward_name_kn)}</span>` : ''}</h2>
+            <div class="whead-badges">
+              <span class="pill pill--fill-yellow">Ward ${fmt(w.ward_id)}</span>
+              ${badgesHtml(w)}
+            </div>
+          </div>
+          <div class="whead-share">
+            <a class="btn btn-whatsapp btn-sm" id="wardWhatsappBtn" target="_blank" rel="noopener" href="${esc(shareHref(uid, w.ward_name))}"><span aria-hidden="true">${WHATSAPP_ICON}</span>Share on WhatsApp</a>
+            <button class="btn btn-secondary btn-sm" id="wardCopyLinkBtn" type="button"><span aria-hidden="true">${COPY_ICON}</span><span class="btn-label">Copy link</span></button>
+          </div>
         </div>
-        <div class="whead-origin-block">
-          <span class="label">Key areas</span>
-          <p>${neighbourhoodsText(w)}</p>
+        <div class="whead-stats hero-stats">
+          ${demoParts.map(p => `<div class="hero-stat"><span class="hero-stat-num">${p.value}</span><span class="hero-stat-label">${esc(p.label)}</span></div>`).join('')}
+          <div class="hero-stat hero-stat--highlight"><span class="hero-stat-num">${fmt(w.polling ?? 0)}</span><span class="hero-stat-label">Polling booths</span></div>
         </div>
       </div>
     </div>
   `;
 }
 
-function renderCandidates(w) {
+function renderOverview(w) {
+  const oldWards = oldWardsText(w);
   return `
-    <section class="sec candgrid">
-      <h3>Who is contesting the election in your ward? <span class="pill pill-soon">Coming soon</span></h3>
-      <p class="cand-intro">Placeholders for Ward ${fmt(w.ward_id)}. Photo, party, symbol, affidavit and manifesto will load here once candidates are declared.</p>
-      <div class="candgrid-row">
-        ${[1, 2, 3].map(n => `
-          <div class="candcard">
-            <div class="candphoto"></div>
-            <div class="candname">Candidate ${n}</div>
-            <div class="candparty">Party</div>
-            <div class="cand-detail"><span class="k">Affidavit</span> assets, cases, education</div>
-            <div class="cand-detail"><span class="k">Manifesto</span> stated priorities for the ward</div>
+    <section class="sec" id="overview">
+      <div class="band-inner">
+        <span class="eyebrow eyebrow--red">Overview</span>
+        <h3>How this ward came to be.</h3>
+        <div class="whead-origin-block">
+          <span class="label">Formed from old wards</span>
+          ${oldWards ? `
+            <div class="oldwards-list">
+              ${oldWards.map(o => `
+                <div class="oldward-row">
+                  <span class="oldward-name">${esc(o.name)}</span>
+                  <span class="oldward-track"><span class="oldward-fill" style="width:${o.pct != null ? Math.max(0, Math.min(100, Number(o.pct))) : 0}%"></span></span>
+                  <span class="oldward-pct">${o.pct != null ? `${o.pct}%` : ''}</span>
+                </div>
+              `).join('')}
+            </div>
+          ` : `<p>Not available</p>`}
+        </div>
+        <div class="whead-origin-block">
+          <span class="label">Key areas</span>
+          <div class="key-areas-pills">
+            ${w.neighbourhoods && w.neighbourhoods.length
+              ? w.neighbourhoods.map(n => `<span class="pill pill--band">${esc(n)}</span>`).join('')
+              : `<p>${neighbourhoodsText(w)}</p>`}
           </div>
-        `).join('')}
+        </div>
       </div>
     </section>
   `;
 }
 
-const RESET_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>';
-
-const EXTERNAL_LINK_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>';
-
-const TEMPERATURE_ICON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14.5V5a2 2 0 0 0-4 0v9.5a4 4 0 1 0 4 0z"/></svg>';
-
-const INFO_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
-
-const FEEDBACK_FORM_URL = 'https://forms.office.com/Pages/ResponsePage.aspx?id=durzKFDheUu_0kCRJE6V1UD6pxYgE_lDvC_e0YLsHi9UNk05RFRIUEFaS1U3VkpTMDRYTDMxR1pKSi4u';
-
-const TEMPERATURE_PDF_URL = 'public/data/Temperature_2015_2026.pdf';
+function renderCandidates(w) {
+  return `
+    <section class="sec sec--tint" id="candidates">
+      <div class="band-inner">
+        <h3>Who is contesting the election in your ward? <span class="pill pill-soon">Coming soon</span></h3>
+        <p class="cand-intro">Placeholders for Ward ${fmt(w.ward_id)}. Photo, party, symbol, affidavit and manifesto will load here once candidates are declared.</p>
+        <div class="candgrid-row">
+          ${[1, 2, 3].map(n => `
+            <div class="candcard">
+              <div class="candphoto"></div>
+              <div class="candname">Candidate ${n}</div>
+              <div class="candparty">Party</div>
+              <div class="cand-detail"><span class="k">Affidavit</span> assets, cases, education</div>
+              <div class="cand-detail"><span class="k">Manifesto</span> stated priorities for the ward</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </section>
+  `;
+}
 
 // Static badge labels for amenityRows() keys whose benchmarks_for_WID.csv entry
 // has no numeric `benchmark` (so no recommended-count progress bar can be
@@ -189,23 +370,27 @@ function renderWardMap(uid, W, w) {
   const initialCount = activeLayer ? layerPoints(uid, activeLayer, W).length : 0;
   const walkEligible = activeLayer ? LAYER[activeLayer].walk : false;
   return `
-    <section class="sec">
-      <h3>Ward map</h3>
-      <div class="wardmap-frame">
-        <div id="wardMap" class="map map-ward" aria-label="Map of ${esc(w.ward_name)}"></div>
-        ${activeLayer ? `
-          <div class="wardmap-badge" id="wardMapBadge">
-            <span class="wardmap-badge-dot" style="background:${LAYER[activeLayer].color}" aria-hidden="true"></span>
-            <span id="wardMapBadgeLabel">Showing: ${esc(amenityLabel(activeLayer, uid, W, w))} (${fmt(initialCount)})</span>
-          </div>
-        ` : ''}
-      </div>
-      <div class="wardmap-toolbar">
-        <label class="buffer-toggle"><input type="checkbox" id="bufferToggle" ${bufferOn ? 'checked' : ''} ${walkEligible ? '' : 'disabled'}> Show 800m walk reach</label>
-        <button class="btn btn-secondary btn-sm" id="wardMapReset" type="button"><span aria-hidden="true">${RESET_ICON}</span>Reset</button>
-      </div>
-      <div class="amenity-filters">
-        ${renderAmenityFilters(uid, W, w)}
+    <section class="sec" id="ward-map">
+      <div class="band-inner">
+        <span class="eyebrow eyebrow--red">Ward map</span>
+        <h3>Everything within a 15-minute walk.</h3>
+        <p class="sec-sub">Toggle the 800m walk reach to see how much of ${esc(w.ward_name)} is actually served by each amenity type.</p>
+        <div class="wardmap-frame">
+          <div id="wardMap" class="map map-ward" aria-label="Map of ${esc(w.ward_name)}"></div>
+          ${activeLayer ? `
+            <div class="wardmap-badge" id="wardMapBadge">
+              <span class="wardmap-badge-dot" style="background:${LAYER[activeLayer].color}" aria-hidden="true"></span>
+              <span id="wardMapBadgeLabel">Showing: ${esc(amenityLabel(activeLayer, uid, W, w))} (${fmt(initialCount)})</span>
+            </div>
+          ` : ''}
+        </div>
+        <div class="wardmap-toolbar">
+          <label class="buffer-toggle"><input type="checkbox" id="bufferToggle" ${bufferOn ? 'checked' : ''} ${walkEligible ? '' : 'disabled'}> Show 800m walk reach</label>
+          <button class="btn btn-secondary btn-sm" id="wardMapReset" type="button"><span aria-hidden="true">${RESET_ICON}</span>Reset</button>
+        </div>
+        <div class="amenity-filters">
+          ${renderAmenityFilters(uid, W, w)}
+        </div>
       </div>
     </section>
   `;
@@ -266,18 +451,32 @@ function renderBenchmarkBlock(key, label, count, w) {
 
 function renderAmenities(uid, W, w) {
   const rows = amenityRows(uid, W, w).filter(([key]) => !VULNERABILITY_KEYS.includes(key));
+  const cardHtml = ([key, label, count]) => {
+    const b = benchmarkFor(key, label, count, w);
+    const tone = b ? b.tone : null;
+    return `
+      <div class="amrow amcard${tone ? ` amcard--${tone}` : ''}" data-layer="${key}">
+        <span class="am-icon" aria-hidden="true">${LAYER[key].icon}</span>
+        <span class="am-label">${esc(label)}</span>
+        <span class="cnt">${fmt(count || 0)}</span>
+        ${renderBenchmarkBlock(key, label, count, w)}
+      </div>
+    `;
+  };
   return `
-    <section class="sec">
-      <h3>Amenities</h3>
-      <div class="amgrid amgrid-benchmarks">
-        ${rows.map(([key, label, count]) => `
-          <div class="amrow" data-layer="${key}">
-            <span class="am-icon" aria-hidden="true">${LAYER[key].icon}</span>
-            <span class="am-label">${esc(label)}</span>
-            <span class="cnt">${fmt(count || 0)}</span>
-            ${renderBenchmarkBlock(key, label, count, w)}
-          </div>
-        `).join('')}
+    <section class="sec" id="amenities">
+      <div class="band-inner">
+        <span class="eyebrow eyebrow--red">Amenities</span>
+        <h3>What&rsquo;s actually here &mdash; and what isn&rsquo;t.</h3>
+        <p class="sec-sub">Counts measured against URDPFI-based benchmarks for a ward this size.</p>
+        <div class="amenities-legend">
+          <span><span class="legend-dot legend-dot--green"></span>Benchmark met</span>
+          <span><span class="legend-dot legend-dot--red"></span>Under-served</span>
+          <span><span class="legend-dot legend-dot--blue"></span>Geography based</span>
+        </div>
+        <div class="amgrid amgrid-benchmarks">
+          ${rows.map(cardHtml).join('')}
+        </div>
       </div>
     </section>
   `;
@@ -303,67 +502,82 @@ function temperatureText(w) {
   const deltaText = delta > 0 ? `Increased by ${fmtTrunc(deltaAbs, 1)}&deg;C since 2015`
     : delta < 0 ? `Decreased by ${fmtTrunc(deltaAbs, 1)}&deg;C since 2015`
     : 'No change since 2015';
-  return { current: fmtTrunc(current, 1), deltaText };
+  return { current: fmtTrunc(current, 1), deltaText, delta };
 }
 
-function renderTemperatureRow(w) {
+function renderTemperatureCard(w) {
   const t = temperatureText(w);
-  const text = t.current == null
-    ? '<strong>Temperature:</strong> N/A'
-    : `<strong>Temperature:</strong> ${t.current}&deg;C <span class="am-temp-delta">(${t.deltaText})</span>`;
+  const tone = t.current == null ? '' : (t.delta > 0 ? 'amcard--red' : 'amcard--green');
   return `
-    <div class="amrow-static">
+    <div class="temp-card ${tone}">
       <span class="am-icon" aria-hidden="true">${TEMPERATURE_ICON}</span>
-      <span class="am-temp-text">${text} <a class="temp-info-link" href="${TEMPERATURE_PDF_URL}" target="_blank" rel="noopener" title="About this temperature data" aria-label="About this temperature data (opens PDF in a new tab)">${INFO_ICON}</a></span>
+      <span class="temp-card-text">
+        ${t.current == null ? 'N/A' : `${t.current}&deg;C <span class="temp-card-delta">${t.deltaText}</span>`}
+      </span>
+      <a class="temp-info-link" href="${TEMPERATURE_PDF_URL}" target="_blank" rel="noopener" title="About this temperature data" aria-label="About this temperature data (opens PDF in a new tab)">${INFO_ICON}</a>
     </div>
   `;
 }
 
-function renderVulnerability(uid, W, w) {
+function renderSafetyClimate(uid, W, w) {
   const rows = amenityRows(uid, W, w).filter(([key]) => VULNERABILITY_KEYS.includes(key));
   return `
-    <section class="sec">
-      <h3>Vulnerability hotspots</h3>
-      <div class="amgrid">
-        ${rows.map(([key, label, count]) => `
-          <div class="amrow" data-layer="${key}">
-            <span class="am-icon" aria-hidden="true">${LAYER[key].icon}</span>
-            <span class="am-label">${esc(label)}</span>
-            <span class="cnt">${fmt(count || 0)}</span>
+    <section class="sec safety-climate-wrap" id="safety-climate">
+      <div class="band-inner">
+        <div class="safety-card sec--dark">
+          <span class="eyebrow eyebrow--dark">Safety &amp; climate</span>
+          <h3>Vulnerability hotspots.</h3>
+          <div class="amgrid">
+            ${rows.map(([key, label, count]) => `
+              <div class="amrow" data-layer="${key}">
+                <span class="am-icon" aria-hidden="true">${LAYER[key].icon}</span>
+                <span class="am-label">${esc(label)}</span>
+                <span class="cnt">${fmt(count || 0)}</span>
+              </div>
+            `).join('')}
           </div>
-        `).join('')}
+          ${renderTemperatureCard(w)}
+        </div>
+        <div class="sahaaya-card sec--dark">
+          <span class="eyebrow eyebrow--dark">BBMP Sahaaya</span>
+          <h3>What neighbours complain about most.</h3>
+          <p class="sec-sub">Most-reported civic complaints in this ward</p>
+          <ol class="sahaaya-ranked">
+            <li><span class="sahaaya-rank">01</span><span class="sahaaya-name">Roads &amp; potholes</span><span class="sahaaya-bar"><span class="sahaaya-bar-fill--yellow" style="width:100%"></span></span></li>
+            <li><span class="sahaaya-rank">02</span><span class="sahaaya-name">Garbage &amp; sanitation</span><span class="sahaaya-bar"><span class="sahaaya-bar-fill--light-green" style="width:70%"></span></span></li>
+            <li><span class="sahaaya-rank">03</span><span class="sahaaya-name">Water, drains &amp; flooding</span><span class="sahaaya-bar"><span class="sahaaya-bar-fill--blue" style="width:45%"></span></span></li>
+          </ol>
+        </div>
       </div>
-      ${renderTemperatureRow(w)}
     </section>
   `;
 }
 
 function renderFacts(w) {
   const facts = buildFacts(w);
+  if (!facts.length) return '';
   return `
-    <section class="sec">
-      <h3>Did you know?</h3>
-      <div class="factslist">
-        ${facts.map(f => `<div class="fact">${esc(f)}</div>`).join('')}
+    <section class="sec facts-band">
+      <div class="band-inner">
+        <span class="eyebrow eyebrow--dark">Did you know?</span>
+        <h3>Three numbers worth remembering.</h3>
+        <div class="factslist">
+          ${facts.map(f => `<div class="fact">${esc(f)}</div>`).join('')}
+        </div>
       </div>
     </section>
   `;
 }
 
-function renderAsk(w) {
+function renderAskCandidates(w) {
   const questions = suggestedQuestions(w);
   return `
-    <section class="sec">
-      <h3>Questions to ask your candidates</h3>
-      <ul class="qlist">${questions.map(q => `<li>${esc(q)}</li>`).join('')}</ul>
-    </section>
-    <section class="sec">
-      <h3>BBMP Sahaaya &mdash; Top Grievances</h3>
-      <p class="sahaaya-sub">Most-reported civic complaints in this ward</p>
-      <div class="sahaaya-cats">
-        <span class="pill">Roads &amp; potholes</span>
-        <span class="pill">Garbage &amp; sanitation</span>
-        <span class="pill">Water / drains / flooding</span>
+    <section class="sec" id="ask-candidates">
+      <div class="band-inner">
+        <span class="eyebrow eyebrow--red">Ask your candidates</span>
+        <h3>Five questions this ward&rsquo;s data suggests.</h3>
+        <p class="sec-sub">Generated from the gaps above.</p>
+        <ol class="qlist qlist--numbered">${questions.map((q, i) => `<li><span class="q-num">${String(i + 1).padStart(2, '0')}</span><span>${esc(q)}</span></li>`).join('')}</ol>
       </div>
     </section>
   `;
@@ -371,11 +585,16 @@ function renderAsk(w) {
 
 function renderFeedback() {
   return `
-    <section class="sec">
-      <h3>Spotted something wrong? Let us know.</h3>
-      <p class="cand-intro">Help us improve ward-level information by reporting missing details, incorrect information, or civic issues you've observed. Your feedback helps keep this dashboard accurate and useful for everyone.</p>
-      <div class="feedback-actions">
-        <a class="btn btn-primary" href="${FEEDBACK_FORM_URL}" target="_blank" rel="noopener" aria-label="Submit feedback about this ward (opens in a new tab)">Submit feedback<span aria-hidden="true">${EXTERNAL_LINK_ICON}</span></a>
+    <section class="sec feedback-band" id="feedback">
+      <div class="band-inner feedback-inner">
+        <div>
+          <span class="eyebrow eyebrow--red">Feedback</span>
+          <h3>Spotted something wrong? Let us know.</h3>
+          <p class="cand-intro">Help us improve ward-level information by reporting missing details, incorrect information, or civic issues you've observed.</p>
+        </div>
+        <div class="feedback-actions">
+          <a class="btn btn-primary" href="${FEEDBACK_FORM_URL}" target="_blank" rel="noopener" aria-label="Submit feedback about this ward (opens in a new tab)">Submit feedback<span aria-hidden="true">${EXTERNAL_LINK_ICON}</span></a>
+        </div>
       </div>
     </section>
   `;
@@ -455,7 +674,10 @@ function wireLayerClicks(uid, W) {
   document.querySelectorAll('.amrow').forEach(row => {
     if (layerPoints(uid, row.dataset.layer, W).length > 0) {
       row.classList.add('is-clickable');
-      row.addEventListener('click', () => setLayer(uid, W, row.dataset.layer));
+      row.addEventListener('click', () => {
+        setLayer(uid, W, row.dataset.layer);
+        document.getElementById('ward-map')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
     }
   });
   const bufferToggle = document.getElementById('bufferToggle');
@@ -485,9 +707,10 @@ export function initWardView({ W, benchmarks }) {
   });
 }
 
-export function openWard(uid, { onOpenWard } = {}) {
+export function openWard(uid, { onOpenWard, onNavigateHome } = {}) {
   const W = dataRef;
   const w = W[uid];
+  onNavigateHomeRef = onNavigateHome;
   currentLayer = defaultLayer(uid, W);
   bufferOn = false;
   activeSecondaryPopup = null;
@@ -495,15 +718,28 @@ export function openWard(uid, { onOpenWard } = {}) {
 
   const container = document.getElementById('wardContainer');
   container.innerHTML = `
-    ${renderHead(w)}
+    ${renderHead(uid, w)}
+    ${renderSubnav()}
+    ${renderOverview(w)}
     ${renderCandidates(w)}
     ${renderWardMap(uid, W, w)}
     ${renderAmenities(uid, W, w)}
-    ${renderVulnerability(uid, W, w)}
     ${renderFacts(w)}
-    ${renderAsk(w)}
+    ${renderSafetyClimate(uid, W, w)}
+    ${renderAskCandidates(w)}
     ${renderFeedback()}
   `;
+
+  initWardSubnav();
+  wireShareButtons(uid, w.ward_name);
+  const homeLink = document.getElementById('wheadHomeLink');
+  if (homeLink) {
+    homeLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (onNavigateHomeRef) onNavigateHomeRef();
+    });
+  }
+
   // Deferred until web fonts finish loading: measuring scrollHeight/clientHeight
   // immediately after innerHTML would race the Manrope/PT Sans <link> fonts —
   // text still on the fallback font can measure as fitting within 2 lines, then

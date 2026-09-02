@@ -30,14 +30,15 @@ mark {
 
 .btn-primary { background: var(--green-d); color: #fff; }
 .btn-primary:hover { background: #3c6b2a; }
-[data-theme="dark"] .btn-primary { background: var(--green); color: #10160b; }
-[data-theme="dark"] .btn-primary:hover { background: var(--green-d); }
 
 .btn-secondary { background: var(--surface); color: var(--ink); border-color: var(--line2); }
 .btn-secondary:hover { background: var(--surface-2); }
 
 .btn-whatsapp { background: #25d366; color: #06341c; }
 .btn-whatsapp:hover { filter: brightness(0.95); }
+
+.btn-sm { min-height: 36px; padding: 7px 14px; font-size: 0.85rem; }
+.btn-sm svg { flex-shrink: 0; }
 
 .pill {
   display: inline-block;
@@ -60,9 +61,6 @@ mark {
   transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) ease, background-color var(--dur) ease;
 }
 .icon-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-2); background: var(--surface-2); }
-.icon-moon { display: none; }
-[data-theme="dark"] .icon-sun { display: none; }
-[data-theme="dark"] .icon-moon { display: block; }
 
 .loading-spinner {
   width: 28px; height: 28px;
@@ -83,6 +81,12 @@ mark {
 }
 .map-corp { height: 350px; margin: 16px 0; }
 .map-ward { height: 430px; margin: 10px 0; }
+
+/* Ward Map's canvas is edge-to-edge (see .wardmap-frame's own full-bleed
+   trick), so it must not keep .map's shared rounded-card treatment — the
+   home page's inset .map-corp instance is untouched since it doesn't carry
+   this ID. */
+#wardMap { border-radius: 0; border: none; box-shadow: none; }
 
 .map-reset-btn { position: absolute; top: var(--space-2); right: var(--space-2); z-index: 2; }
 /* .wardmap-badge sits at top/right: var(--space-3) on the same box (.wardmap-frame
@@ -136,7 +140,7 @@ mark {
 }
 .chip-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 
-.sec, .whead, .why-vote {
+.sec, .why-vote {
   margin: var(--space-6) 0;
   padding: var(--space-5);
   background: var(--surface-2);
@@ -146,47 +150,93 @@ mark {
 }
 .sec h3 { font-family: var(--font-display); font-weight: 600; font-size: 1.05rem; margin-bottom: var(--space-3); }
 
-/* -- cover / home view -- */
+/* -- cover / home hero -- */
 
-.cover { padding: 32px 0 48px; }
+/* Full-bleed pattern: these bands live inside #homeContainer/#wardContainer
+   (a .container, which is max-width + centered), but the mockups show their
+   colored background spanning the full viewport edge-to-edge. Breaking out
+   via negative viewport-relative margins + matching horizontal padding lets
+   the background bleed full-width while .band-inner re-applies .container's
+   own max-width scale so the actual content still lines up with every other
+   section on the page. */
+.cover, .why-vote-band, .methodology-band, .whead, .facts-band, .feedback-band, .basics-section,
+#overview, #candidates, #ward-map, #amenities, #safety-climate, #ask-candidates, #wardSubnav,
+#methHero, #methAiNote, #methStep1, #methStep2, #methStep3, #methSources,
+.faq-topic-section, .faq-section, .cat-nav {
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding-left: clamp(14px, 4vw, 24px);
+  padding-right: clamp(14px, 4vw, 24px);
+}
+.band-inner { width: 100%; max-width: 720px; margin: 0 auto; }
+@media (min-width: 900px) { .band-inner { max-width: 960px; } }
+@media (min-width: 1200px) { .band-inner { max-width: 1140px; } }
+@media (min-width: 1440px) { .band-inner { max-width: 1280px; } }
+
+.cover {
+  padding-top: var(--space-6);
+  padding-bottom: var(--space-7);
+  background: var(--forest);
+  color: var(--on-forest);
+}
 .eyebrow {
   display: inline-flex; align-items: center; gap: 7px;
-  font-size: 0.82rem; font-weight: 600; color: var(--green-d);
+  padding: 4px 12px;
+  border: 1px solid var(--yellow-line);
+  border-radius: 999px;
+  font-size: 0.76rem; font-weight: 700; color: var(--yellow);
   text-transform: uppercase; letter-spacing: .04em;
 }
+.eyebrow--dark { border: none; color: var(--yellow); background: none; padding: 0; }
+.eyebrow--red { border: none; padding: 0; color: var(--red); }
 .eyebrow-dot {
-  width: 7px; height: 7px; border-radius: 50%; background: var(--green);
+  width: 7px; height: 7px; border-radius: 50%; background: var(--yellow);
   animation: pulse 2s ease-in-out infinite;
 }
-[data-theme="dark"] .eyebrow-dot { background: var(--lime); }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 
 .headline {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(1.9rem, 6vw, 2.6rem);
-  line-height: 1.15;
-  margin: 12px 0;
+  font-size: clamp(1.9rem, 6vw, 3rem);
+  line-height: 1.12;
+  margin: 14px 0 10px;
 }
 .headline mark { white-space: nowrap; }
-.hero-subtitle { color: var(--ink); font-size: 0.95rem; margin: var(--space-3) 0; }
+.hero-subtitle { color: var(--on-forest-muted); font-size: 0.98rem; max-width: 62ch; margin: 0 0 var(--space-5); }
 #homeContainer .headline { font-size: clamp(1.7rem, 5.5vw, 2.4rem); }
 
-.why-vote {
-  display: flex; flex-direction: column;
-  padding: var(--space-3) var(--space-5);
+.cover-layout { display: flex; flex-direction: column; gap: var(--space-5); }
+@media (min-width: 900px) {
+  .cover-layout { flex-direction: row; align-items: center; justify-content: space-between; gap: var(--space-6); }
+  .cover-main { flex: 1.3; }
+  .cover-stats { flex: 0 0 auto; }
 }
-.why-vote-head { display: flex; align-items: center; gap: var(--space-1); }
-.why-vote-icon {
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  width: 40px; height: 40px; border-radius: var(--radius-s);
-  background: var(--surface); color: var(--green-d);
+
+.hero-stats {
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);
+  margin-top: var(--space-5); max-width: 420px;
 }
-[data-theme="dark"] .why-vote-icon { color: var(--green); }
-.why-vote-title { font-family: var(--font-display); font-weight: 700; font-size: 1.2rem; color: var(--ink); }
-.why-vote-subtitle { font-weight: 600; font-size: 0.98rem; color: var(--green-d); margin-top: 2px; }
-[data-theme="dark"] .why-vote-subtitle { color: var(--green); }
-.why-vote-body { display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-1); }
+.hero-stat {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: var(--space-3) var(--space-4);
+  background: var(--forest-2); border-radius: var(--radius-m);
+}
+.hero-stat--alert { background: var(--red); }
+.hero-stat-num { font-family: var(--font-stat); font-weight: 800; font-size: 1.7rem; color: var(--on-forest); }
+.hero-stat--alert .hero-stat-num { color: #fff; }
+.hero-stat-label { font-size: 0.78rem; color: var(--on-forest-muted); }
+.hero-stat--alert .hero-stat-label { color: rgba(255,255,255,.85); }
+
+/* -- why-vote band -- */
+
+.why-vote-band { background: var(--yellow); color: var(--yellow-ink); padding-top: var(--space-6); padding-bottom: var(--space-6); margin-top: 0; margin-bottom: 0; }
+.why-vote-band-inner { display: flex; flex-direction: column; gap: var(--space-4); }
+.why-vote-head { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2); }
+.why-vote-head .eyebrow--dark { color: var(--ink); }
+.why-vote-icon { display: flex; align-items: center; color: var(--yellow-ink); }
+.why-vote-title { font-family: var(--font-display); font-weight: 700; font-size: 1.6rem; color: var(--ink); margin: 0; line-height: 1.2; }
+.why-vote-body { display: flex; flex-direction: column; gap: var(--space-3); }
 .why-vote-body p { margin: 0; color: var(--ink); font-size: 0.95rem; line-height: 1.6; }
 .why-vote-more {
   max-height: 0;
@@ -196,7 +246,9 @@ mark {
   gap: var(--space-3);
   transition: max-height .3s ease;
 }
-.why-vote-actions { display: flex; justify-content: flex-end; margin-top: var(--space-3); }
+.why-vote-pills { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
+.pill--band { background: rgba(24,35,15,.1); color: var(--ink); font-weight: 700; }
+.why-vote-actions { display: flex; justify-content: flex-start; margin-top: var(--space-3); }
 .why-vote-toggle {
   display: inline-flex;
   align-items: center;
@@ -207,29 +259,97 @@ mark {
   font-family: var(--font-body);
   font-weight: 700;
   font-size: 0.92rem;
-  color: var(--green-d);
+  color: var(--ink);
   cursor: pointer;
   transition: color var(--dur) var(--ease-out);
 }
-[data-theme="dark"] .why-vote-toggle { color: var(--green); }
-.why-vote-toggle:hover { color: var(--green); }
-[data-theme="dark"] .why-vote-toggle:hover { color: var(--green-d); }
+.why-vote-toggle:hover { color: var(--red-d); }
 .why-vote-toggle-arrow { display: inline-block; transition: transform var(--dur) var(--ease-out); }
 .why-vote-toggle--more:hover .why-vote-toggle-arrow { transform: translateX(2px); }
 .why-vote-toggle--less:hover .why-vote-toggle-arrow { transform: translateY(-2px); }
 
-.ward-def { color: var(--ink); font-size: 0.95rem; margin: var(--space-3) 0; }
-.hero-kicker {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.15rem;
-  color: var(--green-d);
-  margin-bottom: var(--space-3);
+@media (min-width: 900px) {
+  .why-vote-band-inner { flex-direction: row; align-items: flex-start; gap: var(--space-6); }
+  .why-vote-head-col { flex: 0 0 340px; }
+  .why-vote-body-col { flex: 1; }
+}
+
+/* -- ward explorer -- */
+
+.ward-explorer { margin: var(--space-6) 0; }
+.ward-explorer-head { display: flex; flex-direction: column; gap: var(--space-3); margin-bottom: var(--space-4); }
+.section-title { font-family: var(--font-display); font-weight: 700; font-size: 1.5rem; margin: 6px 0 4px; color: var(--ink); }
+.section-sub { color: var(--muted); font-size: 0.9rem; margin: 0; }
+
+/* Single non-wrapping, horizontally-scrollable row (same pattern as .cat-nav/
+   .ward-subnav elsewhere in this codebase) rather than wrapping onto a
+   second line when all 6 pills don't fit narrow mobile widths. */
+.corp-filter-pills {
+  display: flex; flex-wrap: nowrap; overflow-x: auto; gap: var(--space-1);
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.corp-filter-pills::-webkit-scrollbar { display: none; }
+.corp-filter-pill {
+  flex-shrink: 0;
+  min-height: 36px; padding: 6px 14px;
+  border-radius: 999px; border: 1px solid var(--line2);
+  background: var(--surface); color: var(--muted);
+  font-family: var(--font-stat); font-weight: 600; font-size: 0.85rem;
+  cursor: pointer;
+  transition: background-color var(--dur) ease, color var(--dur) ease, border-color var(--dur) ease;
+}
+.corp-filter-pill:hover { border-color: var(--green-ring); }
+.corp-filter-pill.active { background: var(--forest); color: var(--on-forest); border-color: var(--forest); }
+
+.ward-explorer-layout { display: flex; flex-direction: column; gap: var(--space-4); }
+.ward-browse { display: flex; flex-direction: column; gap: var(--space-2); }
+.ward-browse-head { display: flex; align-items: center; }
+.ward-browse-title { font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; }
+.ward-list--browse { max-height: 320px; }
+
+@media (min-width: 900px) {
+  .ward-explorer-head { flex-direction: row; align-items: flex-end; justify-content: space-between; }
+  .ward-explorer-layout { flex-direction: row; align-items: flex-start; gap: var(--space-5); }
+  /* Explicit height (not just flex-basis) so the map matches the browse
+     list's real rendered height — .ward-list--browse's own max-height was
+     previously losing a same-specificity cascade fight to the later, more
+     generic `.ward-list { max-height: 480px }` responsive rule, leaving the
+     map (fixed 350px) visibly shorter than the list next to it. */
+  .ward-explorer-layout .map-corp { flex: 1.3; height: 480px; margin: 0; }
+  .ward-browse { flex: 1; }
+  .ward-explorer-layout .ward-list--browse { max-height: 480px; }
 }
 
 .map-caption { color: var(--hint); font-size: 0.85rem; margin: var(--space-2) 0; }
 
-.corp-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: var(--space-5); }
+.corp-legend { display: flex; flex-wrap: wrap; gap: 14px; margin: var(--space-3) 0 0; }
+
+/* -- the basics -- */
+
+.basics-section { background: var(--surface); padding-top: var(--space-6); padding-bottom: var(--space-6); margin-top: 0; margin-bottom: 0; }
+.basics-band-inner { display: flex; flex-direction: column; gap: var(--space-4); }
+.basics-sub { color: var(--muted); font-size: 0.9rem; margin: 4px 0 0; }
+.basics-list { margin-top: var(--space-3); display: flex; flex-direction: column; gap: var(--space-2); }
+/* .basics-item also carries the shared .panel class, which sets its own
+   margin: var(--space-3) 0 — left in place, that doubles up with this flex
+   column's own `gap`, producing ~32px between items instead of 8px. */
+.basics-list .basics-item { margin: 0; }
+.basics-item summary { display: flex; align-items: baseline; gap: var(--space-2); }
+/* display:flex above suppresses <summary>'s native disclosure triangle (it
+   only renders when display computes to list-item) — .basics-chevron is an
+   explicit replacement, not a fallback, so these hide any residual native
+   marker defensively. */
+.basics-item summary::-webkit-details-marker, .basics-item summary::marker { display: none; }
+.basics-num { font-family: var(--font-stat); font-weight: 800; color: var(--red); font-size: 0.85rem; }
+.basics-chevron { margin-left: auto; flex-shrink: 0; align-self: center; color: var(--muted); transition: transform var(--dur) var(--ease-out); }
+.basics-item[open] .basics-chevron { transform: rotate(180deg); }
+
+@media (min-width: 900px) {
+  .basics-band-inner { flex-direction: row; align-items: flex-start; gap: var(--space-6); }
+  .basics-head-col { flex: 0 0 320px; }
+  .basics-list-col { flex: 1; }
+  .basics-list-col .basics-list { margin-top: 0; }
+}
 
 .panel {
   background: var(--surface);
@@ -244,10 +364,25 @@ mark {
 .panel summary { cursor: pointer; font-weight: 600; min-height: 24px; }
 .panel p { margin: 10px 0 2px; color: var(--ink); }
 
+/* -- methodology teaser band -- */
+
+.methodology-band { background: var(--sage); color: var(--sage-ink); padding-top: var(--space-6); padding-bottom: var(--space-6); margin-top: 0; margin-bottom: 0; }
+.methodology-band-inner { display: flex; flex-direction: column; gap: var(--space-4); align-items: flex-start; }
+.methodology-band .section-title { color: var(--sage-ink); }
+.methodology-band .eyebrow--dark { color: var(--forest); border: none; padding: 0; }
+.methodology-band-cta { display: flex; flex-direction: column; align-items: flex-start; }
+.meth-band-sources { margin: var(--space-2) 0 0; font-size: 0.8rem; color: var(--sage-ink); opacity: .75; }
+
+@media (min-width: 900px) {
+  .methodology-band-inner { flex-direction: row; align-items: center; justify-content: space-between; }
+  .methodology-band-cta { align-items: flex-end; }
+  .meth-band-sources { text-align: right; }
+}
+
 /* -- ward search & list (home view) -- */
 
-.find-controls { display: flex; gap: var(--space-2); margin: var(--space-5) 0 var(--space-2); flex-wrap: wrap; }
-.find-search-wrap { position: relative; flex: 1; min-width: 180px; }
+.find-controls { display: flex; gap: var(--space-2); margin: var(--space-5) 0 0; flex-wrap: wrap; }
+.find-search-wrap { position: relative; flex: 1 1 220px; min-width: 180px; }
 .find-controls input {
   width: 100%;
   min-height: 44px;
@@ -260,8 +395,7 @@ mark {
   font-size: 0.95rem;
   transition: border-color var(--dur) ease, box-shadow var(--dur) ease;
 }
-.find-controls input:focus-visible { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-ring); outline: none; }
-[data-theme="dark"] .find-controls input:focus-visible { border-color: var(--lime); box-shadow: 0 0 0 3px color-mix(in srgb, var(--lime) 35%, transparent); }
+.find-controls input:focus-visible { border-color: var(--yellow); box-shadow: 0 0 0 3px color-mix(in srgb, var(--yellow) 35%, transparent); outline: none; }
 .find-count { color: var(--hint); font-size: 0.85rem; margin: var(--space-2) 0; }
 
 .ward-suggest {
@@ -277,6 +411,7 @@ mark {
   padding: 10px var(--space-3);
   border-radius: var(--radius-s);
   cursor: pointer;
+  color: var(--ink);
   transition: background-color var(--dur) ease;
 }
 .ward-suggest-row:hover, .ward-suggest-row:focus-visible { background: var(--surface-2); }
@@ -286,8 +421,9 @@ mark {
   max-height: 400px; overflow-y: auto; overscroll-behavior: contain;
   border: 1px solid var(--line); border-radius: var(--radius-m);
 }
+.ward-list[hidden] { display: none; } /* .ward-list's own display:flex otherwise beats the native [hidden] UA rule */
 .ward-row {
-  display: flex; justify-content: space-between; align-items: baseline;
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-2);
   min-height: 44px;
   padding: 12px var(--space-3);
   border-bottom: 1px solid var(--line);
@@ -298,26 +434,146 @@ mark {
 }
 .ward-row:hover { background: var(--surface-2); border-left-color: var(--green); padding-left: calc(var(--space-3) + 4px); }
 .ward-row:active { background: var(--green-soft); }
+.ward-row-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .ward-row-name { font-weight: 600; }
 .ward-row-meta { color: var(--muted); font-size: 0.82rem; }
+.ward-row-arrow { flex-shrink: 0; color: var(--muted); transition: transform var(--dur) var(--ease-out), color var(--dur) ease; }
+.ward-row:hover .ward-row-arrow { transform: translateX(2px); color: var(--green-d); }
 
 /* -- ward view -- */
 
-.whead h2 { font-family: var(--font-display); font-weight: 700; margin: 4px 0 2px; font-size: 1.6rem; }
-.whead .kn { color: var(--muted); font-weight: 400; font-size: 1rem; }
-.whead-meta { color: var(--muted); font-size: 0.88rem; margin: 0 0 12px; }
-.whead-origin { display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-2); }
+.whead {
+  margin-top: 0;
+  margin-bottom: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--forest);
+  color: var(--on-forest);
+  padding-top: var(--space-5);
+  padding-bottom: var(--space-6);
+}
+.whead-breadcrumb { font-size: 0.8rem; color: var(--on-forest-muted); margin: 0 0 var(--space-3); }
+.whead-breadcrumb a { color: var(--on-forest-muted); text-decoration: none; }
+.whead-breadcrumb a:hover { color: var(--on-forest); }
+.whead-breadcrumb span { color: var(--on-forest); }
+.whead-top { display: flex; flex-direction: column; gap: var(--space-3); }
+.whead h2 { font-family: var(--font-display); font-weight: 700; margin: 0 0 var(--space-2); font-size: 1.7rem; }
+.whead .kn { color: var(--on-forest-muted); font-weight: 400; font-size: 1rem; }
+.whead-badges { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.pill--fill-yellow { background: var(--yellow); color: var(--forest); font-weight: 700; }
+.pill--outline-dark { background: none; border: 1px solid var(--on-forest-line); color: var(--on-forest); }
+.whead-share { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.whead-stats { margin-top: var(--space-2); max-width: none; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.hero-stat--highlight { background: var(--yellow); }
+.hero-stat--highlight .hero-stat-num { color: var(--forest); }
+.hero-stat--highlight .hero-stat-label { color: var(--forest); opacity: .8; }
+
+.whead-origin-block { margin: var(--space-3) 0; }
 .whead-origin-block .label {
   display: block; text-transform: uppercase; font-size: 0.7rem; letter-spacing: .05em;
-  color: var(--hint); margin-bottom: 3px;
+  color: var(--hint); margin-bottom: 6px;
 }
 .whead-origin-block p { margin: 0; font-size: 0.9rem; }
+.oldwards-list { display: flex; flex-direction: column; gap: var(--space-2); }
+.oldward-row { display: grid; grid-template-columns: 1fr 2fr auto; align-items: center; gap: var(--space-2); }
+.oldward-name { font-size: 0.88rem; font-weight: 600; }
+.oldward-track { height: 8px; border-radius: 999px; background: var(--inset); overflow: hidden; }
+.oldward-fill { display: block; height: 100%; border-radius: 999px; background: var(--green); }
+.oldward-pct { font-family: var(--font-stat); font-weight: 700; font-size: 0.85rem; color: var(--muted); text-align: right; }
+.key-areas-pills { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: 4px; }
 
+@media (min-width: 900px) {
+  .whead-top { flex-direction: row; align-items: flex-start; justify-content: space-between; }
+  .whead-share { flex-direction: column; align-items: flex-end; }
+}
+
+/* -- ward sticky sub-nav -- */
+
+/* Full-bleed background (see the full-bleed selector list above, #wardSubnav
+   is in it) — the tab buttons themselves live in .band-inner below, which
+   keeps them aligned with the rest of the page's content column instead of
+   spreading across the now-edge-to-edge background. */
+.ward-subnav {
+  position: sticky; z-index: 30;
+  background: var(--surface); border-bottom: 1px solid var(--line);
+}
+.ward-subnav .band-inner {
+  display: flex; flex-wrap: nowrap; overflow-x: auto; gap: var(--space-1);
+  -webkit-overflow-scrolling: touch;
+  /* Explicit hint that this element owns horizontal panning — sitting this
+     close to a position:sticky ancestor (.ward-subnav), a touch-drag here is
+     otherwise ambiguous to some mobile browsers about which axis/element it
+     should scroll, and can default to scrolling the page instead. */
+  touch-action: pan-x;
+  scrollbar-width: none;
+}
+.ward-subnav .band-inner::-webkit-scrollbar { display: none; }
+.ward-subnav-btn {
+  flex-shrink: 0; white-space: nowrap; cursor: pointer;
+  min-height: 44px;
+  background: none; border: none; border-bottom: 3px solid transparent;
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-stat); font-weight: 600; font-size: 0.85rem; color: var(--muted);
+  transition: color var(--dur) ease, border-color var(--dur) ease;
+}
+.ward-subnav-btn:hover { color: var(--ink); }
+.ward-subnav-btn.active { color: var(--green-d); border-bottom-color: var(--green-d); }
+/* Lets scrollIntoView({block:'start'}) (initWardSubnav()'s click handler)
+   leave room for the sticky header + this sticky sub-nav instead of tucking
+   a section's top underneath them — same mechanism/reasoning as .category's
+   scroll-margin-top for voter-faq-view.js's .cat-nav. --ward-subnav-clearance
+   is set at runtime (a ResizeObserver on #wardSubnav), same convention as
+   --faq-nav-clearance: expected absent from tokens.css's static definitions. */
+#overview, #candidates, #ward-map, #amenities, #safety-climate, #ask-candidates, #feedback {
+  scroll-margin-top: var(--ward-subnav-clearance, 110px);
+}
+
+.sec-sub { color: var(--muted); font-size: 0.9rem; margin: 0 0 var(--space-3); }
+
+/* Full-bleed section shells: every ward-detail section below neutralizes the
+   shared .sec card shell (margin/border/radius/shadow) via its own ID, since
+   .sec's default is a boxed, inset card and these sections instead bleed
+   edge-to-edge with their own full-width background color (see the full-bleed
+   selector list above and .band-inner, which re-applies .container's max-width
+   scale to each section's actual content). */
+#overview {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  background: var(--surface);
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
+#candidates {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
+#ward-map {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  background: var(--surface-3); color: var(--ink);
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
+#amenities {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  background: var(--surface);
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
+#ask-candidates {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  background: var(--bg);
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
+
+.sec--tint { background: var(--surface-2); }
 .candgrid h3 { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
 .pill-soon { background: var(--yellow-soft); color: var(--yellow-ink); }
 .cand-intro { color: var(--ink); font-size: 0.9rem; margin: 0 0 var(--space-3); }
-.candgrid-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-3); }
+.candgrid-row {
+  display: flex; flex-wrap: nowrap; overflow-x: auto; gap: var(--space-4);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.candgrid-row::-webkit-scrollbar { display: none; }
 .candcard {
+  flex: 1 0 200px;
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m);
   padding: var(--space-4); text-align: center;
   box-shadow: var(--shadow-1);
@@ -332,6 +588,25 @@ mark {
 .candparty { color: var(--muted); font-size: 0.82rem; margin: 2px 0 8px; }
 .cand-detail { text-align: left; font-size: 0.8rem; color: var(--muted); margin-top: 6px; }
 .cand-detail .k { display: block; text-transform: uppercase; font-size: 0.68rem; letter-spacing: .05em; color: var(--hint); }
+
+/* -- dark-card sections (Ward map, Vulnerability hotspots) -- */
+.sec--dark { background: var(--forest); color: var(--on-forest); border-color: var(--forest-2); }
+.sec--dark h3 { color: var(--on-forest); }
+.sec--dark-sub { color: var(--on-forest-muted); font-size: 0.9rem; margin: 0 0 var(--space-3); }
+.sec--dark .buffer-toggle { color: var(--on-forest-muted); }
+.sec--dark .am-icon { color: var(--on-forest-muted); }
+.sec--dark .am-label, .sec--dark .cnt { color: var(--on-forest); }
+.sec--dark .amrow, .sec--dark .amrow-static { border-bottom-color: var(--on-forest-line); }
+.sec--dark .meth-list, .sec--dark .sec-sub { color: var(--on-forest-muted); }
+.sec--dark .meth-list a { color: var(--green); }
+.sec--dark .meth-list a:hover { color: var(--on-forest); }
+
+/* -- sage-card section (Methodology step 2) -- */
+.sec--sage { background: var(--sage); color: var(--sage-ink); border-color: var(--sage); }
+.sec--sage h3 { color: var(--sage-ink); }
+.sec--sage .meth-list, .sec--sage .sec-sub { color: var(--sage-ink); }
+.sec--sage .meth-list a { color: var(--green-d); }
+.sec--sage .meth-list a:hover { color: var(--green); }
 
 .wardmap-toolbar {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
@@ -353,7 +628,6 @@ mark {
 }
 .legend-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-2); border-color: var(--green-ring); }
 .legend-btn.active { background: var(--green-soft); color: var(--green-d); border-color: var(--green-ring); }
-[data-theme="dark"] .legend-btn.active { color: var(--green); }
 .amenity-card-icon {
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   width: 28px; height: 28px; border-radius: var(--radius-s);
@@ -364,7 +638,6 @@ mark {
 .amenity-card-name { font-size: 0.72rem; }
 .amenity-card-count { font-family: var(--font-stat); font-weight: 700; font-size: 0.95rem; color: var(--ink); }
 .legend-btn.active .amenity-card-count { color: var(--green-d); }
-[data-theme="dark"] .legend-btn.active .amenity-card-count { color: var(--green); }
 
 .wardmap-frame { position: relative; }
 .wardmap-badge {
@@ -393,9 +666,28 @@ mark {
 .amrow-static { display: flex; align-items: flex-start; gap: 10px; }
 .amrow.is-clickable { cursor: pointer; }
 .amrow.is-clickable:hover { background: var(--surface); border-left-color: var(--green); }
+/* Higher specificity than the rule above (4 classes vs 3): a colored .amcard
+   must keep its own tone color on hover instead of flashing to plain --surface. */
+.amrow.amcard.is-clickable:hover { border-left-color: transparent; }
+.amrow.amcard--green.is-clickable:hover { background: var(--green); }
+.amrow.amcard--light-green.is-clickable:hover { background: var(--light-green); }
+.amrow.amcard--orange.is-clickable:hover { background: var(--orange); }
+.amrow.amcard--red.is-clickable:hover { background: var(--red); }
 .am-icon { display: flex; color: var(--muted); }
 .am-icon svg { width: 18px; height: 18px; }
 .amrow-static .am-icon { flex-shrink: 0; margin-top: 2px; }
+/* Icon halo (Amenities only — scoped by #amenities so Vulnerability hotspots'
+   and the Temperature card's plain/dark-bg icons are untouched): a light
+   circular tint of the icon's own color. One rule serves every tone because
+   currentColor resolves to whatever `color` this element already has by the
+   time `background` computes — the per-tone `.am-icon` color rules above/
+   below already set that, in the same cascade pass. */
+#amenities .am-icon {
+  align-items: center; justify-content: center;
+  width: 36px; height: 36px; flex-shrink: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 15%, var(--surface));
+}
 .cnt { font-family: var(--font-stat); font-weight: 700; }
 .am-temp-text { color: var(--ink); }
 .am-temp-delta { color: var(--muted); }
@@ -408,6 +700,78 @@ mark {
    its own (unaffected, no benchmark blocks) grid behavior. */
 @media (min-width: 900px) {
   .amgrid-benchmarks { align-items: start; }
+}
+
+/* Every Amenities row (all 11 — no more "first 3 stay big and colored"
+   hero tier, removed in a 2026 follow-up pass) renders as a neutral,
+   divider-lined list row: .amcard's own base rule (further down) supplies
+   the solid card-fill background used elsewhere (e.g. the Temperature card),
+   but that's overridden to `none` here, so color reads on the count/label/
+   icon text and the icon's halo background only (see #amenities .am-icon
+   below), never as a full card fill. The benchmark bar/badge are already
+   independently tone-colored via .am-benchmark-fill--{tone}/
+   .am-benchmark-badge--{tone} and need no change here. */
+.amgrid-benchmarks .amrow.amcard {
+  border-radius: 0;
+  padding: 10px var(--space-2);
+  border-bottom: 1px solid var(--line);
+  background: none;
+  color: inherit;
+}
+.amgrid-benchmarks .amcard--green .am-icon, .amgrid-benchmarks .amcard--green .am-label, .amgrid-benchmarks .amcard--green .cnt { color: var(--green); }
+.amgrid-benchmarks .amcard--light-green .am-icon, .amgrid-benchmarks .amcard--light-green .am-label, .amgrid-benchmarks .amcard--light-green .cnt { color: var(--light-green); }
+.amgrid-benchmarks .amcard--orange .am-icon, .amgrid-benchmarks .amcard--orange .am-label, .amgrid-benchmarks .amcard--orange .cnt { color: var(--orange); }
+.amgrid-benchmarks .amcard--red .am-icon, .amgrid-benchmarks .amcard--red .am-label, .amgrid-benchmarks .amcard--red .cnt { color: var(--red); }
+/* Badge-kind rows (no numeric population benchmark: Bus stops/Metro stations/
+   Lakes/Ponds) now get the same treatment as bar-kind rows, using the tone
+   already computed by BADGE_TONES in ward-view.js (previously only applied
+   to the small .am-benchmark-badge chip, not the row's icon/label/count). */
+.amgrid-benchmarks .amcard--blue .am-icon, .amgrid-benchmarks .amcard--blue .am-label, .amgrid-benchmarks .amcard--blue .cnt { color: var(--blue); }
+.amgrid-benchmarks .amcard--teal .am-icon, .amgrid-benchmarks .amcard--teal .am-label, .amgrid-benchmarks .amcard--teal .cnt { color: var(--teal); }
+.amgrid-benchmarks .amcard--indigo .am-icon, .amgrid-benchmarks .amcard--indigo .am-label, .amgrid-benchmarks .amcard--indigo .cnt { color: var(--indigo); }
+.amgrid-benchmarks .amcard--cyan .am-icon, .amgrid-benchmarks .amcard--cyan .am-label, .amgrid-benchmarks .amcard--cyan .cnt { color: var(--cyan); }
+.amgrid-benchmarks .amcard--gray .am-icon, .amgrid-benchmarks .amcard--gray .am-label, .amgrid-benchmarks .amcard--gray .cnt { color: var(--gray); }
+.amgrid-benchmarks .amcard--green .am-benchmark-ratio, .amgrid-benchmarks .amcard--orange .am-benchmark-ratio, .amgrid-benchmarks .amcard--red .am-benchmark-ratio,
+.amgrid-benchmarks .amcard--green .am-benchmark-desc, .amgrid-benchmarks .amcard--orange .am-benchmark-desc, .amgrid-benchmarks .amcard--red .am-benchmark-desc {
+  color: var(--muted);
+}
+.amgrid-benchmarks .amcard--green .am-benchmark-track, .amgrid-benchmarks .amcard--orange .am-benchmark-track, .amgrid-benchmarks .amcard--red .am-benchmark-track {
+  background: color-mix(in srgb, var(--gray) 25%, var(--surface-2));
+}
+.amgrid-benchmarks .amcard--green .am-benchmark-fill, .amgrid-benchmarks .amcard--orange .am-benchmark-fill, .amgrid-benchmarks .amcard--red .am-benchmark-fill {
+  background: currentColor;
+}
+/* Neutral hover for the now-borderless list rows, instead of re-applying a
+   solid tone-fill background (.amrow.amcard--{tone}.is-clickable:hover). */
+.amgrid-benchmarks .amrow.amcard.is-clickable:hover { background: var(--surface-2); border-left-color: var(--green); }
+
+/* A fixed, always-3-column grid at the >=900px layout, plus a vertical divider
+   between columns. Both are ID-scoped (specificity (1,0,0)), which is what
+   makes this reliable: the generic .amgrid rule (see Responsive section)
+   sets its own grid-template-columns/gap on the same element (.amgrid is
+   still one of this element's classes) with only class specificity (0,1,0)
+   — a plain class-vs-class rule earlier in the file quietly losing to one
+   added later bit this project twice already (the .whead/.facts-band margin
+   bug, the #ward-map full-bleed bug), so this is deliberately ID-scoped to
+   make the win unconditional rather than order-dependent. repeat(3, 1fr) is
+   a real fixed column count (not auto-fit, which previously made the 3
+   "hero" cards render as an uneven, misaligned wrap) — 11 rows lay out as
+   3+3+3+2, a normal/expected partial last row, not a layout bug. The divider
+   itself is column-gap:0 plus border-right only (never border-left) on every
+   cell, so shared edges between adjacent cells are drawn exactly once with no
+   doubling and no need to special-case the last column. Scoped to
+   .amgrid-benchmarks only — Vulnerability hotspots' plain .amgrid is
+   untouched. */
+@media (min-width: 900px) {
+  #amenities .amgrid-benchmarks {
+    grid-template-columns: repeat(3, 1fr);
+    column-gap: 0;
+  }
+  #amenities .amgrid-benchmarks .amrow.amcard {
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+    border-right: 1px solid var(--line);
+  }
 }
 
 /* Benchmark sub-row: spans columns 2-3 of .amrow's existing 3-col grid (auto 1fr
@@ -524,11 +888,11 @@ mark {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   width: 16px;
   height: 16px;
-  margin-left: var(--space-1);
-  vertical-align: middle;
-  color: var(--muted);
+  margin-left: auto;
+  color: rgba(255,255,255,.85);
   border-radius: var(--radius-s);
   transition: background-color var(--dur) ease, color var(--dur) ease;
 }
@@ -545,28 +909,131 @@ mark {
   transform: translate(-50%, -50%);
 }
 .temp-info-link svg { width: 16px; height: 16px; }
-.temp-info-link:hover, .temp-info-link:focus-visible { color: var(--ink); background: var(--surface); }
+.temp-info-link:hover, .temp-info-link:focus-visible { color: #fff; background: rgba(255,255,255,.15); }
 
-.factslist { display: flex; flex-direction: column; gap: var(--space-2); }
+/* Performance-tone amenity cards (Amenities grid) — reuses the .amrow shell/
+   click-wiring, just tints the card background by the same progressTone()
+   the benchmark bar already used, so the color and the bar agree. */
+.amcard { border-radius: var(--radius-m); border-bottom: none; padding: var(--space-3); }
+.amcard--green { background: var(--green); color: #fff; }
+.amcard--light-green { background: var(--light-green); color: var(--forest); }
+.amcard--orange { background: var(--orange); color: #fff; }
+.amcard--red { background: var(--red); color: #fff; }
+.amcard--green .am-icon, .amcard--orange .am-icon, .amcard--red .am-icon { color: rgba(255,255,255,.85); }
+.amcard--green .cnt, .amcard--orange .cnt, .amcard--red .cnt { color: #fff; }
+.amcard--green .am-benchmark-ratio, .amcard--orange .am-benchmark-ratio, .amcard--red .am-benchmark-ratio { color: rgba(255,255,255,.85); }
+.amcard--green .am-benchmark-desc, .amcard--orange .am-benchmark-desc, .amcard--red .am-benchmark-desc { color: rgba(255,255,255,.85); }
+.amcard--green .am-benchmark-track, .amcard--orange .am-benchmark-track, .amcard--red .am-benchmark-track { background: rgba(255,255,255,.3); }
+.amcard--green .am-benchmark-fill, .amcard--orange .am-benchmark-fill, .amcard--red .am-benchmark-fill { background: #fff; }
+
+.amenities-legend { display: flex; flex-wrap: wrap; gap: var(--space-4); margin: 0 0 var(--space-3); font-size: 0.82rem; color: var(--muted); }
+.amenities-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.legend-dot--green { background: var(--green); }
+.legend-dot--red { background: var(--red); }
+.legend-dot--blue { background: var(--blue); }
+
+.temp-card {
+  display: flex; align-items: center; gap: var(--space-3);
+  margin-top: var(--space-3); padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-m); background: var(--forest-2); color: var(--on-forest);
+}
+.temp-card.amcard--red { background: var(--red); }
+.temp-card.amcard--green { background: var(--green); }
+.temp-card-text { font-family: var(--font-stat); font-weight: 700; font-size: 1.3rem; }
+.temp-card-delta { display: block; font-family: var(--font-body); font-weight: 400; font-size: 0.8rem; opacity: .85; margin-top: 2px; }
+
+.facts-band {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  background: var(--yellow); color: var(--yellow-ink);
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
+.facts-band h3 { color: var(--forest); font-size: 1.4rem; }
+/* .eyebrow--dark's base color is --yellow (for dark --forest backgrounds) —
+   this band's own background is also --yellow, so without this override the
+   "Did you know?" label is invisible. Same fix already applied to
+   .why-vote-head/.methodology-band/.feedback-band's own .eyebrow--dark. */
+.facts-band .eyebrow--dark { color: var(--forest); }
+.factslist { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-3); }
 .fact {
-  background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--green-ring);
-  border-radius: var(--radius-m); padding: var(--space-3) var(--space-4); font-size: 0.92rem;
+  background: rgba(255,255,255,.55); border-radius: var(--radius-m); padding: var(--space-3) var(--space-4);
+  font-size: 0.92rem; color: var(--yellow-ink); font-weight: 600;
+}
+
+@media (min-width: 640px) {
+  .factslist { flex-direction: row; }
+  .fact { flex: 1; }
+}
+
+#safety-climate {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  background: var(--forest); color: var(--on-forest);
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
+/* Targets #safety-climate's .band-inner, not .safety-climate-wrap (the outer
+   <section>) — .safety-card/.sahaaya-card are children of that .band-inner
+   (every full-bleed section wraps its content in one, to stay aligned with
+   the page's max-width scale), not direct children of the section, so a
+   flex rule on .safety-climate-wrap itself has no visible effect. */
+#safety-climate .band-inner { display: flex; flex-direction: column; gap: var(--space-4); }
+/* Neither .safety-card nor .sahaaya-card has radius/border/shadow/background
+   of its own — both carry .sec--dark in the markup, so the whole band reads
+   seamless, matching the reference design (an earlier version gave
+   .sahaaya-card its own light card shell; that was reverted). */
+.safety-card { padding: var(--space-5); }
+.sahaaya-card { padding: var(--space-5); }
+.sahaaya-ranked { list-style: none; margin: var(--space-3) 0 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+.sahaaya-ranked li { display: grid; grid-template-columns: auto 1fr; column-gap: var(--space-2); row-gap: 4px; align-items: center; }
+.sahaaya-rank { font-family: var(--font-stat); font-weight: 800; color: var(--yellow); font-size: 0.85rem; }
+.sahaaya-name { font-weight: 600; }
+.sahaaya-bar { grid-column: 2 / -1; height: 8px; border-radius: 999px; background: var(--forest-2); overflow: hidden; }
+.sahaaya-bar span { display: block; height: 100%; border-radius: 999px; }
+/* Each ranked complaint gets its own fill tone (see renderSafetyClimate() in
+   ward-view.js) rather than a flat color for all three, matching the
+   reference design. */
+.sahaaya-bar-fill--yellow { background: var(--yellow); }
+.sahaaya-bar-fill--light-green { background: var(--light-green); }
+.sahaaya-bar-fill--blue { background: var(--blue); }
+
+@media (min-width: 900px) {
+  #safety-climate .band-inner { flex-direction: row; }
+  .safety-card, .sahaaya-card { flex: 1; }
+}
+
+.qlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); color: var(--ink); }
+.qlist--numbered li {
+  display: flex; align-items: flex-start; gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface); border: 1px dashed var(--line2); border-radius: var(--radius-m);
+}
+.q-num { font-family: var(--font-stat); font-weight: 800; color: var(--red); flex-shrink: 0; }
+
+/* Styled to match .panel/.basics-item (see "the basics" section above): a
+   plain inset bordered card, not a full-bleed colored band. .sec's own base
+   rule already supplies border/box-shadow identical to .panel's, so only the
+   properties that actually differ are redeclared here. */
+/* .feedback-band: full-bleed spacing wrapper only, no color of its own — the
+   visible .panel-style card lives on .feedback-inner (which already carries
+   .band-inner, so it inherits the same width/centering every other
+   section's content uses, rather than .container's own narrower content
+   width — see the full-bleed selector list above and .band-inner). */
+.feedback-band {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none; background: none;
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
+.feedback-inner {
+  display: flex; flex-direction: column; gap: var(--space-4); align-items: flex-start;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
   box-shadow: var(--shadow-1);
-  transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) ease;
+  padding: var(--space-4);
+  color: var(--ink);
 }
-.fact:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); }
-.fact .k {
-  display: block; text-transform: uppercase; font-size: 0.7rem; letter-spacing: .05em;
-  color: var(--hint); margin-bottom: 3px;
+.feedback-actions { display: flex; }
+@media (min-width: 900px) {
+  .feedback-inner { flex-direction: row; align-items: center; justify-content: space-between; }
 }
-.fact.warn { border-left-color: var(--yellow); }
-.fact.bad { border-left-color: var(--red); }
-
-.qlist { padding-left: 18px; display: flex; flex-direction: column; gap: var(--space-2); color: var(--ink); }
-.sahaaya-sub { color: var(--muted); font-size: 0.9rem; margin: 4px 0 10px; }
-.sahaaya-cats { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-top: var(--space-2); }
-
-.feedback-actions { display: flex; justify-content: flex-end; margin-top: var(--space-4); }
 
 /* -- methodology view -- */
 
@@ -581,29 +1048,198 @@ mark {
 .callout-icon { flex-shrink: 0; margin-top: 2px; }
 .callout p { margin: 0; font-size: 0.92rem; line-height: 1.55; }
 
+#methAiNote {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  background: var(--yellow); color: var(--yellow-ink);
+  padding-top: var(--space-5); padding-bottom: var(--space-5);
+}
+/* Strip .callout's own boxed-card shell here — inside this full-bleed yellow
+   band it should read as a plain row, not a card-on-a-card; .faq-key-dates
+   (voter-faq-view.js) reuses the shared, unmodified .callout base above. */
+#methAiNote .callout {
+  align-items: center;
+  margin: 0 auto; padding: 0; background: none; border: none; box-shadow: none;
+  color: var(--yellow-ink);
+}
+
 .meth-list {
+  list-style: none;
   display: flex; flex-direction: column; gap: var(--space-3);
-  padding-left: 20px; margin: 0; color: var(--ink);
+  padding-left: 0; margin: 0; color: var(--ink);
   font-size: 0.95rem; line-height: 1.6;
 }
 .meth-list a { color: var(--green-d); overflow-wrap: anywhere; }
 .meth-list a:hover { color: var(--green); }
-[data-theme="dark"] .meth-list a { color: var(--green); }
 
-#methodologyContainer .sec { margin: var(--space-4) 0; padding-top: var(--space-3); padding-bottom: var(--space-3); }
-#methodologyContainer .sec h3 { margin-bottom: var(--space-2); }
-#methodologyContainer .callout { margin: var(--space-3) 0 var(--space-4); padding-top: var(--space-3); padding-bottom: var(--space-3); }
-#methodologyContainer .meth-list { gap: var(--space-2); }
+/* -- methodology step badge (Step 1/2/3) -- */
+.meth-step-inner { display: flex; flex-direction: column; gap: var(--space-4); }
+.meth-step-badge { display: flex; flex-direction: row; align-items: center; gap: var(--space-3); }
+.meth-step-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; flex-shrink: 0;
+  border-radius: 999px; background: var(--forest); color: var(--on-forest);
+  font-family: var(--font-stat); font-weight: 800; font-size: 1.1rem;
+}
+.sec--dark .meth-step-num { background: var(--red); color: #fff; }
+.meth-step-label {
+  font-family: var(--font-stat); font-weight: 700; font-size: 0.78rem;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--red);
+}
+.sec--dark .meth-step-label { color: var(--on-forest); }
+.meth-step-content { flex: 1; min-width: 0; }
+
+/* -- methodology hero band -- */
+#methHero {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  background: var(--surface-2); color: var(--ink);
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
+#methHero .whead-breadcrumb { color: var(--muted); margin: 0 0 var(--space-3); }
+#methHero .whead-breadcrumb span { color: var(--ink); }
+#methHero .eyebrow--red { margin-bottom: var(--space-2); display: inline-block; }
+
+.meth-hero { display: flex; flex-direction: column; gap: var(--space-4); }
+.meth-statcard {
+  border: 1px solid var(--line); border-radius: var(--radius-l); overflow: hidden;
+  box-shadow: var(--shadow-1);
+}
+.meth-stat-hero { background: var(--forest); color: var(--on-forest); padding: var(--space-4) var(--space-5); display: flex; flex-direction: column; gap: 2px; }
+.meth-stat-hero .hero-stat-num { font-size: 2rem; }
+.meth-stat-row {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding: var(--space-3) var(--space-5);
+  border-top: 1px solid var(--line);
+  font-family: var(--font-stat); font-weight: 800; font-size: 1.2rem;
+}
+.meth-stat-row-label { font-family: var(--font-body); font-weight: 400; font-size: 0.82rem; color: var(--muted); }
+
+.meth-pills { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-4); }
+
+/* -- methodology step 1 (white) -- */
+#methStep1 {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  background: var(--surface);
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
+
+/* -- methodology step 2 (sage) -- */
+#methStep2 {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
+.meth-mini-stats { display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4); }
+.meth-stat-arrow { display: flex; align-items: center; justify-content: center; color: inherit; opacity: .55; transform: rotate(90deg); }
+.mini-stat {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m);
+  padding: var(--space-4);
+  display: flex; flex-direction: column; gap: 2px;
+}
+.mini-stat--dark { background: var(--forest); color: var(--on-forest); border-color: var(--forest); }
+.mini-stat-k { text-transform: uppercase; font-size: 0.7rem; letter-spacing: .05em; color: var(--hint); }
+.mini-stat--dark .mini-stat-k { color: var(--yellow); }
+.mini-stat-v { font-family: var(--font-stat); font-weight: 800; font-size: 1.4rem; }
+.mini-stat-d { font-size: 0.85rem; color: var(--muted); }
+.mini-stat--dark .mini-stat-d { color: var(--on-forest-muted); }
+
+/* -- methodology step 3 (dark) -- */
+#methStep3 {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
+
+@media (min-width: 900px) {
+  .meth-hero { flex-direction: row; align-items: flex-start; justify-content: space-between; gap: var(--space-6); }
+  .meth-hero > div:first-child { flex: 1.4; }
+  .meth-statcard { flex: 1; max-width: 340px; }
+  .meth-mini-stats { flex-direction: row; align-items: stretch; }
+  .mini-stat { flex: 1; }
+  .meth-stat-arrow { transform: none; flex: 0 0 auto; }
+  .meth-step-inner { flex-direction: row; align-items: flex-start; gap: var(--space-6); }
+  .meth-step-badge { flex: 0 0 140px; flex-direction: column; align-items: flex-start; gap: var(--space-3); }
+}
+
+/* -- methodology sources band -- */
+#methSources {
+  margin-top: 0; margin-bottom: 0; border: none; border-radius: 0; box-shadow: none;
+  background: var(--surface);
+  padding-top: var(--space-6); padding-bottom: var(--space-6);
+}
+.sources-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-4); margin-top: var(--space-5); }
+@media (min-width: 640px) { .sources-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 900px) { .sources-grid { grid-template-columns: repeat(4, 1fr); gap: var(--space-5); } }
+.source-card {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: var(--space-4); border-radius: var(--radius-m);
+  background: var(--surface-2); border: none; box-shadow: none;
+  text-decoration: none; color: inherit;
+  transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) ease;
+}
+.source-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-1); }
+.source-num { font-family: var(--font-stat); font-weight: 700; color: var(--red); font-size: 0.78rem; }
+.source-name { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-display); font-weight: 700; }
+.source-desc { color: var(--muted); font-size: 0.82rem; }
 
 /* -- voter faq view -- */
 
-.faq-lede { color: var(--ink); font-size: 0.95rem; max-width: 64ch; margin: var(--space-3) 0 0; }
+/* Scoped override of the shared .cover: this page's hero is terracotta/red,
+   not the dark-forest green every other .cover-using view (home) uses. */
+.faq-cover { background: var(--red); color: #fff; }
+.faq-cover .eyebrow { border-color: rgba(255,255,255,.4); color: #fff; }
+.faq-cover .eyebrow-dot { background: #fff; }
+.faq-cover .headline mark { background: var(--yellow); color: var(--forest); }
+.faq-cover-inner { display: flex; flex-direction: column; gap: var(--space-5); }
+.faq-lede { color: rgba(255,255,255,.9); font-size: 0.95rem; max-width: 64ch; margin: var(--space-3) 0 0; }
 .cta-row { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-top: var(--space-4); }
 
-.faq-section { padding-bottom: var(--space-4); }
+/* Scoped override of the shared .callout: a white info card on the red hero,
+   not the page's usual yellow alert box — still the same structural component. */
+.faq-key-dates { background: #fff; color: var(--ink); border-color: #fff; flex-direction: column; align-items: flex-start; }
+.faq-key-dates-eyebrow { text-transform: uppercase; font-size: 0.7rem; letter-spacing: .05em; color: var(--muted); font-weight: 700; margin: 0 0 4px; }
+.faq-key-dates p:nth-child(2) { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.8rem, 4vw, 2.4rem); margin: 0 0 var(--space-2); }
+.faq-key-dates p:last-child { color: var(--muted); font-size: 0.88rem; margin: 0; }
+
+@media (min-width: 900px) {
+  .faq-cover-inner { flex-direction: row; align-items: flex-start; gap: var(--space-6); }
+  .faq-cover-inner > div:first-child { flex: 1.3; }
+  .faq-key-dates { flex: 1; max-width: 360px; }
+}
+
+.faq-topic-section { background: var(--surface-2); padding-top: var(--space-6); padding-bottom: var(--space-6); margin-top: 0; margin-bottom: 0; }
+.faq-topic-intro-row { display: flex; flex-direction: column; gap: var(--space-4); }
+.faq-topic-intro-row .faq-intro { margin-bottom: 0; }
+@media (min-width: 900px) {
+  .faq-topic-intro-row { flex-direction: row; align-items: flex-end; justify-content: space-between; gap: var(--space-5); }
+  .faq-topic-intro-row .faq-intro { flex: 1; max-width: 60ch; }
+  .faq-topic-intro-row .faq-search { flex: 0 0 380px; }
+}
+.faq-topic-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-3); margin-top: var(--space-4); }
+.faq-topic-tile {
+  text-align: left; cursor: pointer; border: none; border-radius: var(--radius-l);
+  padding: var(--space-5); min-height: 150px;
+  display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-4);
+  color: var(--ink); background: var(--surface-2);
+  transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) ease;
+}
+.faq-topic-tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); }
+.faq-topic-num { font-family: var(--font-stat); font-weight: 800; font-size: 0.8rem; opacity: .75; }
+.faq-topic-label { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; line-height: 1.25; }
+.faq-topic-count { font-size: 0.8rem; opacity: .75; }
+.faq-topic-tile--1 { background: var(--forest); color: var(--on-forest); }
+.faq-topic-tile--2 { background: var(--red); color: #fff; }
+.faq-topic-tile--3 { background: var(--yellow); color: var(--forest); }
+.faq-topic-tile--4 { background: var(--green); color: #fff; }
+.faq-topic-tile--5 { background: var(--sage); color: var(--sage-ink); }
+.faq-topic-tile--6 { background: var(--light-green); color: var(--forest); }
+.faq-topic-tile--7 { background: var(--blue); color: #fff; }
+.faq-topic-tile--8 { background: var(--surface); color: var(--ink); border: 1px solid var(--line2); }
+
+@media (min-width: 640px) {
+  .faq-topic-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.faq-section { background: var(--surface); padding-top: var(--space-6); padding-bottom: var(--space-6); margin-top: 0; margin-bottom: 0; }
 .faq-intro { max-width: 60ch; margin-bottom: var(--space-5); }
-.faq-intro h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; margin: 0 0 var(--space-2); }
-.faq-intro p { color: var(--muted); font-size: 0.9rem; margin: 0; }
+.faq-intro p { color: var(--muted); font-size: 0.9rem; margin: var(--space-2) 0 0; }
 
 .faq-layout {
   display: flex;
@@ -611,40 +1247,87 @@ mark {
   gap: var(--space-5);
 }
 
+/* On mobile this contributes no box of its own — display:contents promotes
+   .faq-intro (visible) and .faq-sidebar-nav (display:none below) straight
+   into .faq-layout's own flex column, so mobile's visual order (intro text,
+   then the sticky .cat-nav chip bar, then content) is unchanged from before
+   this sidebar existed. */
+.faq-sidebar-col { display: contents; }
+.faq-sidebar-nav { display: none; }
+.faq-sidebar-nav button {
+  text-align: left; cursor: pointer; border: none; background: none;
+  min-height: 44px; padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-m);
+  font-family: var(--font-body); font-weight: 600; font-size: 0.9rem; color: var(--muted);
+  transition: background-color var(--dur) ease, color var(--dur) ease;
+}
+.faq-sidebar-nav button:hover { background: var(--surface-2); color: var(--ink); }
+.faq-sidebar-nav button.active { background: var(--surface-2); color: var(--ink); font-weight: 700; }
+
+@media (min-width: 900px) {
+  .faq-layout { flex-direction: row; align-items: flex-start; gap: var(--space-6); }
+  .faq-sidebar-col {
+    display: flex; flex-direction: column; gap: var(--space-4);
+    flex: 0 0 260px;
+    position: sticky; /* top set in JS from #siteHeader.offsetHeight + 12, see initVoterFaqView() */
+  }
+  .faq-sidebar-col .faq-intro { margin-bottom: 0; }
+  .faq-sidebar-nav { display: flex; flex-direction: column; gap: 2px; }
+  .faq-content { flex: 1; min-width: 0; }
+}
+
+/* Same [hidden]-vs-author-display gotcha .cat-nav already had to solve
+   (native [hidden] loses to any author display rule on specificity). */
+#voterFaqContainer .faq-sidebar-nav[hidden] { display: none; }
+
+/* Styled to exactly match .ward-subnav (ward-view.js's sticky sub-nav) —
+   same background/text-color/placement treatment, mirrored verbatim: full-
+   bleed background (see the full-bleed selector list above, .cat-nav is in
+   it) with the chip buttons themselves living in .band-inner below, which
+   keeps them aligned with the rest of the page's content column instead of
+   spreading across the now-edge-to-edge background. */
 .cat-nav {
-  /* Sticky at every width, not just desktop — the same layout/offset
-     formula everywhere is what makes mobile and desktop behave identically.
-     Docks flush against the true top (env(safe-area-inset-top) is 0 outside
-     a notched/PWA context, matching .topcluster's own safe-area handling) —
-     a nonzero offset here left a gap where content showed through above the
-     docked bar. No separate clearance from .topcluster is needed: this nav
-     lives inside #voterFaqContainer.container, whose own right padding
-     already keeps all content at least ~34px short of the toggle's left
-     edge at every width, so there's nothing for it to collide with. */
+  /* Sticky at every width the chip bar renders at (mobile only — desktop
+     switches to .faq-sidebar-nav, see the media query below). Docks flush
+     against the true top (env(safe-area-inset-top) is 0 outside a notched/
+     PWA context) — a nonzero offset here left a gap where content showed
+     through above the docked bar. */
   position: sticky;
   top: env(safe-area-inset-top);
   z-index: 30;
-  background: var(--bg);
+  background: var(--surface);
   border-bottom: 1px solid var(--line);
-  display: flex; flex-direction: row; flex-wrap: nowrap; overflow-x: auto; gap: 6px;
-  padding: var(--space-2) 0;
-  margin: 0 0 var(--space-2);
+}
+.cat-nav .band-inner {
+  display: flex; flex-wrap: nowrap; overflow-x: auto; gap: var(--space-1);
   -webkit-overflow-scrolling: touch;
+  /* Explicit hint that this element owns horizontal panning — sitting this
+     close to a position:sticky ancestor (.cat-nav), a touch-drag here is
+     otherwise ambiguous to some mobile browsers about which axis/element it
+     should scroll, and can default to scrolling the page instead. */
+  touch-action: pan-x;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* legacy Edge/IE */
 }
-.cat-nav::-webkit-scrollbar { display: none; } /* Chrome, Chromium Edge, Safari */
+.cat-nav .band-inner::-webkit-scrollbar { display: none; } /* Chrome, Chromium Edge, Safari */
 .cat-nav button {
-  cursor: pointer; box-sizing: border-box; flex-shrink: 0; white-space: nowrap;
+  flex-shrink: 0; white-space: nowrap; cursor: pointer;
   min-height: 44px;
-  font-family: var(--font-body); font-weight: 600; font-size: 0.85rem; color: var(--muted);
   background: none; border: none; border-bottom: 3px solid transparent;
   padding: var(--space-2) var(--space-3);
-  transition: color var(--dur) ease, background-color var(--dur) ease, border-color var(--dur) ease;
+  font-family: var(--font-stat); font-weight: 600; font-size: 0.85rem; color: var(--muted);
+  transition: color var(--dur) ease, border-color var(--dur) ease;
 }
-.cat-nav button:hover { background: var(--surface); color: var(--ink); }
-.cat-nav button.active { color: var(--green-d); background: var(--surface); border-bottom-color: var(--green-d); font-weight: 700; }
-[data-theme="dark"] .cat-nav button.active { color: var(--green); border-bottom-color: var(--green); }
+.cat-nav button:hover { color: var(--ink); }
+.cat-nav button.active { color: var(--green-d); border-bottom-color: var(--green-d); }
+
+/* Desktop switches to .faq-sidebar-nav instead — placed after .cat-nav's own
+   unconditional base rule (which sets display:flex) so this wins the
+   cascade at equal specificity; declared earlier in the file it would lose
+   to that later, unconditional rule regardless of the media query matching. */
+@media (min-width: 900px) {
+  .cat-nav { display: none; }
+}
 
 /* Set from JS (voter-faq-view.js, via ResizeObserver on .cat-nav) to the
    nav's actual rendered height plus its sticky offset — the nav can wrap
@@ -654,35 +1337,46 @@ mark {
    instant before the observer's first measurement lands. */
 .category { scroll-margin-top: var(--faq-nav-clearance, 70px); }
 
-.accordion-item {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-s);
-  margin-bottom: var(--space-2);
-  overflow: hidden;
+.accordion-item { border-bottom: 1px solid var(--line); }
+.accordion-item:last-child { border-bottom: none; }
+/* Flat divided list: only the open item gets a highlighted background — no
+   per-item box/border at rest, matching the reference's "read straight
+   through" look rather than the previous stacked-card treatment. */
+.accordion-item[data-open="true"] {
+  background: var(--surface-2);
+  border-radius: var(--radius-m);
+  border-bottom: none;
 }
-.accordion-item:last-child { margin-bottom: 0; }
 .accordion-trigger {
   all: unset; box-sizing: border-box; width: 100%; cursor: pointer;
   display: flex; justify-content: space-between; align-items: center; gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  font-family: var(--font-body); font-weight: 600; font-size: 0.92rem; color: var(--ink);
-  min-height: 44px;
+  padding: var(--space-4) var(--space-2);
+  font-family: var(--font-body); font-weight: 700; font-size: 0.95rem; color: var(--ink);
+  min-height: 44px; border-radius: var(--radius-m);
+  transition: background-color var(--dur) ease;
 }
 .accordion-trigger:hover { background: var(--surface-2); }
-.accordion-trigger .chevron { width: 9px; height: 9px; flex-shrink: 0; color: var(--green-d); transition: transform var(--dur) var(--ease-out); }
-[data-theme="dark"] .accordion-trigger .chevron { color: var(--green); }
-.accordion-item[data-open="true"] .chevron { transform: rotate(90deg); }
-.accordion-item[data-open="true"] .accordion-trigger { border-bottom: 1px solid var(--line); }
+/* Circular chevron badge styled directly on the existing <svg class="chevron">
+   — no new wrapper element needed. Closed points down, open points up and
+   inverts to a filled dark badge. */
+.accordion-trigger .chevron {
+  width: 28px; height: 28px; flex-shrink: 0; box-sizing: border-box; padding: 8px;
+  border-radius: 50%; background: var(--surface-2); color: var(--muted);
+  transform: rotate(90deg);
+  transition: transform var(--dur) var(--ease-out), background-color var(--dur) ease, color var(--dur) ease;
+}
+.accordion-item[data-open="true"] .chevron {
+  background: var(--forest); color: var(--on-forest);
+  transform: rotate(-90deg);
+}
 
 .accordion-panel { max-height: 0; overflow: hidden; transition: max-height .25s ease; }
-.accordion-panel-inner { padding: 0 var(--space-4) var(--space-4); font-size: 0.92rem; color: var(--ink); line-height: 1.6; }
+.accordion-panel-inner { padding: 0 var(--space-3) var(--space-4) var(--space-2); font-size: 0.92rem; color: var(--muted); line-height: 1.6; }
 .accordion-panel-inner p { margin: var(--space-3) 0 0; }
 .accordion-panel-inner p:first-child { margin-top: var(--space-3); }
 .accordion-panel-inner ul { margin: var(--space-2) 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: var(--space-2); }
 .accordion-panel-inner a { color: var(--green-d); font-weight: 600; overflow-wrap: anywhere; }
 .accordion-panel-inner a:hover { color: var(--green); }
-[data-theme="dark"] .accordion-panel-inner a { color: var(--green); }
 
 .rule-chip {
   display: inline-block; background: var(--yellow-soft); color: var(--yellow-ink);
@@ -697,13 +1391,27 @@ mark {
 #voterFaqContainer .cover { padding-bottom: var(--space-5); }
 #voterFaqContainer .callout { margin-top: var(--space-3); margin-bottom: var(--space-4); }
 
-#voterFaqContainer .category { margin: var(--space-4) 0; padding-top: var(--space-4); padding-bottom: var(--space-4); }
-#voterFaqContainer .category:first-child { margin-top: 0; }
+/* No boxed .sec card shell at the category level in the flat-list design —
+   .category keeps the "sec category" classes in markup (harmless, fully
+   neutralized here), same convention ward-view.js uses for its own
+   full-bleed sections rather than removing the shared class outright. */
+#voterFaqContainer .category { background: none; border: none; box-shadow: none; border-radius: 0; margin: 0 0 var(--space-6); padding: 0; }
 #voterFaqContainer .category:last-child { margin-bottom: 0; }
-#voterFaqContainer .category h3 { margin-bottom: var(--space-2); }
 
-.faq-search { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); margin: 0 0 var(--space-5); }
-.faq-search-box { position: relative; width: 100%; max-width: 640px; }
+/* ID-scoped so this reliably wins over the shared ".sec h3" rule (same
+   specificity as a bare class selector on the h3 itself would otherwise lose
+   the cascade tie). */
+#voterFaqContainer .category-heading {
+  font-family: var(--font-display); font-weight: 700; font-size: 1.3rem;
+  color: var(--ink); margin: 0 0 var(--space-4);
+}
+#voterFaqContainer .category-num {
+  color: var(--red); font-family: var(--font-stat); font-weight: 800;
+  margin-right: var(--space-2);
+}
+
+.faq-search { display: flex; flex-direction: column; gap: var(--space-2); margin: 0; }
+.faq-search-box { position: relative; width: 100%; }
 .faq-search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--hint); pointer-events: none; }
 .faq-search-input {
   width: 100%; box-sizing: border-box; min-height: 44px; padding: 12px 44px 12px 42px;
@@ -713,7 +1421,6 @@ mark {
   transition: border-color var(--dur) ease, box-shadow var(--dur) ease;
 }
 .faq-search-input:focus-visible { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-ring); outline: none; }
-[data-theme="dark"] .faq-search-input:focus-visible { border-color: var(--lime); box-shadow: 0 0 0 3px color-mix(in srgb, var(--lime) 35%, transparent); }
 .faq-search-clear {
   position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
   width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
@@ -723,7 +1430,7 @@ mark {
 }
 .faq-search-clear:hover { background: var(--surface-2); color: var(--ink); }
 .faq-search-clear[hidden] { display: none; }
-.faq-search-summary { color: var(--hint); font-size: 0.85rem; text-align: center; margin: 0; }
+.faq-search-summary { color: var(--hint); font-size: 0.85rem; text-align: left; margin: 0; }
 .faq-search-summary[hidden] { display: none; }
 
 .faq-empty { text-align: center; padding: var(--space-6) var(--space-4); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-l); }
@@ -736,81 +1443,88 @@ mark {
 .faq-empty-chip:hover { background: var(--surface-2); }
 
 /* .cat-nav's own display:flex would otherwise beat the native [hidden] UA
-   rule (author rules always win over UA styles) — same fix already used for
-   .voter-faq-fab[hidden] in base.css. */
+   rule (author rules always win over UA styles). */
 .cat-nav[hidden] { display: none; }
 
 /* -- footer -- */
 
-/* Extra bottom clearance so the fixed, always-visible #voterFaqFab (bottom
-   offset up to 28px + ~51px own height) never sits on top of real footer
-   content once the page is scrolled to the bottom — it hovers over this
-   blank strip of the footer's own background instead. */
-.site-footer { margin-top: var(--space-7); border-top: 1px solid var(--line); background: var(--surface); padding-bottom: 100px; }
-.footer-inner { padding-top: var(--space-5); padding-bottom: var(--space-5); display: flex; flex-direction: column; gap: var(--space-4); }
-.footer-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
-.footer-utility { justify-content: space-between; }
+/* No margin-top here — .container's own bottom padding is the single source
+   of pre-footer clearance on every view; a separate footer margin was
+   redundant everywhere except Home (whose #homeContainer has that padding
+   zeroed since its last section is already a full-bleed colored band), where
+   it was the actual cause of a visible cream gap between that band and the
+   footer. */
+.site-footer { background: var(--footer-bg); color: var(--footer-text); }
+.footer-inner { padding-top: var(--space-6); padding-bottom: var(--space-5); }
 
-.footer-methodology {
-  display: inline-flex; align-items: center; gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m);
-  box-shadow: var(--shadow-1); text-decoration: none; color: inherit;
-  min-height: 44px;
-  transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) ease, border-color var(--dur) ease;
+.footer-cols {
+  display: flex; flex-direction: column; gap: var(--space-6);
 }
-.footer-methodology:hover { transform: translateY(-1px); box-shadow: var(--shadow-2); border-color: var(--green-ring); }
-.footer-methodology-icon {
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  width: 40px; height: 40px; border-radius: var(--radius-s);
-  background: var(--green-soft); color: var(--green-d);
+.footer-col { display: flex; flex-direction: column; gap: var(--space-2); }
+.footer-col-title {
+  font-family: var(--font-display); font-weight: 700; font-size: 0.78rem;
+  text-transform: uppercase; letter-spacing: .05em; color: var(--footer-text);
+  margin-bottom: var(--space-1);
 }
-[data-theme="dark"] .footer-methodology-icon { color: var(--green); }
-.footer-methodology-text { display: flex; flex-direction: column; gap: 2px; }
-.footer-methodology-title { font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; color: var(--ink); }
-.footer-methodology-desc { font-size: 0.82rem; color: var(--muted); }
-
-.footer-share { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); }
-.footer-share[hidden] { display: none; }
-.footer-share-label { font-size: 0.85rem; color: var(--hint); }
-.footer-share-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
-.footer-share-actions .btn { flex-shrink: 0; }
-.btn-sm { min-height: 36px; padding: 7px 14px; font-size: 0.85rem; }
-.btn-sm svg { flex-shrink: 0; }
-.footer-heart-line { color: var(--muted); font-size: 0.88rem; }
-.footer-heart { font-size: 0.9em; }
-
-.footer-attribution { border-top: 1px solid var(--line); padding-top: var(--space-4); }
-
-.footer-orgs {
-  display: flex; align-items: stretch; flex-wrap: wrap;
-  gap: var(--space-4); margin-top: var(--space-1);
+.footer-col a {
+  text-decoration: none; color: var(--footer-text); font-size: 0.92rem;
+  transition: opacity var(--dur) ease;
 }
-.footer-org-group { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
-.footer-org-divider { align-self: stretch; width: 1px; background: var(--line2); }
-.footer-org-badge {
+.footer-col a:hover { opacity: .75; }
+
+.footer-col-brand { gap: var(--space-3); max-width: 32ch; }
+.footer-logo-wordmark {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; color: var(--footer-text);
+}
+.footer-logo-badge {
   display: inline-flex; align-items: center; justify-content: center;
-  padding: 10px 16px; background: var(--footer-logo-bg);
-  border: 1px solid var(--line); border-radius: var(--radius-m); box-shadow: var(--shadow-1);
+  width: 26px; height: 26px; border-radius: var(--radius-s);
+  background: var(--yellow); color: var(--forest); font-weight: 800; font-size: 0.85rem;
 }
-.footer-logo { height: 22px; width: auto; display: block; }
+.footer-blurb { color: var(--footer-text); font-size: 0.88rem; line-height: 1.55; margin: 0; }
+
+.footer-orgs { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-1); }
+.footer-org-group { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.footer-org-badge {
+  position: relative;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 8px 14px; background: var(--footer-logo-bg);
+  border-radius: var(--radius-m);
+  transition: opacity var(--dur) ease;
+}
+.footer-org-badge:hover { opacity: .75; }
+/* Invisible hit-slop: keeps the real touch target at 44x44px without
+   inflating the visible chip (same technique as .temp-info-link). */
+.footer-org-badge::before {
+  content: '';
+  position: absolute; top: 50%; left: 50%;
+  width: 44px; height: 44px;
+  transform: translate(-50%, -50%);
+}
+.footer-logo { height: 20px; width: auto; display: block; }
 .footer-org-fallback {
-  display: none; font-family: var(--font-display); font-weight: 700; font-size: 0.85rem;
+  display: none; font-family: var(--font-display); font-weight: 700; font-size: 0.82rem;
   color: var(--footer-logo-fallback-ink);
 }
-.footer-org-social { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.footer-org-social { display: flex; align-items: center; gap: var(--space-1); flex-wrap: wrap; }
 .footer-social-link {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 44px; height: 44px; border-radius: 50%; color: var(--muted);
-  transition: color var(--dur) ease, background-color var(--dur) ease;
+  width: 36px; height: 36px; border-radius: 50%; color: var(--footer-text);
+  transition: opacity var(--dur) ease, background-color var(--dur) ease;
 }
-.footer-social-link:hover { color: var(--green-d); background: var(--surface-2); }
+.footer-social-link:hover { opacity: .75; background: color-mix(in srgb, var(--footer-text) 15%, var(--footer-bg)); }
 
-@media (max-width: 519px) {
-  .footer-orgs { flex-direction: column; align-items: flex-start; gap: var(--space-4); }
-  .footer-org-divider { width: 100%; height: 1px; }
-  .footer-methodology { width: 100%; }
-  .footer-share { width: 100%; }
+.footer-col-opencity { gap: var(--space-3); }
+.footer-opencity-logo { height: 32px; width: auto; display: block; align-self: flex-start; }
+.footer-opencity-cols { display: flex; gap: var(--space-6); flex-wrap: wrap; }
+
+@media (min-width: 900px) {
+  .footer-cols { flex-direction: row; justify-content: space-between; gap: var(--space-5); }
+  .footer-col { flex: 0 0 auto; min-width: 140px; }
+  .footer-col-links, .footer-col-opencity {
+    border-left: 1px solid var(--on-forest-line); padding-left: var(--space-6);
+  }
 }
 
 /* -- responsive -- */
@@ -836,9 +1550,16 @@ mark {
 }
 
 @media (max-width: 520px) {
-  .cover { padding: 24px 0 40px; }
+  /* Longhand only — the shorthand `padding` here would reset the shared
+     full-bleed rule's horizontal clamp() padding back to 0, leaving .cover's
+     content flush against the screen edges. */
+  .cover { padding-top: 24px; padding-bottom: 40px; }
   .why-vote { padding: var(--space-2) var(--space-4); }
   .find-controls { flex-direction: column; }
+  /* .find-search-wrap's flex-basis (220px) applies to the main axis, which is
+     height once .find-controls switches to a column direction here — without
+     resetting it to auto, the search box stretches to a 220px-tall box. */
+  .find-search-wrap { flex: 1 1 auto; }
   .find-search-wrap, #findLocate { width: 100%; }
   .map-corp { height: 270px; }
   .map-ward { height: 350px; }

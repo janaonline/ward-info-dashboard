@@ -9,67 +9,77 @@ This skill enforces one rule: **every pixel of color, spacing, radius, elevation
 
 Two tiers of strictness:
 
-1. **Existing component** (a pattern already in `components.css`/`base.css`/`transition.css` covers what you're building — a card, a button, a pill, a list row, an accordion, a callout, a filter chip, footer chrome…): **reuse it exactly.** Same class names, same selector structure, same token usage. Do not invent a parallel one-off class for something `.sec`/`.btn`/`.pill`/`.legend-btn`/etc. already does.
+1. **Existing component** (a pattern already in `components.css`/`base.css` covers what you're building — a card, a button, a pill, a list row, an accordion, a callout, a filter chip, a colored band, header/footer chrome…): **reuse it exactly.** Same class names, same selector structure, same token usage. Do not invent a parallel one-off class for something `.sec`/`.btn`/`.pill`/`.legend-btn`/etc. already does.
 2. **New component** (a genuinely new requirement with no existing pattern to reuse): markup, class names, and layout are yours to design — but every visual value must still be a token: `var(--color-name)`, `var(--space-N)`, `var(--radius*)`, `var(--shadow-*)`, `var(--font-*)`, and 44px minimum touch targets. No new hex codes, no new arbitrary px spacing, no new font.
 
-Both tiers apply in both themes — `:root` and `[data-theme="dark"]` are updated together, always (see §6).
+**This project has no light/dark theme toggle** (removed in the 2026 redesign, see CLAUDE.md's top-of-file note) — `tokens.css` is a single `:root` palette, not a paired `:root`/`[data-theme="dark"]` system. Dark-vs-light contrast within a page comes from deliberately mixing dark (`--forest`) and light (`--bg`/`--surface`) sections on the same page, not from a user-toggled theme.
 
 ---
 
 ## 1. Token reference (`src/styles/tokens.css`)
 
-### Colors — light (`:root`) / dark (`[data-theme="dark"]`)
+### Colors (single palette — no theme variants)
 
-| Token | Light | Dark | Use for |
-|---|---|---|---|
-| `--bg` | `#f3fce8` | `#10160b` | page background |
-| `--surface` | `#ffffff` | `#1a2113` | raised elements: buttons, inputs, pills, map tooltip |
-| `--surface-2` | `#eef7e0` | `#222c18` | card fill (`.sec`/`.whead`/`.why-vote`), hover states |
-| `--inset` | `#e4f1d3` | `#2a3620` | recessed placeholder fill (`.candphoto` gradient) |
-| `--ink` | `#1b2410` | `#eef3e6` | body/paragraph-length text (tier 1, see §2) |
-| `--muted` | `#54614a` | `#aab89a` | inline metadata text (tier 2) |
-| `--hint` | `#7f8d72` | `#7d8b6d` | uppercase captions/labels (tier 3) |
-| `--line` | `rgba(27,36,16,.10)` | `rgba(238,243,230,.10)` | hairline borders |
-| `--line2` | `rgba(27,36,16,.18)` | `rgba(238,243,230,.18)` | stronger borders (inputs, back-fab) |
-| `--green` | `#5e9b48` | `#92c56e` | primary/positive accent |
-| `--green-d` | `#457a31` | `#c6eaa0` | primary-dark (buttons in light, accent-in-dark swap) |
-| `--green-soft` | `#dcf1c9` | `#233318` | tinted fill (active legend chip, pill-soon alt) |
-| `--green-ring` | `#c6eaa0` | `#3c5228` | focus rings, hover border tint |
-| `--red` | `#d33a4c` | `#f56a6d` | alert/bad |
-| `--red-d` | `#b12a3a` | `#ffadac` | alert-dark |
-| `--red-soft` | `#ffe7e6` | `#3a1c1d` | alert tint fill |
-| `--red-ring` | `#ffadac` | `#5a2b2c` | alert focus/border tint |
-| `--yellow` | `#ffd527` | `#ffd527` | highlighter/warn accent (same both themes) |
-| `--yellow-soft` | `#fff3c4` | `#3a3212` | `<mark>`, `.callout`, `.pill-soon`, `.rule-chip` fill |
-| `--yellow-ink` | `#6b5300` | `#f3dfa0` | text on yellow-soft |
-| `--yellow-line` | `#f0dd8a` | `#5a4d24` | `.callout` border |
-| `--lime` | `#c8e537` | `#c8e537` | **dark-theme-only** accent — see §6 |
-| `--footer-logo-bg` | `#ffffff` | `#ffffff` | fixed-light chip behind partner logos (same both themes) |
-| `--footer-logo-fallback-ink` | `#1b2410` | `#1b2410` | fallback text on that chip |
-| `--violet` | `#6d4bd6` | `#9c85f0` | kept for back-compat only, not brand-critical — don't build new UI on this (used briefly by an earlier iteration of the Amenities benchmark badges, since superseded by the per-category tone system below) |
-| `--blue` | `#2563c9` | `#5b8fe0` | confirmed exception (2026): Amenities-grid benchmark-badge tone for the "Network standard" category (`.am-benchmark-badge--blue`) — part of the categorical badge/progress-tier system below, not general-purpose |
-| `--teal` | `#0f8a7e` | `#5fcfc0` | Amenities benchmark-badge tone: "Accessibility based" (`.am-benchmark-badge--teal`) |
-| `--indigo` | `#4b53c9` | `#9aa3f0` | Amenities benchmark-badge tone: "Coverage based" (`.am-benchmark-badge--indigo`) |
-| `--cyan` | `#0891b2` | `#5fd0e8` | Amenities benchmark-badge tone: "Geography based" (`.am-benchmark-badge--cyan`) |
-| `--gray` | `#6b7280` | `#a3a9b3` | Amenities benchmark-badge tone: "Planning based" / unmatched-category fallback (`.am-benchmark-badge--gray`), and the neutral tint for `.am-benchmark-track`'s unfilled progress-bar background |
-| `--orange` | `#c2660a` | `#f0a860` | Amenities benchmark-badge tone: "Activity based" (`.am-benchmark-badge--orange`), **and** the progress-bar "Moderate" (40–74% of recommended) fill tier (`.am-benchmark-fill--orange`) |
-| `--light-green` | `#7cb342` | `#a8d876` | Amenities progress-bar "Good" (75–99% of recommended) fill tier only (`.am-benchmark-fill--light-green`) — distinct from `--green`'s "Excellent" (≥100%) tier |
+| Token | Value | Use for |
+|---|---|---|
+| `--bg` | `#F3F6F4` | page background (cool near-white — the sibling surface tokens below stay cream/beige) |
+| `--surface` | `#ffffff` | raised elements: buttons, inputs, pills, map tooltip, white cards |
+| `--surface-2` | `#ece1cb` | card fill (`.sec`), hover states |
+| `--surface-3` | `#fbfaf6` | ward-detail Ward Map section background (`#ward-map`) — a distinct, subtly warmer off-white from `--surface`, not a general-purpose alternative to it |
+| `--inset` | `#e6d8bd` | recessed placeholder fill (`.candphoto` gradient, progress-bar tracks) |
+| `--ink` | `#18230f` | body/paragraph-length text on light surfaces (tier 1, see §2) |
+| `--muted` | `#57624a` | inline metadata text (tier 2) |
+| `--hint` | `#7d8a70` | uppercase captions/labels (tier 3) |
+| `--line` | `rgba(24,35,15,.12)` | hairline borders |
+| `--line2` | `rgba(24,35,15,.20)` | stronger borders (inputs) |
+| `--forest` | `#132010` | dark-green surface: site header, footer, home/ward hero bands, dark cards (`.sec--dark`) |
+| `--forest-2` | `#1b2b16` | secondary dark surface (hero-stat tiles, mobile menu hover) |
+| `--forest-3` | `#25391e` | tertiary dark surface, currently reserved |
+| `--on-forest` | `#f2ead9` | text/headings on `--forest` surfaces |
+| `--on-forest-muted` | `#a7b89a` | secondary/metadata text on `--forest` surfaces |
+| `--on-forest-line` | `rgba(242,234,217,.14)` | hairline borders on `--forest` surfaces |
+| `--green` | `#3d7a40` | primary/positive accent, benchmark "met" tier |
+| `--green-d` | `#2a5c2c` | primary-dark (button hover, link hover) |
+| `--green-soft` | `#dcecd2` | tinted fill (active legend chip) |
+| `--green-ring` | `#b8d9ac` | focus rings, hover border tint |
+| `--red` | `#c1392b` | alert/bad, benchmark "under-served" tier, Voter FAQ hero band |
+| `--red-d` | `#a12d20` | alert-dark |
+| `--red-soft` | `#f8ded8` | alert tint fill |
+| `--red-ring` | `#e7a99b` | alert focus/border tint |
+| `--yellow` | `#f0b429` | mustard accent: highlighter/warn, CTA/badge fills, Why-vote and Did-you-know bands |
+| `--yellow-soft` | `#fbe8b6` | `<mark>`, `.callout`, `.pill-soon`, `.rule-chip` |
+| `--yellow-ink` | `#6b4a06` | text on yellow-soft/yellow surfaces |
+| `--yellow-line` | `#e3c37a` | `.callout` border |
+| `--sage` | `#ccdabd` | Methodology teaser band fill |
+| `--sage-ink` | `#28371c` | text on `--sage` |
+| `--footer-logo-bg` | `#ffffff` | fixed-light chip behind partner logos on the footer |
+| `--footer-logo-fallback-ink` | `#18230f` | fallback text on that chip |
+| `--footer-bg` | `#000000` | footer surface — a deliberate one-off, decoupled from `--forest` (which the header/hero bands/dark cards still use) |
+| `--footer-text` | `#c8e537` | all footer text (wordmark, blurb, column titles, links, social icons) — one uniform lime, not the 3-tier `--on-forest*` hierarchy |
+| `--violet` | `#6d4bd6` | kept for back-compat only, not brand-critical — don't build new UI on this |
+| `--blue` | `#2563c9` | Amenities-grid benchmark-badge tone: "Network standard"; also a Voter-FAQ topic-tile color (`.faq-topic-tile--7`) |
+| `--teal` | `#0f8a7e` | Amenities benchmark-badge tone: "Accessibility based" |
+| `--indigo` | `#4b53c9` | Amenities benchmark-badge tone: "Coverage based" |
+| `--cyan` | `#0891b2` | Amenities benchmark-badge tone: "Geography based" |
+| `--gray` | `#6b7280` | Amenities benchmark-badge tone: "Planning based" / fallback; neutral tint for `.am-benchmark-track` |
+| `--orange` | `#c2660a` | Amenities benchmark-badge tone: "Activity based"; progress-bar "Moderate" (40–74%) fill tier |
+| `--light-green` | `#7cb342` | Amenities progress-bar "Good" (75–99%) fill tier; also a Voter-FAQ topic-tile color (`.faq-topic-tile--6`); also the ward-detail Feedback band's full-bleed background (`.feedback-band`) |
 
-All 7 new/repurposed tokens above are scoped to the Amenities benchmark UI specifically (progress-bar fill tiers + category badges) per an explicit requester color-mapping — not a general license to use these hues elsewhere in the app. `--green`/`--red` are reused as-is for the progress-bar "Excellent"/"Poor" tiers and the badge "Environmental" category; no new token was needed for those.
+The benchmark-badge/progress-tier tokens (`--blue`/`--teal`/`--indigo`/`--cyan`/`--gray`/`--orange`/`--light-green`) are scoped to the Amenities benchmark UI per an explicit requester color-mapping — not a general license to use these hues elsewhere, though `--blue`/`--light-green` were reused as-is (not duplicated) for two of the Voter FAQ topic tiles' 8-color set, and `--light-green` was reused a second time (confirmed with the requester) as the ward-detail Feedback band's background in the 2026 full-bleed redesign, replacing `--yellow-soft`. `--green`/`--red` are reused as-is for the progress-bar "Excellent"/"Poor" tiers and the badge "Environmental" category.
 
 ### Radius scale
 
-`--radius:14px` (default) · `--radius-m:11px` (buttons, inputs, panels) · `--radius-s:8px` (small chips/icons) · `--radius-l:18px` (cards: `.sec`/`.whead`/`.why-vote`)
+`--radius:14px` (default) · `--radius-m:11px` (buttons, inputs, panels) · `--radius-s:8px` (small chips/icons) · `--radius-l:18px` (cards: `.sec`, `.meth-statcard`)
 
 ### Elevation (material-style)
 
-`--shadow-1` (resting: cards, buttons, pills) · `--shadow-2` (hover/raised: `.btn:hover`, `.candcard:hover`, popovers) · `--shadow-3` (highest: FAB hover) — dark theme uses the same variable names with heavier black-based shadows. Aliases: `--shadow` = `--shadow-2`, `--shadow-s` = `--shadow-1`.
+`--shadow-1` (resting: cards, buttons, pills) · `--shadow-2` (hover/raised: `.btn:hover`, `.candcard:hover`, popovers) · `--shadow-3` (highest, currently only referenced defensively — no active FAB left to use it since the 2026 redesign removed the floating Voter FAQs button). Aliases: `--shadow` = `--shadow-2`, `--shadow-s` = `--shadow-1`.
 
 ### Spacing scale (4pt)
 
 `--space-1:4px  --space-2:8px  --space-3:12px  --space-4:16px  --space-5:24px  --space-6:32px  --space-7:48px`
 
-Use these for every margin/padding/gap. A literal px value in new CSS is only acceptable when it's *sub-scale* and deliberately so (e.g. `.why-vote-subtitle`'s `margin-top:2px`, chosen because it needed to be tighter than the scale's own floor) — and even then, only when there's a real reason, not convenience.
+Use these for every margin/padding/gap. A literal px value in new CSS is only acceptable when it's *sub-scale* and deliberately so — and even then, only when there's a real reason, not convenience.
 
 ### Motion
 
@@ -85,11 +95,11 @@ Use these for every margin/padding/gap. A literal px value in new CSS is only ac
 
 | Tier | Token | For | Real examples |
 |---|---|---|---|
-| 1 | `--ink` | Body/description-length copy, full contrast | `.panel p`, `.ward-def`, `.cand-intro`, `.why-vote-body p`, `.callout p` |
-| 2 | `--muted` | Inline metadata, short secondary text | `.ward-row-meta`, `.whead-meta`, `.candparty`, `.footer-heart-line` |
-| 3 | `--hint` | Uppercase captions/labels only | `.fact .k`, `.map-caption`, `.find-count`, `.whead-origin-block .label` |
+| 1 | `--ink` (light surfaces) / `--on-forest` (dark surfaces) | Body/description-length copy, full contrast | `.panel p`, `.cand-intro`, `.why-vote-body p`, `.callout p` |
+| 2 | `--muted` (light) / `--on-forest-muted` (dark) | Inline metadata, short secondary text | `.ward-row-meta`, `.candparty`, `.sec-sub`, `.whead-breadcrumb` |
+| 3 | `--hint` | Uppercase captions/labels only | `.fact .k`, `.map-caption`, `.find-count`, `.whead-origin-block .label`, `.mini-stat-k` |
 
-**Rule:** never put sentence-length text on `--muted`/`--hint` — they exist for short secondary labels, not paragraphs.
+**Rule:** never put sentence-length text on `--muted`/`--hint`/`--on-forest-muted` — they exist for short secondary labels, not paragraphs. Any component placed on a `--forest` (dark) surface must swap `--ink`/`--muted` for `--on-forest`/`--on-forest-muted` explicitly — they do not auto-invert.
 
 ---
 
@@ -99,28 +109,38 @@ Selectors below are real, current selectors from `src/styles/components.css`/`ba
 
 | Component | Selector(s) | Purpose / token usage | Example usage |
 |---|---|---|---|
-| Card shell | `.sec, .whead, .why-vote` | Every major section block: `--surface-2` bg, `--line` border, `--radius-l`, `--shadow-1`, `--space-5`/`--space-6` padding | every ward-detail section, methodology sections |
-| Hero lede/subtitle | `.faq-lede` (top-margin-only variant), `.hero-subtitle` (symmetric-margin variant) | One-sentence paragraph directly under a `.headline`: `--ink` text (tier-1, sentence-length — never `--muted`/`--hint`), `0.95rem`, `max-width: 64ch` for line length; margin shorthand differs only by what follows it in each view | voter-FAQ hero (`.faq-lede`, followed by `.cta-row` which supplies its own top margin), home hero (`.hero-subtitle`, followed by `.why-vote`, which has none) |
-| Primary button | `.btn.btn-primary` | Solid `--green-d` (light) / `--green` (dark) CTA | ward-view "Ask" CTA, voter-FAQ hero |
-| Secondary button | `.btn.btn-secondary` | `--surface` bg, `--line2` border | back/cancel actions |
-| WhatsApp button | `.btn.btn-whatsapp` | Fixed `#25d366`/`#06341c` — brand-locked exception, not a token; only ever for the WhatsApp share action, never reused for generic green CTAs | `#footerWhatsapp` |
-| Small button | `.btn.btn-sm` | `36px` min-height variant of `.btn` for tight footer rows | footer share actions |
-| Pill/badge | `.pill`, `.pill.pill-soon` | `--surface` bg + `--muted` text; `pill-soon` swaps to `--yellow-soft`/`--yellow-ink` | `.candgrid h3` "coming soon" badge |
-| Benchmark progress bar | `.am-benchmark-track`/`.am-benchmark-fill` (+ `--green`/`--light-green`/`--orange`/`--red` tone modifiers)/`.am-benchmark-ratio` | Neutral gray track (`color-mix(in srgb, var(--gray) 25%, var(--surface-2))`, not `--inset`); fill color is a performance tier (`progressTone()` in `ward-view.js`: ≥100%→green, 75–99%→light-green, 40–74%→orange, <40%→red), never flat; `--muted` ratio text; not `.pill`-based | Amenities-grid rows with a numeric CSV benchmark |
-| Benchmark badge | `.am-benchmark-badge` (+ `--blue`/`--teal`/`--indigo`/`--cyan`/`--gray`/`--orange`/`--green` tone modifiers) | Outlined pill: `border: 1px solid currentColor`, `background: color-mix(in srgb, currentColor 12%, var(--surface-2))`, color keyed by category via `BADGE_TONES` in `ward-view.js` (not uniform) — deliberately not `.pill` reused, since `.pill`'s `--surface` bg is identical to `.amrow.is-clickable:hover`'s and would vanish on hover | Amenities-grid rows with no numeric CSV benchmark |
-| Icon button (round, 44px) | `.icon-btn` | Theme toggle and any other round icon-only control | `#themeToggle` |
-| List row | `.ward-row`, `.ward-suggest-row` | 44px min-height, hover = `--surface-2` bg + `--green` left-border, active = `--green-soft` | ward list, autosuggest dropdown |
+| Card shell | `.sec` | Boxed-card defaults (`--surface-2` bg, `--line` border, `--radius-l`, `--shadow-1`, `--space-5`/`--space-6` padding) — every ward-detail *and* methodology section neutralizes this shell via its own ID override (margin/border/radius/shadow → none) and goes full-bleed instead (see "Full-bleed colored band" below); `.sec` itself is kept on those sections only for its `h3` spacing rule, never for its visible box | ward-detail and methodology sections are all full-bleed, not boxed, as of the 2026 full-bleed redesign |
+| Card shell — dark | `.sec--dark` | Same shell, `--forest` bg + `--on-forest` text (also overrides `.meth-list`/`.buffer-toggle`/`.am-icon`/`.amrow` colors inside it, plus `.meth-step-num`/`.meth-step-label` — see the step-badge row below) | ward-view Ward map + Safety & climate's `.safety-card` sub-card, methodology step 3 |
+| Card shell — tinted | `.sec--tint` | Same shell, `--surface-2` bg (was `--green-soft` before the 2026 full-bleed redesign — this section is single-purpose to Candidates, so it was repurposed rather than adding a new modifier) | ward-view Candidates |
+| Card shell — sage | `.sec--sage` | Same shell, `--sage` bg + `--sage-ink` text (also overrides `.meth-list`/`.sec-sub` colors inside it) — a net-new sibling of `.sec--tint`/`.sec--dark`, using the `--sage`/`--sage-ink` tokens `tokens.css` had already reserved "(methodology band)" | methodology step 2 |
+| Full-bleed colored band | `.cover`, `.why-vote-band`, `.methodology-band`, `.whead`, `.facts-band`, `.feedback-band`, `#overview`, `#candidates`, `#ward-map`, `#amenities`, `#safety-climate`, `#ask-candidates`, `#methHero`, `#methAiNote`, `#methStep1`, `#methStep2`, `#methStep3`, `#methSources` | Break out of the enclosing `.container`'s max-width via `margin-left/right: calc(50% - 50vw)` + matching `padding-left/right`, so the background spans the full viewport while `.band-inner` (a child wrapper) re-applies `.container`'s own max-width scale to keep content aligned. Each has its own background/text-color pairing (dark forest, yellow, sage, light-green, or a plain `--surface`/`--surface-2`/`--surface-3`/`--bg`) — see their own rules in `components.css`, don't invent a new bleed mechanism. The ID-keyed ward-detail/methodology sections additionally neutralize the inherited `.sec` box shell via an ID-scoped override (§ Card shell above). `#ward-map`'s map canvas (`.wardmap-frame`/`#wardMap`) is deliberately *not* full-bleed — after an earlier pass made it reach the true viewport edge, that was reverted so the map sits inset inside the same `.band-inner` as the section's heading/toolbar, like every other section's content; only the section's own background is full-bleed. `#methFeedback` needs no addition to this list since it reuses `.feedback-band`, already covered | home hero/why-vote/methodology-teaser, ward-detail head band + every major section + Did-you-know + Feedback, every methodology-page section |
+| Step badge (numbered rail) | `.meth-step-badge`/`.meth-step-num`/`.meth-step-label`/`.meth-step-inner`/`.meth-step-content` | Net-new tier-2 component: a 44×44px circular number (`.meth-step-num`, `--forest`/`--on-forest` by default, `--red`/`#fff` inside `.sec--dark` for contrast) beside an uppercase `.meth-step-label` ("Step One/Two/Three", `--red`, or `--on-forest` on dark), stacked as a horizontal row on mobile and a vertical rail (`flex: 0 0 140px` column) beside `.meth-step-content` at ≥900px | methodology steps 1/2/3 |
+| Process-card connector | `.meth-stat-arrow` | Net-new tier-2 component: a small `currentColor` inline-SVG arrow between `.mini-stat` cards, rotated 90° (pointing down) in the mobile single-column stack, unrotated (pointing right) once `.meth-mini-stats` goes row-direction at ≥900px | methodology step 2's Collect → Buffer → Report cards |
+| Hero lede/subtitle | `.faq-lede` (top-margin-only variant), `.hero-subtitle` (symmetric-margin variant) | One-sentence paragraph directly under a `.headline`: sentence-length copy, `0.95rem`, `max-width: 64ch` for line length | voter-FAQ hero, home hero |
+| Hero/stat tile | `.hero-stats`/`.hero-stat` (+ `.hero-stat--alert` red, `.hero-stat--highlight` yellow) | 2-column grid of dark tiles, big number + small label | home hero (wards/corporations/councillor/yrs-since-poll), ward-view head band (population/male/female/booths) |
+| Primary button | `.btn.btn-primary` | Solid `--green-d` CTA | ward-view Feedback CTA, voter-FAQ hero |
+| Secondary button | `.btn.btn-secondary` | `--surface` bg, `--line2` border | "Use my location", Reset map |
+| WhatsApp button | `.btn.btn-whatsapp` | Fixed `#25d366`/`#06341c` — brand-locked exception, not a token; only ever for the WhatsApp share action | `#wardWhatsappBtn` |
+| Small button | `.btn.btn-sm` | `36px` min-height variant of `.btn` | ward-view share buttons, map Reset button |
+| Pill/badge | `.pill`, `.pill.pill-soon`, `.pill--fill-yellow`, `.pill--outline-dark` | `--surface` bg + `--muted` text by default; `pill-soon` swaps to `--yellow-soft`/`--yellow-ink`; `--fill-yellow`/`--outline-dark` are `--forest`-surface variants (ward badge row) | ward head badges, key-areas pills, methodology tag pills |
+| Benchmark progress bar | `.am-benchmark-track`/`.am-benchmark-fill` (+ `--green`/`--light-green`/`--orange`/`--red` tone modifiers)/`.am-benchmark-ratio` | Neutral gray track; fill color is a performance tier (`progressTone()` in `ward-view.js`), never flat | Amenities-grid rows with a numeric CSV benchmark |
+| Neutral amenity list row | `.amgrid-benchmarks .amrow.amcard` (+ `.amcard--green`/`--light-green`/`--orange`/`--red`/`--blue`/`--teal`/`--indigo`/`--cyan`/`--gray`) | Every Amenities row (all 11, one uniform grid — an earlier "first 3 as solid-color hero cards" tier was tried and removed): neutral background, `border-bottom`/`border-right` dividers (dashboard-list feel), tone color only on `.am-icon` (+ its light-tint circular halo, `#amenities .am-icon`, via `color-mix(in srgb, currentColor 15%, var(--surface))`), `.am-label`, `.cnt` — the benchmark bar/badge (`.am-benchmark-fill--{tone}`/`.am-benchmark-badge--{tone}`) are independently tone-colored and need no override. Still carries the base `.amrow`/`data-layer` so `wireLayerClicks()`'s click-wiring is untouched; has its own hover override (`.amgrid-benchmarks .amrow.amcard.is-clickable:hover`) so hover reads as a neutral `--surface-2` tint, not a solid tone-fill flash | ward-view Amenities grid, all rows |
+| Benchmark badge | `.am-benchmark-badge` (+ `--blue`/`--teal`/`--indigo`/`--cyan`/`--gray`/`--orange`/`--green` tone modifiers) | Outlined pill, color keyed by category via `BADGE_TONES` in `ward-view.js` | Amenities-grid rows with no numeric CSV benchmark |
+| List row | `.ward-row` (+ `.ward-row-text`/`.ward-row-arrow`), `.ward-suggest-row` | 44px min-height, hover = `--surface-2` bg + `--green` left-border + arrow shift, active = `--green-soft` | home ward list/browse list, autosuggest dropdown |
+| Filter pill (functional) | `.corp-filter-pill` (+ `.active`) | Segmented pill row, `.active` = `--forest` fill | home Ward Explorer corporation filter |
 | Filter/legend button | `.legend-btn` (+ `.active`), `.amenity-card-*` | Map filter cards: `--surface`/`--line2` idle, `--green-soft`/`--green-d` active | ward-map amenity filter row |
-| Native disclosure | `.panel` (wraps `<details>`) | Zero-JS accordion — use this by default for any simple expand/collapse | home-view "What is GBA?" panels |
-| Custom animated accordion | `.accordion-item`/`.accordion-trigger`/`.accordion-panel` | Only when you need chevron-rotate + max-height transition + `aria-expanded` sync beyond what native `<details>` gives — a deliberate one-off already used once (voter FAQ); don't default to this over `.panel` | voter-FAQ categories |
-| Note/alert box | `.callout` (+ `.callout-icon`) | `--yellow-soft` bg, `--yellow-ink` text, `--yellow-line` border — the *only* alert-style box pattern; don't invent a second one | methodology note, voter-FAQ key-dates |
-| Severity card | `.fact`, `.fact.warn`, `.fact.bad` | Left-border color swap only (`--green-ring` → `--yellow` → `--red`); base card is plain `--surface` | facts engine (currently rendered with no tone class — see CLAUDE.md Facts Engine Rules) |
+| Native disclosure | `.panel` (wraps `<details>`) | Zero-JS accordion — use this by default for any simple expand/collapse | home "Four things worth understanding" |
+| Custom animated accordion | `.accordion-item`/`.accordion-trigger`/`.accordion-panel` | Only when you need chevron-rotate + max-height transition + `aria-expanded` sync beyond what native `<details>` gives | voter-FAQ categories |
+| Note/alert box | `.callout` (+ `.callout-icon`) | `--yellow-soft` bg, `--yellow-ink` text, `--yellow-line` border — the base alert-box pattern; page-scoped overrides (e.g. `.faq-key-dates`) may recolor it for a specific card without forking the structure | methodology note, voter-FAQ key-dates |
+| Colored topic tile | `.faq-topic-tile` (+ `--1`..`--8` tone modifiers) | Net-new tier-2 grid tile, one solid brand/token color per tile, number + label + count | voter-FAQ "Eight topics" grid |
+| Severity card | `.fact` | Plain `--surface`/`--yellow-soft` card (see `.facts-band`) | ward-view Did-you-know |
 | Map surface | `.map`, `.map-corp`, `.map-ward` | `--radius`, `--line` border, `--shadow-s` | both MapLibre instances |
-| Map tooltip | `.map-tip` | Theme-aware Popup override: `--surface` bg, `--ink` text, `--radius-s` | hover tooltips on both maps |
-| Interactive map popup | `.ward-popup` (+ `.ward-popup-body`/`-name`/`-btn`) | Pinned, click-triggered Popup override (not `pointer-events: none` like `.map-tip`): `--surface` bg, `--radius-m`, `--shadow-2`, `.btn.btn-primary` reused verbatim for the action button | home choropleth's click-to-navigate ward popup |
-| Fixed nav chrome | `.topcluster`, `.back-fab`, `.voter-faq-fab` | Fixed-position controls, 44px min touch target, `--shadow-1`/`--shadow-2` on hover | theme toggle, back button, FAQ FAB |
-| Footer primitives | `.footer-methodology`, `.footer-share*`, `.footer-org*`, `.footer-social-link` | Card/link/icon patterns for the persistent site footer | `src/js/footer.js` |
-| Inline info-icon link | `.temp-info-link` | Small tooltip+external-link icon embedded mid-sentence (not a standalone button): `--muted` idle / `--ink` hover text color, `--surface` hover fill, `--radius-s`; full 44×44px touch target via padding around a visually smaller 16px glyph, so it stays compliant with this project's touch-target rule even inline | ward-view Temperature row's link to `Temperature_2015_2026.pdf` |
+| Map tooltip | `.map-tip` | `--surface` bg, `--ink` text, `--radius-s` | hover tooltips on both maps |
+| Interactive map popup | `.ward-popup` (+ `.ward-popup-body`/`-name`/`-btn`) | Pinned, click-triggered Popup override: `--surface` bg, `--radius-m`, `--shadow-2`, `.btn.btn-primary` reused verbatim for the action button | home choropleth's click-to-navigate ward popup |
+| Site header chrome | `.site-header`, `.site-header-nav`, `.site-header-menu-btn`, `.site-header-mobile-menu` | Persistent `--forest` bar; desktop = logo+nav (nav flush right via `margin-left:auto`, no CTA), mobile = logo+hamburger (home) or back-chevron+title+hamburger (other views) | `src/js/header.js`, every view |
+| Sticky sub-nav | `.ward-subnav`/`.ward-subnav-btn`, `.cat-nav`/button (voter-FAQ) | Horizontal-scroll tab bar, `position: sticky`, `top` set in JS from `#siteHeader`'s `offsetHeight` | ward-detail 7-tab sub-nav, voter-FAQ category nav |
+| Footer primitives | `.footer-cols`, `.footer-col`, `.footer-col-brand`, `.footer-col-links`, `.footer-col-opencity`, `.footer-opencity-cols`, `.footer-opencity-logo`, `.footer-org*`, `.footer-social-link` | Full-bleed 3-column link footer (Brand/Explore/OpenCity), `--footer-bg` (black) background + `--footer-text` (lime) text — its own token pair, not the shared `--forest`/`--on-forest*` family; `--on-forest-line` border-left dividers on `.footer-col-links`/`.footer-col-opencity` at ≥900px (no separate divider element); no bottom bar (removed) | `src/js/footer.js` |
+| Inline info-icon link | `.temp-info-link` | Small tooltip+external-link icon embedded mid-sentence, full 44×44px touch target via padding around a smaller glyph | ward-view Temperature card's link to `Temperature_2015_2026.pdf` |
 
 When none of these fit, build a new component (tier 2, §4) — do not force an unrelated fit.
 
@@ -131,7 +151,7 @@ When none of these fit, build a new component (tier 2, §4) — do not force an 
 For a genuinely new UI requirement:
 
 - **Layout/markup/class names**: your choice — no obligation to match an existing component's DOM shape.
-- **Color**: only `var(--token-name)` from §1's table. If the new component needs a shade not currently in `tokens.css`, that's a real gap — add the new custom property to **both** `:root` and `[data-theme="dark"]` in `tokens.css` (see §6), don't hardcode a hex inline anywhere else, and update this skill's §1 table in the same change (§8).
+- **Color**: only `var(--token-name)` from §1's table. If the new component needs a shade not currently in `tokens.css`, that's a real gap — add the new custom property to `tokens.css`'s single `:root` block, don't hardcode a hex inline anywhere else, and update this skill's §1 table in the same change (§8).
 - **Spacing/gap/margin/padding**: only `var(--space-N)`, unless deliberately sub-scale with a stated reason (see §1).
 - **Radius**: only `var(--radius*)`.
 - **Elevation**: only `var(--shadow-*)`.
@@ -156,15 +176,15 @@ LAYER: polling #a89a86 · bus #3f7d34 · metro #1f7a5c · school #c8890a · anga
 CORP_COLORS: North #d33a4c · East #e8912a · West #d4b81f · South #5e9b48 · Central #6f6f6f
 ```
 
-These hexes are **intentionally theme-agnostic** (chosen to read on both light and dark CARTO basemaps) — do not add a per-theme override unless a real contrast problem is confirmed by manual verification. The one deliberate off-brand exception in this palette is the blue pair reserved for lake/pond (the Open City brand palette has no blue) — don't extend "off-brand color" to anything else without the same explicit sign-off.
+These hexes are unchanged by the 2026 redesign and are **intentionally basemap-agnostic** (chosen to read on the dark CARTO basemap, the only variant now in use — see CLAUDE.md's Map Rules) — do not add a per-context override unless a real contrast problem is confirmed by manual verification. The one deliberate off-brand exception in this palette is the blue pair reserved for lake/pond (the Open City brand palette has no blue) — don't extend "off-brand color" to anything else without the same explicit sign-off.
 
 ---
 
-## 6. Theme-pairing rule
+## 6. No theme toggle — single palette only
 
-`:root` (light) and `[data-theme="dark"]` in `tokens.css` are **always updated together** — this project has no separate light-only or dark-only component CSS file. Adding/changing a color token means editing both blocks in the same change.
+`tokens.css` has one `:root` block, no `[data-theme="dark"]` counterpart, and no `data-theme` attribute is ever set on `<html>` (`theme.js`/`back-button.js` were deleted in the 2026 redesign along with `#themeToggle`/`.topcluster`/`#voterFaqFab`). Do not reintroduce a paired light/dark token block or a theme-toggle control without an explicit request to do so — this was a deliberate, confirmed removal, not an oversight.
 
-`--lime` (`#c8e537`) is the one deliberate exception to "just a token like any other": it's near-invisible on white (~1.4:1 contrast) and is used in exactly two places, both scoped under `[data-theme="dark"]`: the home search input's `:focus-visible` ring, and the eyebrow dot. Do not use `--lime` in the light theme, for text, or as a general highlight elsewhere.
+Dark-vs-light contrast on a page is achieved by deliberately alternating `--forest` (dark) and `--bg`/`--surface` (light) sections on the same page — e.g. the ward-detail head band and Ward-map card are dark, the Overview/Amenities cards beneath them are light. When building a component for a `--forest` surface, explicitly use the `--on-forest*` text tokens (§2) rather than assuming inversion.
 
 ---
 
@@ -178,7 +198,7 @@ Only Manrope (`--font-display`/`--font-stat`) and PT Sans (`--font-body`). Manro
 
 ## 8. Self-maintenance rule (this file must not drift)
 
-Whenever a UI/UX change request or bug report **changes a token value, adds/removes a color, changes spacing/radius/elevation/typography, or introduces a new reusable component pattern** in `tokens.css`, `base.css`, `components.css`, `transition.css`, or `LAYER`/`CORP_COLORS` in `maps.js` — update the matching table/catalog entry in this SKILL.md **in the same change**, not later. This file's tables (§1, §3, §5) are a mirror of those source files; treat a merged change that leaves them out of sync as incomplete.
+Whenever a UI/UX change request or bug report **changes a token value, adds/removes a color, changes spacing/radius/elevation/typography, or introduces a new reusable component pattern** in `tokens.css`, `base.css`, `components.css`, or `LAYER`/`CORP_COLORS` in `maps.js` — update the matching table/catalog entry in this SKILL.md **in the same change**, not later. This file's tables (§1, §3, §5) are a mirror of those source files; treat a merged change that leaves them out of sync as incomplete.
 
 This skill governs *design correctness* (did the change use the right tokens/patterns) and only applies when a change is genuinely visual — a new color/spacing/radius/elevation/font/touch-target decision, or a new component pattern — not just because it lands in a styling file or a render function. `verify-and-update-docs` governs *verification and doc-sync* (syntax gates, grep sweeps, CLAUDE.md/README.md updates) and applies more broadly, but likewise only when the change is substantial enough to need it (see that skill's own "When to invoke this"). Neither skill is a reflex for every edit — both exist to catch real drift (design-token violations, or stale docs), not to add process to trivial changes.
 
@@ -189,10 +209,10 @@ When a change does genuinely touch design *and* is substantial: this skill runs 
 ## 9. Pre-flight checklist (run before finishing any UI change)
 
 1. No hardcoded hex/rgb color anywhere outside `tokens.css` or `maps.js`'s `LAYER`/`CORP_COLORS` (the one WhatsApp-brand exception in §3 aside).
-2. Every `var(--...)` you wrote resolves to a real definition in `tokens.css` (`:root` or `[data-theme="dark"]`) — except `--ripple-x`/`--ripple-y`, set at runtime by `theme.js`.
-3. If you added/changed a color token, both `:root` and `[data-theme="dark"]` were updated (§6).
+2. Every `var(--...)` you wrote resolves to a real definition in `tokens.css`'s single `:root` block — except `--faq-nav-clearance`, set at runtime by `voter-faq-view.js`.
+3. If you added/changed a color token, `tokens.css`'s single `:root` block was updated — there is no second theme block to keep in sync (§6).
 4. Every clickable element is ≥44px touch target.
-5. Text follows the 3-tier hierarchy (§2) — no paragraph-length text on `--muted`/`--hint`.
+5. Text follows the 3-tier hierarchy (§2), using the `--on-forest*` variants on dark surfaces — no paragraph-length text on `--muted`/`--hint`/`--on-forest-muted`.
 6. You reused an existing component class (§3) if one fit the purpose; if you built a new one, it's still 100%-token-built (§4).
 7. No new font, icon library, CSS framework, or bundler was introduced (§7, and CLAUDE.md's "Do Not" list).
 8. If any table in this file (§1/§3/§5) is now stale relative to the source files you changed, you updated it (§8).
@@ -205,5 +225,5 @@ When a change does genuinely touch design *and* is substantial: this skill runs 
 - No new hardcoded brand hex outside `tokens.css` / `maps.js`'s `LAYER`/`CORP_COLORS`.
 - No new font or icon library — every icon in this app is a hand-coded `currentColor` inline SVG; every font is Manrope/PT Sans.
 - Don't reintroduce Poppins, Inter, Inter Tight, Playfair Display, or Plus Jakarta Sans.
-- Don't add a per-theme marker-color override in `maps.js` without a confirmed, manually-verified contrast problem.
-- Don't use `--lime` outside the two dark-theme-only spots already documented in §6.
+- Don't add a per-context marker-color override in `maps.js` without a confirmed, manually-verified contrast problem.
+- Don't reintroduce a light/dark theme toggle or a paired `:root`/`[data-theme="dark"]` token block without an explicit request (§6) — this was a deliberate 2026 removal.

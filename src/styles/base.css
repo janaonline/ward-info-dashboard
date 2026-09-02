@@ -7,98 +7,235 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
+  overflow-x: hidden; /* guards against the full-bleed band pattern's calc(50% - 50vw) rounding against a scrollbar */
 }
 img, svg { display: block; max-width: 100%; }
 button { font: inherit; color: inherit; }
 a { color: inherit; }
 
-:focus-visible { outline: 2px solid var(--green-d); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
 
 .view { display: none; }
 .view.view--active { display: block; }
 
-.topcluster {
-  position: fixed;
-  top: calc(14px + env(safe-area-inset-top));
-  right: 14px;
-  z-index: 40;
-  display: flex;
-  gap: 8px;
-}
+/* -- site header (persistent nav; replaces the old theme-toggle cluster,
+      floating back button, and floating Voter FAQs FAB) -- */
 
-.back-fab {
-  position: fixed;
-  top: calc(14px + env(safe-area-inset-top));
-  left: clamp(16px, 4vw, 32px);
-  z-index: 40;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 44px;
-  padding: 0 14px 0 12px;
-  border-radius: 999px;
-  border: 1px solid var(--line2);
-  background: var(--surface);
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--surface-3);
   color: var(--ink);
-  box-shadow: var(--shadow-1);
-  cursor: pointer;
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: 0.9rem;
-  transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) ease, background-color var(--dur) ease;
-}
-.back-fab:hover { transform: translateY(-1px); box-shadow: var(--shadow-2); background: var(--surface-2); }
-.back-fab[hidden] { display: none; }
-
-@media (max-width: 519px) {
-  .back-fab { width: 44px; padding: 0; justify-content: center; }
-  .back-fab-label { display: none; }
+  padding-top: env(safe-area-inset-top);
 }
 
-.methodology-link {
-  position: fixed;
-  bottom: calc(14px + env(safe-area-inset-bottom));
-  left: 14px;
-  z-index: 40;
+.site-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-top: var(--space-4);
+  padding-bottom: var(--space-4);
+}
+/* .site-header-inner also carries .container for its horizontal max-width/
+   padding, but .container's own padding rule adds a large bottom-only
+   clearance meant for page content above the footer — applied here it's
+   overridden with the vertical padding this header actually wants instead,
+   so align-items:center centers the nav row within a symmetric box. This
+   combo selector (two classes) is more specific than .site-header-inner
+   alone above, and wins regardless of source order — so the real vertical
+   sizing lives here, not in the longhand padding-top/bottom above (those
+   are the pre-.container-override baseline, kept for when .container isn't
+   present, though in practice .site-header-inner always carries it). */
+.site-header-inner.container {
+  padding: var(--space-5) clamp(14px, 4vw, 24px);
 }
 
-.voter-faq-fab {
-  /* Election portal primary CTA — reachable from anywhere, so it needs to
-     read clearly rather than blend into page chrome like .topcluster does. */
-  --fab-tint: var(--green-d);
-  position: fixed;
-  bottom: clamp(18px, 4vw, 28px);
-  right: clamp(18px, 4vw, 28px);
-  z-index: 40;
+.site-header-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.site-header-back {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 14px 22px;
-  background: var(--green-d);
-  color: #fff;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: var(--radius-s);
   border: none;
-  border-radius: 100px;
-  box-shadow: var(--shadow-2), 0 0 0 0 color-mix(in srgb, var(--fab-tint) 45%, transparent);
-  text-decoration: none;
-  font-family: var(--font-stat);
-  font-weight: 700;
-  font-size: 0.95rem;
-  min-height: 44px;
+  background: transparent;
+  color: var(--ink);
   cursor: pointer;
-  animation: voterFaqPulse 2.5s ease-in-out infinite;
-  transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) ease, opacity var(--dur) ease;
+  transition: background-color var(--dur) var(--ease-out);
 }
-[data-theme="dark"] .voter-faq-fab { --fab-tint: var(--green); background: var(--green); color: #10160b; }
-.voter-faq-fab:hover, .voter-faq-fab:focus-visible {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-3), 0 0 0 0 transparent;
-  animation-play-state: paused;
-}
-.voter-faq-fab[hidden] { display: none; }
+.site-header-back:hover { background: var(--surface-2); }
+.site-header-back[hidden] { display: none; }
 
-@keyframes voterFaqPulse {
-  0%, 100% { box-shadow: var(--shadow-2), 0 0 0 0 color-mix(in srgb, var(--fab-tint) 45%, transparent); }
-  50% { box-shadow: var(--shadow-2), 0 0 0 9px color-mix(in srgb, var(--fab-tint) 0%, transparent); }
+.site-header-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration: none;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  white-space: nowrap;
+}
+.site-header-logo-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-s);
+  background: var(--yellow);
+  color: var(--forest);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+.site-header-logo[hidden] { display: none; }
+
+.site-header-partners {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.site-header-partners[hidden] { display: none; }
+
+.site-header-sep {
+  width: 1px;
+  height: 20px;
+  background: var(--line2);
+  flex-shrink: 0;
+}
+
+.site-header-partner-link {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.site-header-star {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--muted);
+}
+
+.site-header-partner-logo {
+  display: block;
+  width: auto;
+}
+.site-header-partner-logo--opencity { height: 24px; }
+.site-header-partner-logo--janaagraha { height: 19px; }
+
+@media (max-width: 520px) {
+  .site-header-partner-logo--opencity { height: 18px; }
+  .site-header-partner-logo--janaagraha { height: 14px; }
+  .site-header-star svg { width: 11px; height: 11px; }
+  .site-header-partners { gap: var(--space-1); }
+}
+
+.site-header-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.site-header-title[hidden] { display: none; }
+
+.site-header-nav {
+  display: none;
+  align-items: center;
+  gap: var(--space-5);
+}
+.site-header-nav a {
+  text-decoration: none;
+  color: var(--ink);
+  font-family: var(--font-stat);
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: var(--space-1) 0;
+  border-bottom: 2px solid transparent;
+  transition: color var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out);
+}
+.site-header-nav a:hover { color: var(--ink); }
+.site-header-nav a.active { color: var(--yellow-ink); border-bottom-color: var(--yellow); }
+
+.site-header-nav a.site-header-nav-emphasis,
+.site-header-mobile-menu a.site-header-nav-emphasis {
+  font-weight: 900;
+  border: 1px solid var(--ink);
+  border-radius: var(--radius-s);
+  padding: var(--space-1) var(--space-2);
+}
+
+.site-header-actions { display: flex; align-items: center; gap: var(--space-3); }
+
+.site-header-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-s);
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.site-header-menu-btn:hover { background: var(--surface-2); }
+
+.site-header-mobile-menu {
+  border-top: 1px solid var(--line);
+  padding: var(--space-3) clamp(14px, 4vw, 24px) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.site-header-mobile-menu[hidden] { display: none; }
+.site-header-mobile-menu a {
+  text-decoration: none;
+  color: var(--ink);
+  font-family: var(--font-stat);
+  font-weight: 600;
+  padding: var(--space-2) 0;
+}
+.site-header-mobile-menu a.active { color: var(--yellow-ink); }
+
+@media (min-width: 900px) {
+  /* .site-header-back is intentionally NOT force-hidden here (unlike title,
+     below) — its visibility already comes from the correct place, JS's
+     `backBtn.hidden = isHome` in setHeaderState(), so letting that show
+     through on desktop too gives desktop the same "back to whatever view you
+     came from" affordance mobile already has (main.js's viewStack/goBack()
+     already handles this correctly, it just had no visible desktop trigger).
+     .site-header-logo is force-visible even when its own `hidden` attribute
+     is set (which happens on every non-home view, so mobile can swap it for
+     the back-chevron + title) — without this override, desktop lost its
+     branding entirely on every non-home view, since nothing here was filling
+     that slot the way mobile's title does. */
+  .site-header-logo[hidden] { display: inline-flex; }
+  .site-header-partners[hidden] { display: flex; }
+  .site-header-title { display: none; }
+  .site-header-partner-logo--opencity { height: 28px; }
+  .site-header-partner-logo--janaagraha { height: 22px; }
+  /* margin-left:auto (not justify-content:space-between's 3-way split) is what
+     keeps nav flush against the right edge now that .site-header-actions has
+     no visible content at this width (menu button is hidden here too, since
+     the CTA that used to occupy this slot was removed). */
+  .site-header-nav { display: flex; margin-left: auto; }
+  .site-header-menu-btn { display: none; }
 }
 
 .loading-indicator {
@@ -119,6 +256,18 @@ a { color: inherit; }
   margin: 0 auto;
   padding: 0 clamp(14px, 4vw, 24px) calc(var(--space-7) + env(safe-area-inset-bottom));
 }
+/* Home's last section is itself a full-bleed sage band (.methodology-band) —
+   .container's page-content bottom clearance would otherwise show up as a
+   visible strip of the page's cream background between that band and the
+   footer. The footer supplies its own top padding, so this is safe to zero. */
+#homeContainer.container { padding-bottom: 0; }
+/* Ward detail's and Methodology's last sections (.feedback-band) are full-bleed
+   again (its .panel-style card now lives on the inner .band-inner, for correct
+   alignment with every other section — see .feedback-band/.feedback-inner in
+   components.css) and self-supply their own padding-top/bottom, so both
+   containers zero their own bottom padding too, same reasoning as #homeContainer. */
+#wardContainer.container { padding-bottom: 0; }
+#methodologyContainer.container { padding-bottom: 0; }
 
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }

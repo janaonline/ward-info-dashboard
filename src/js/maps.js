@@ -1,5 +1,3 @@
-import { onThemeChange, getCurrentTheme } from './theme.js';
-
 const SVG_OPEN = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">';
 
 // simple, unambiguous line pictograms — one per amenity type (CLAUDE.md: LAYER is the
@@ -55,15 +53,16 @@ export const CORP_COLORS = {
 };
 
 const CARTO_SUBDOMAINS = ['a', 'b', 'c', 'd'];
+const CARTO_API_KEY = 'cb1_2q66_1_a116d0d80567857353fd48de';
 
-export function tileUrlForTheme(theme) {
-  const variant = theme === 'dark' ? 'dark_nolabels' : 'light_nolabels';
-  return CARTO_SUBDOMAINS.map(s => `https://${s}.basemaps.cartocdn.com/${variant}/{z}/{x}/{y}.png`);
+// This design has no light/dark theme toggle — every map (home choropleth,
+// ward detail) always sits on the light CARTO basemap.
+export function tileUrl() {
+  return CARTO_SUBDOMAINS.map(s => `https://${s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png?key=${CARTO_API_KEY}`);
 }
 
-export function labelTileUrlForTheme(theme) {
-  const variant = theme === 'dark' ? 'dark_only_labels' : 'light_only_labels';
-  return CARTO_SUBDOMAINS.map(s => `https://${s}.basemaps.cartocdn.com/${variant}/{z}/{x}/{y}.png`);
+export function labelTileUrl() {
+  return CARTO_SUBDOMAINS.map(s => `https://${s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png?key=${CARTO_API_KEY}`);
 }
 
 // ---- geometry helpers (keyed by uid; supports GeoJSON Polygon and MultiPolygon) ----
@@ -274,15 +273,14 @@ export function buildWardPolygonsGeoJSON(W, { filterUids } = {}) {
 
 const _liveMaps = new Set();
 
-export function createMap(containerId, { center = [77.5946, 12.9716], zoom = 10.5, theme } = {}) {
-  const currentTheme = theme || getCurrentTheme();
+export function createMap(containerId, { center = [77.5946, 12.9716], zoom = 10.5 } = {}) {
   const map = new maplibregl.Map({
     container: containerId,
     style: {
       version: 8,
       sources: {
-        carto: { type: 'raster', tiles: tileUrlForTheme(currentTheme), tileSize: 256, attribution: '© CARTO © OpenStreetMap contributors' },
-        'carto-labels': { type: 'raster', tiles: labelTileUrlForTheme(currentTheme), tileSize: 256 },
+        carto: { type: 'raster', tiles: tileUrl(), tileSize: 256, attribution: '© CARTO © OpenStreetMap contributors' },
+        'carto-labels': { type: 'raster', tiles: labelTileUrl(), tileSize: 256 },
       },
       layers: [
         { id: 'carto-base', type: 'raster', source: 'carto' },
@@ -294,14 +292,20 @@ export function createMap(containerId, { center = [77.5946, 12.9716], zoom = 10.
     attributionControl: { compact: true },
   });
 
-  const unsubscribe = onThemeChange((newTheme) => {
-    const src = map.getSource('carto');
-    if (src && src.setTiles) src.setTiles(tileUrlForTheme(newTheme));
-    const labelSrc = map.getSource('carto-labels');
-    if (labelSrc && labelSrc.setTiles) labelSrc.setTiles(labelTileUrlForTheme(newTheme));
+  // MapLibre's compact AttributionControl starts expanded by default (a library
+  // quirk: attribution_control.js's _updateCompact() adds "maplibregl-compact-show"
+  // once the style's sources actually populate real attribution text, regardless
+  // of screen width) — collapse it to icon-only once that's happened, mirroring
+  // exactly what a user clicking the (i) toggle once would already do; the
+  // toggle itself is untouched and still opens/closes it correctly. Right after
+  // `new maplibregl.Map(...)` returns is too early — the control still reads
+  // "maplibregl-attrib-empty" at that instant, before the source data (and its
+  // "attribution" string) has been processed, so `map.once('load', ...)` is used
+  // instead of doing this inline here.
+  map.once('load', () => {
+    map.getContainer().querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show');
   });
 
-  map.on('remove', unsubscribe);
   _liveMaps.add(map);
   return map;
 }
@@ -384,7 +388,8 @@ export function addChoroplethLayer(map, geojson) {
     id: 'wards-line',
     type: 'line',
     source: 'wards',
-    paint: { 'line-color': '#ffffff', 'line-width': 0.5 },
+    // dark, not white — visible against the light CARTO basemap (white would vanish)
+    paint: { 'line-color': '#18230f', 'line-width': 0.5 },
   });
   map.addLayer({
     id: 'wards-line-hover',
