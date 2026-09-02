@@ -1,5 +1,4 @@
 const NAV_ITEMS = [
-  { kind: 'external', href: 'https://opencity.in/', label: 'Home' },
   { kind: 'external', href: 'https://data.opencity.in/dataset', label: 'Datasets', emphasize: true },
   { kind: 'internal', view: 'voter-faq', label: 'Voter FAQs' },
 ];
