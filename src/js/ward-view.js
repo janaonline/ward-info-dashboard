@@ -6,6 +6,7 @@ import {
 } from './maps.js';
 import { esc, fmt, fmtTrunc } from './format.js';
 import { isLocalDev, normalizeWardName } from './data-loader.js';
+import { trackEvent, wardAnalyticsAttrs } from './analytics.js';
 
 let wardMap = null;
 let currentLayer = null;
@@ -79,7 +80,7 @@ function renderSubnav() {
 
 let subnavSuppressSpy = false;
 
-function initWardSubnav() {
+function initWardSubnav(uid, w) {
   const nav = document.getElementById('wardSubnav');
   if (!nav) return;
   const header = document.getElementById('siteHeader');
@@ -106,6 +107,7 @@ function initWardSubnav() {
 
   let activeId = null;
   let followTimer = null;
+  let sectionViewTimer = null;
   function setActive(id) {
     if (id === activeId) return;
     activeId = id;
@@ -126,6 +128,15 @@ function initWardSubnav() {
       nav.querySelector(`.ward-subnav-btn[data-target="${id}"]`)
         ?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     }, 120);
+
+    // --- analytics: "meaningfully viewed" section, debounced separately
+    // from the instant UI update above — a fast scroll-through crossing
+    // several section boundaries should only report the one the user
+    // actually settles on, not every section glimpsed along the way. ---
+    clearTimeout(sectionViewTimer);
+    sectionViewTimer = setTimeout(() => {
+      trackEvent('ward_section_view', { ward_number: w.ward_id, ward_name: w.ward_name, section_id: id });
+    }, 600);
   }
 
   buttons.forEach(btn => {
@@ -175,7 +186,15 @@ function copyUrl(uid) {
   return `${location.origin}${location.pathname}#ward=${uid}`;
 }
 
-function wireShareButtons(uid, wardName) {
+function wireShareButtons(uid, w) {
+  const whatsappBtn = document.getElementById('wardWhatsappBtn');
+  if (whatsappBtn) {
+    // Observe-only — never preventDefault/stopPropagation, so the real
+    // wa.me link still opens normally.
+    whatsappBtn.addEventListener('click', () => {
+      trackEvent('share_whatsapp', { ...wardAnalyticsAttrs(w), share_location: 'ward_detail_header' });
+    });
+  }
   const copyBtn = document.getElementById('wardCopyLinkBtn');
   if (copyBtn) {
     const label = copyBtn.querySelector('.btn-label');
@@ -183,9 +202,19 @@ function wireShareButtons(uid, wardName) {
       navigator.clipboard.writeText(copyUrl(uid)).then(() => {
         label.textContent = 'Copied!';
         setTimeout(() => { label.textContent = 'Copy link'; }, 1500);
+        // Fires only on confirmed copy success, not on click intent.
+        trackEvent('copy_ward_link', { ...wardAnalyticsAttrs(w), share_location: 'ward_detail_header' });
       });
     });
   }
+}
+
+function wireFeedbackLink(uid, w) {
+  const link = document.querySelector('#feedback .feedback-actions a');
+  if (!link) return;
+  link.addEventListener('click', () => {
+    trackEvent('feedback_click', { ...wardAnalyticsAttrs(w), share_location: 'ward_detail_feedback_section' });
+  });
 }
 
 // ---- render pieces ----
@@ -610,7 +639,7 @@ function closeNeighborWardPopup() {
   if (activeNeighborWardPopup) { activeNeighborWardPopup.remove(); activeNeighborWardPopup = null; }
 }
 
-function setLayer(uid, W, type) {
+function setLayer(uid, W, type, { isUserAction = true, trigger = null } = {}) {
   if (!type || !LAYER[type]) return;
   currentLayer = type;
   const points = setActiveAmenityLayer(wardMap, type, uid, W);
@@ -635,6 +664,18 @@ function setLayer(uid, W, type) {
     badgeDot.style.background = LAYER[type].color;
     badgeLabel.textContent = `Showing: ${amenityLabel(type, uid, W, W[uid])} (${fmt(points.length)})`;
   }
+
+  // Only real user-triggered layer switches are reported — the automatic
+  // default-layer call inside openWard()'s wardMap.on('load', ...) passes
+  // isUserAction:false so it never counts as an interaction.
+  if (isUserAction) {
+    const w = W[uid];
+    if (type === 'polling') {
+      trackEvent('polling_booths_toggle', { ward_number: w.ward_id, ward_name: w.ward_name, booth_count: points.length });
+    } else {
+      trackEvent('map_amenity_filter', { ward_number: w.ward_id, ward_name: w.ward_name, amenity_type: type, trigger });
+    }
+  }
 }
 
 // -webkit-line-clamp is purely visual truncation — the paragraph's textContent
@@ -642,7 +683,7 @@ function setLayer(uid, W, type) {
 // is just a CSS class toggle, no text-swapping needed. Only adds a toggle for
 // descriptions that are actually clamped (scrollHeight > clientHeight); a
 // short one-line description gets no control at all.
-function wireBenchmarkToggles() {
+function wireBenchmarkToggles(uid, w) {
   document.querySelectorAll('.am-benchmark-desc').forEach((el, i) => {
     if (el.scrollHeight <= el.clientHeight + 1) return;
     el.id = el.id || `am-benchmark-desc-${i}`;
@@ -659,6 +700,10 @@ function wireBenchmarkToggles() {
       const expanded = el.classList.toggle('am-benchmark-desc--expanded');
       btn.textContent = expanded ? 'Show less' : 'Read more';
       btn.setAttribute('aria-expanded', String(expanded));
+      if (expanded) {
+        const amenityType = el.closest('.amrow')?.dataset.layer || null;
+        trackEvent('amenities_expand', { ward_number: w.ward_id, ward_name: w.ward_name, amenity_type: amenityType });
+      }
     });
     // Appended as a child (not a sibling) so CSS can absolutely position it at
     // this paragraph's own bottom-right corner (.am-benchmark-more), landing
@@ -669,13 +714,13 @@ function wireBenchmarkToggles() {
 
 function wireLayerClicks(uid, W) {
   document.querySelectorAll('.legend-btn').forEach(btn => {
-    btn.addEventListener('click', () => setLayer(uid, W, btn.dataset.layer));
+    btn.addEventListener('click', () => setLayer(uid, W, btn.dataset.layer, { trigger: 'legend' }));
   });
   document.querySelectorAll('.amrow').forEach(row => {
     if (layerPoints(uid, row.dataset.layer, W).length > 0) {
       row.classList.add('is-clickable');
       row.addEventListener('click', () => {
-        setLayer(uid, W, row.dataset.layer);
+        setLayer(uid, W, row.dataset.layer, { trigger: 'benchmark_row' });
         document.getElementById('ward-map')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     }
@@ -684,7 +729,18 @@ function wireLayerClicks(uid, W) {
   if (bufferToggle) {
     bufferToggle.addEventListener('change', (e) => {
       bufferOn = e.target.checked;
-      setLayer(uid, W, currentLayer);
+      // The buffer toggle doesn't change the active amenity layer, so this
+      // re-application is not itself a "layer switch" — isUserAction:false
+      // keeps it out of map_amenity_filter; map_walk_reach_toggle below is
+      // its own clean, dedicated event for this gesture.
+      setLayer(uid, W, currentLayer, { isUserAction: false });
+      const w = W[uid];
+      trackEvent('map_walk_reach_toggle', {
+        ward_number: w.ward_id,
+        ward_name: w.ward_name,
+        amenity_type: currentLayer,
+        walk_reach_enabled: bufferOn,
+      });
     });
   }
   const resetBtn = document.getElementById('wardMapReset');
@@ -692,7 +748,7 @@ function wireLayerClicks(uid, W) {
     resetBtn.addEventListener('click', () => {
       bufferOn = false;
       if (bufferToggle) bufferToggle.checked = false;
-      setLayer(uid, W, defaultLayer(uid, W));
+      setLayer(uid, W, defaultLayer(uid, W), { trigger: 'reset' });
     });
   }
 }
@@ -707,7 +763,7 @@ export function initWardView({ W, benchmarks }) {
   });
 }
 
-export function openWard(uid, { onOpenWard, onNavigateHome } = {}) {
+export function openWard(uid, { onOpenWard, onNavigateHome, source } = {}) {
   const W = dataRef;
   const w = W[uid];
   onNavigateHomeRef = onNavigateHome;
@@ -730,8 +786,15 @@ export function openWard(uid, { onOpenWard, onNavigateHome } = {}) {
     ${renderFeedback()}
   `;
 
-  initWardSubnav();
-  wireShareButtons(uid, w.ward_name);
+  // --- analytics: ward detail page + polling-booth interest signal ---
+  trackEvent('ward_detail_view', { ...wardAnalyticsAttrs(w), selection_source: source || null });
+  if (w.polling > 0) {
+    trackEvent('polling_booths_view', { ward_number: w.ward_id, ward_name: w.ward_name, polling_booth_count: w.polling });
+  }
+
+  initWardSubnav(uid, w);
+  wireShareButtons(uid, w);
+  wireFeedbackLink(uid, w);
   const homeLink = document.getElementById('wheadHomeLink');
   if (homeLink) {
     homeLink.addEventListener('click', (e) => {
@@ -748,9 +811,9 @@ export function openWard(uid, { onOpenWard, onNavigateHome } = {}) {
   // resolves immediately (next microtask) once fonts are already cached, so this
   // adds no perceptible delay on repeat ward navigations.
   if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(wireBenchmarkToggles);
+    document.fonts.ready.then(() => wireBenchmarkToggles(uid, w));
   } else {
-    wireBenchmarkToggles();
+    wireBenchmarkToggles(uid, w);
   }
 
   if (wardMap) {
@@ -777,7 +840,7 @@ export function openWard(uid, { onOpenWard, onNavigateHome } = {}) {
     };
 
     if (currentLayer) {
-      setLayer(uid, W, currentLayer);
+      setLayer(uid, W, currentLayer, { isUserAction: false });
       const amenityTip = new maplibregl.Popup({ closeButton: false, closeOnClick: false, className: 'map-tip', offset: 12 });
       wardMap.on('mousemove', 'amenity-points-circle', (e) => {
         if (!e.features.length) return;
@@ -881,7 +944,7 @@ export function openWard(uid, { onOpenWard, onNavigateHome } = {}) {
           .addTo(wardMap);
         popup.getElement().querySelector('.ward-popup-body').addEventListener('click', () => {
           closeNeighborWardPopup();
-          onOpenWard(targetUid);
+          onOpenWard(targetUid, 'map');
         });
         popup.on('close', () => { if (activeNeighborWardPopup === popup) activeNeighborWardPopup = null; });
         activeNeighborWardPopup = popup;
@@ -889,7 +952,9 @@ export function openWard(uid, { onOpenWard, onNavigateHome } = {}) {
     }
     wireLayerClicks(uid, W);
     raiseLabels(wardMap);
-    addResetViewControl(wardMap, defaultView);
+    addResetViewControl(wardMap, defaultView, () => {
+      trackEvent('map_reset', { map_context: 'ward', ward_number: w.ward_id, ward_name: w.ward_name });
+    });
   });
 }
 

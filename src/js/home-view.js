@@ -1,5 +1,6 @@
 import { createMap, buildWardPolygonsGeoJSON, addChoroplethLayer, CORP_COLORS, wardAt, resizeMap, raiseLabels, addResetViewControl } from './maps.js';
 import { esc, fmt } from './format.js';
+import { trackEvent, wardAnalyticsAttrs } from './analytics.js';
 
 let corpMap = null;
 let corpHover = null;
@@ -8,6 +9,15 @@ let suggestAbortController = null;
 let suggestRequestSeq = 0;
 let activeCorp = 'All';
 let wardsRef = null;
+let searchReportTimer = null;
+
+// Cancels the pending analytics-only "ward_search" report (see
+// scheduleSearchReport in initHomeView) — called wherever a search
+// resolves into a ward open, since trackEvent's page_type is read at push
+// time and the view will have already navigated away from 'home' by then.
+function cancelSearchReport() {
+  clearTimeout(searchReportTimer);
+}
 
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
 const NOMINATIM_EMAIL = 'sss@gmail.com';
@@ -46,7 +56,7 @@ function renderBrowseList(W, corp) {
   `).join('');
 
   listEl.querySelectorAll('.ward-row').forEach(row => {
-    row.addEventListener('click', () => onOpenWardRef(row.dataset.uid));
+    row.addEventListener('click', () => onOpenWardRef(row.dataset.uid, 'ward_list'));
   });
 }
 
@@ -64,6 +74,7 @@ function setActiveCorp(corp) {
     corpMap.setFilter('wards-line', filter);
     corpMap.setFilter('wards-line-hover', filter);
   }
+  trackEvent('corporation_selected', { corporation: corp });
 }
 
 function computeLocalMatches(W, query) {
@@ -174,8 +185,9 @@ function renderSuggestions(W, rows) {
 
   listEl.querySelectorAll('.ward-suggest-row').forEach(row => {
     row.addEventListener('click', () => {
+      cancelSearchReport();
       renderSuggestions(W, []);
-      onOpenWardRef(row.dataset.uid);
+      onOpenWardRef(row.dataset.uid, 'search');
     });
   });
 }
@@ -365,17 +377,48 @@ export function initHomeView({ W, meta }, { onOpenWard, onMethodology }) {
     renderSuggestions(W, buildSuggestionRows(latestLocalMatches, landmarkMatches));
   }, LANDMARK_DEBOUNCE_MS);
 
+  // Independent, analytics-only debounce (600ms) — separate from the instant
+  // local-match rendering and the 400ms landmark-lookup debounce above, both
+  // of which stay untouched for UX responsiveness. Reads the live DOM result
+  // count at fire time so it naturally reflects landmark rows that resolve
+  // asynchronously within the settle window. Uses a plain, cancellable timer
+  // (not the shared debounce() helper, which has no cancel) — selecting a
+  // ward navigates away from 'home' before this can fire otherwise, and
+  // trackEvent's page_type is read at push time, so an uncancelled timer
+  // would mislabel the event as ward_detail and report a stale (zero)
+  // results_count once #wardSuggest has been cleared/replaced.
+  function scheduleSearchReport() {
+    clearTimeout(searchReportTimer);
+    searchReportTimer = setTimeout(() => {
+      if (!document.getElementById('view-home')?.classList.contains('view--active')) return;
+      const query = document.getElementById('findSearch').value.trim();
+      if (!query) return;
+      const resultCount = document.querySelectorAll('#wardSuggest .ward-suggest-row').length;
+      const hasLocal = latestLocalMatches.length > 0;
+      const hasLandmark = resultCount > latestLocalMatches.length;
+      trackEvent('ward_search', {
+        search_term: query,
+        results_count: resultCount,
+        search_type: hasLocal && hasLandmark ? 'mixed' : hasLandmark ? 'landmark' : 'ward_name',
+      });
+    }, 600);
+  }
+
   document.getElementById('findSearch').addEventListener('input', (e) => {
     const query = e.target.value.trim();
     suggestRequestSeq += 1;
     latestLocalMatches = query ? computeLocalMatches(W, query) : [];
     renderSuggestions(W, buildSuggestionRows(latestLocalMatches, []));
     landmarkLookup(query, suggestRequestSeq);
+    scheduleSearchReport();
   });
 
   document.getElementById('findSearch').addEventListener('keydown', (e) => {
     if (e.key === 'Escape') renderSuggestions(W, []);
-    if (e.key === 'Enter' && latestLocalMatches.length) onOpenWardRef(latestLocalMatches[0]);
+    if (e.key === 'Enter' && latestLocalMatches.length) {
+      cancelSearchReport();
+      onOpenWardRef(latestLocalMatches[0], 'search');
+    }
   });
 
   document.addEventListener('click', (e) => {
@@ -390,10 +433,19 @@ export function initHomeView({ W, meta }, { onOpenWard, onMethodology }) {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        // Privacy: only the resolved ward (if any) is ever sent to
+        // analytics — raw coordinates never leave this callback.
         const uid = wardAt(pos.coords.longitude, pos.coords.latitude, W);
-        if (uid) onOpenWard(uid);
+        trackEvent('location_used', { outcome: 'granted' });
+        if (uid) {
+          trackEvent('location_ward_identified', wardAnalyticsAttrs(W[uid]));
+          onOpenWard(uid, 'geolocation');
+        }
       },
-      () => {},
+      (err) => {
+        const outcome = err && err.code === 3 ? 'timeout' : 'denied';
+        trackEvent('location_used', { outcome, error_code: err ? err.code : null });
+      },
       { timeout: 8000 }
     );
   });
@@ -406,7 +458,7 @@ export function initHomeView({ W, meta }, { onOpenWard, onMethodology }) {
       const geojson = buildWardPolygonsGeoJSON(W);
       corpHover = addChoroplethLayer(corpMap, geojson);
       raiseLabels(corpMap);
-      addResetViewControl(corpMap, defaultView);
+      addResetViewControl(corpMap, defaultView, () => trackEvent('map_reset', { map_context: 'home' }));
       const tip = new maplibregl.Popup({ closeButton: false, closeOnClick: false, className: 'map-tip', offset: 12 });
 
       corpMap.on('mousemove', 'wards-fill', (e) => {
@@ -453,7 +505,7 @@ export function initHomeView({ W, meta }, { onOpenWard, onMethodology }) {
 
         popup.getElement().querySelector('.ward-popup-body').addEventListener('click', () => {
           closeWardPopup();
-          onOpenWardRef(uid);
+          onOpenWardRef(uid, 'map');
         });
 
         popup.on('close', () => { if (activeWardPopup === popup) activeWardPopup = null; });

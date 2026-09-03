@@ -1,3 +1,5 @@
+import { trackEvent } from './analytics.js';
+
 const CHEVRON = '<svg class="chevron" viewBox="0 0 8 12" fill="none" aria-hidden="true"><path d="M1 1l6 5-6 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 // Every question/answer below is copied verbatim from Voter_FAQs.PDF — do not
@@ -280,15 +282,28 @@ export function initVoterFaqView() {
     </section>
   `;
 
+  const catIndex = new Map(CATEGORIES.map(c => [c.id, c]));
+
   container.querySelectorAll('.accordion-item').forEach(item => {
     const trigger = item.querySelector('.accordion-trigger');
     const panel = item.querySelector('.accordion-panel');
+    const cat = catIndex.get(item.closest('.category').id);
+    const faqItem = cat.items[Number(item.dataset.itemIndex)];
     trigger.setAttribute('aria-expanded', 'false');
     trigger.addEventListener('click', () => {
       const isOpen = item.getAttribute('data-open') === 'true';
       item.setAttribute('data-open', String(!isOpen));
       trigger.setAttribute('aria-expanded', String(!isOpen));
       panel.style.maxHeight = isOpen ? '0px' : `${panel.scrollHeight}px`;
+      if (!isOpen) {
+        // Fires on the open transition only, never on close. faq_category
+        // uses the human-readable heading label (no leading "N. " numeral);
+        // never sends item.a (the answer text).
+        trackEvent('voter_faq_question_view', {
+          faq_category: cat.nav.replace(/^\d+\.\s*/, ''),
+          faq_question: faqItem.q,
+        });
+      }
     });
   });
 
@@ -339,7 +354,6 @@ export function initVoterFaqView() {
     });
   }
 
-  const catIndex = new Map(CATEGORIES.map(c => [c.id, c]));
   const searchIndex = [...container.querySelectorAll('.accordion-item')].map(itemEl => {
     const cat = catIndex.get(itemEl.closest('.category').id);
     const item = cat.items[Number(itemEl.dataset.itemIndex)];
@@ -399,6 +413,10 @@ export function initVoterFaqView() {
       trigger.setAttribute('aria-expanded', String(open));
       panel.style.maxHeight = open ? `${panel.scrollHeight}px` : '0px';
     });
+
+    if (hasQuery) {
+      trackEvent('voter_faq_search', { search_term: query, results_count: visibleCount });
+    }
 
     categoryEntries.forEach(c => {
       const anyVisible = c.itemEls.some(el => !el.hidden);
