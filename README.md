@@ -56,6 +56,10 @@ Colors, typography, and spacing follow Open City's brand guidelines, applied thr
 
 The footer's Janaagraha/Oorvani logo images are expected at `public/logos/janaagraha-logo.svg` and `public/logos/oorvani-logo.svg`; until those files are added, the footer falls back to plain text wordmarks automatically.
 
+## Analytics
+
+The site tracks usage through Google Analytics 4, loaded via Google Tag Manager (`index.html`'s standard snippet). Rather than relying on raw/technical GA4 defaults, `src/js/analytics.js` pushes a human-readable event taxonomy so a non-technical product/program team can read the reports directly: page views per view (with an accurate, per-view page title), how a ward was found and opened (search, ward list, map, corporation filter, "Use my location", or a direct link), which ward-detail sections and amenities people engage with, map interactions (layer filters, the walk-reach toggle, map reset), sharing/feedback actions, and Voter FAQ search/question activity. No personally identifying information or precise location coordinates are ever sent — "Use my location" only reports which ward (if any) the resolved position falls inside, never the coordinates themselves. See `CLAUDE.md`'s "Analytics Rules" section for the full event/parameter reference.
+
 ## Contributing / verification
 
 There's no lint, formatter, type checker, or bundler in this project by design — it stays a dependency-free static site. Before committing a change:
