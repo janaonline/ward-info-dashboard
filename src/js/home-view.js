@@ -27,6 +27,7 @@ const SEARCH_REPORT_MIN_LEN = 4;
 const SUGGEST_CAP = 6;
 
 const PIN_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
+const LOCATE_ICON = '<svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>';
 const ARROW_ICON = '<svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 const CHEVRON_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
 
@@ -217,7 +218,7 @@ export function initHomeView({ W, meta }, { onOpenWard, onMethodology }) {
               <input id="findSearch" type="search" placeholder="Search ward or area" autocomplete="off">
               <ul id="wardSuggest" class="ward-suggest" hidden></ul>
             </div>
-            <button id="findLocate" class="btn btn-secondary" type="button">Use my location</button>
+            <button id="findLocate" class="btn btn-secondary" type="button">${LOCATE_ICON}Use my location</button>
           </div>
         </div>
 
