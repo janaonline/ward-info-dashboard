@@ -23,9 +23,11 @@ const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
 const NOMINATIM_EMAIL = 'sss@gmail.com';
 const LANDMARK_MIN_LEN = 3;
 const LANDMARK_DEBOUNCE_MS = 400;
+const SEARCH_REPORT_MIN_LEN = 4;
 const SUGGEST_CAP = 6;
 
-const BALLOT_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h16v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M4 10l3-6h10l3 6"/><path d="M9.5 13.5l2 2 4-4"/></svg>';
+const PIN_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
+const LOCATE_ICON = '<svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>';
 const ARROW_ICON = '<svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 const CHEVRON_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
 
@@ -192,23 +194,8 @@ function renderSuggestions(W, rows) {
   });
 }
 
-function initWhyVoteToggle() {
-  const btn = document.getElementById('whyVoteToggle');
-  const more = document.getElementById('whyVoteMore');
-  if (!btn || !more) return;
-  more.inert = true;
-
-  function setExpanded(expanded) {
-    more.inert = !expanded;
-    more.style.maxHeight = expanded ? `${more.scrollHeight}px` : '0px';
-    btn.setAttribute('aria-expanded', String(expanded));
-    btn.classList.toggle('why-vote-toggle--less', expanded);
-    btn.innerHTML = expanded
-      ? 'Show less <span class="why-vote-toggle-arrow" aria-hidden="true">&uarr;</span>'
-      : 'Read more <span class="why-vote-toggle-arrow" aria-hidden="true">&rarr;</span>';
-  }
-
-  btn.addEventListener('click', () => setExpanded(btn.getAttribute('aria-expanded') !== 'true'));
+function formatCrore(n) {
+  return `${(n / 1e7).toFixed(1)} Cr`;
 }
 
 export function initHomeView({ W, meta }, { onOpenWard, onMethodology }) {
@@ -222,24 +209,24 @@ export function initHomeView({ W, meta }, { onOpenWard, onMethodology }) {
       <div class="band-inner">
       <div class="cover-layout">
         <div class="cover-main">
-          <div class="eyebrow"><span class="eyebrow-dot"></span> Make an informed choice</div>
-          <h1 class="headline">This election, Bengaluru will elect ward councillors under the Greater Bengaluru Authority (GBA) for the first time.</h1>
-          <p class="hero-subtitle">Before you vote, understand your neighbourhood, explore the candidates, see the public infrastructure around you, and learn how your local government shapes everyday life.</p>
+          <div class="eyebrow"><span class="eyebrow-dot"></span> Your city, your ward</div>
+          <h1 class="headline">Know your ward. Understand your city.</h1>
+          <p class="hero-subtitle">Explore Bengaluru&rsquo;s wards, discover the public infrastructure around you, and understand how local government shapes your neighbourhood.</p>
 
           <div class="find-controls">
             <div class="find-search-wrap">
               <input id="findSearch" type="search" placeholder="Search ward or area" autocomplete="off">
               <ul id="wardSuggest" class="ward-suggest" hidden></ul>
             </div>
-            <button id="findLocate" class="btn btn-secondary" type="button">Use my location</button>
+            <button id="findLocate" class="btn btn-secondary" type="button">${LOCATE_ICON}Use my location</button>
           </div>
         </div>
 
         <div class="cover-stats hero-stats">
-          <div class="hero-stat"><span class="hero-stat-num">${fmt(meta.n_wards)}</span><span class="hero-stat-label">wards</span></div>
-          <div class="hero-stat"><span class="hero-stat-num">${String(nCorps).padStart(2, '0')}</span><span class="hero-stat-label">corporations</span></div>
-          <div class="hero-stat"><span class="hero-stat-num">01</span><span class="hero-stat-label">councillor / ward</span></div>
-          <div class="hero-stat hero-stat--alert"><span class="hero-stat-num">10</span><span class="hero-stat-label">yrs since last poll</span></div>
+          <div class="hero-stat"><span class="hero-stat-num">${fmt(meta.n_wards)}</span><span class="hero-stat-label">Wards</span></div>
+          <div class="hero-stat"><span class="hero-stat-num">${String(nCorps).padStart(2, '0')}</span><span class="hero-stat-label">Corporations</span></div>
+          <div class="hero-stat"><span class="hero-stat-num">${formatCrore(meta.city_pop)}</span><span class="hero-stat-label">Total population</span></div>
+          <div class="hero-stat"><span class="hero-stat-num">${fmt(meta.n_point_datasets)}</span><span class="hero-stat-label">Public datasets mapped</span></div>
         </div>
       </div>
       </div>
@@ -249,37 +236,31 @@ export function initHomeView({ W, meta }, { onOpenWard, onMethodology }) {
       <div class="why-vote-band-inner band-inner">
         <div class="why-vote-head-col">
           <div class="why-vote-head">
-            <span class="why-vote-icon" aria-hidden="true">${BALLOT_ICON}</span>
-            <span class="eyebrow eyebrow--dark">Why vote?</span>
+            <span class="why-vote-icon" aria-hidden="true">${PIN_ICON}</span>
+            <span class="eyebrow eyebrow--dark">Understand your neighbourhood</span>
           </div>
-          <h2 id="whyVoteTitle" class="why-vote-title">Why your vote in the ward election matters.</h2>
+          <h2 id="whyVoteTitle" class="why-vote-title">Why your ward matters.</h2>
         </div>
         <div class="why-vote-body-col">
           <div class="why-vote-body">
-            <p>Bengaluru has not held local body elections since 2015, and for nearly a decade the city has functioned without elected corporators, leaving neighbourhoods without direct, accountable representation in the system.</p>
-            <div class="why-vote-more" id="whyVoteMore">
-              <p>In that time, the city has continued to spend significant public funds, INR 38,455 crore annually, yet much of this remains difficult to trace, and for citizens there has been little clarity on how decisions are made or whom to hold responsible when services fall short.</p>
-              <p>What this looks like on the ground is not abstract: roads that remain damaged, garbage that is not cleared on time, drains that overflow during rains, footpaths that are unusable, and streetlights that do not function consistently, all without an elected representative whose role is to take these issues up and demand answers.</p>
-              <p>This election is an opportunity to restore that link. Your vote decides who represents your ward, who raises your concerns, and who holds the system to account.</p>
-              <p><strong>Vote. It is your voice in how Bengaluru is run.</strong></p>
-            </div>
+            <p>Your ward is where many everyday civic needs come together. Explore local infrastructure, public amenities, and the services that shape life in your neighbourhood.</p>
           </div>
           <div class="why-vote-pills">
             <span class="pill pill--band">Roads</span><span class="pill pill--band">Parks</span><span class="pill pill--band">Sanitation</span><span class="pill pill--band">Drainage</span><span class="pill pill--band">Streetlights</span>
           </div>
           <div class="why-vote-actions">
-            <button type="button" id="whyVoteToggle" class="why-vote-toggle" aria-expanded="false" aria-controls="whyVoteMore">Read more <span class="why-vote-toggle-arrow" aria-hidden="true">&rarr;</span></button>
+            <button type="button" id="exploreServicesBtn" class="why-vote-toggle">Explore civic services <span class="why-vote-toggle-arrow" aria-hidden="true">&rarr;</span></button>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="ward-explorer">
+    <section class="ward-explorer" id="wardExplorer">
       <div class="ward-explorer-head">
         <div>
           <span class="eyebrow eyebrow--red">Ward explorer</span>
           <h2 class="section-title">Find your neighbourhood on the map.</h2>
-          <p class="section-sub">Greater Bengaluru Authority has ${fmt(nCorps)} municipal corporations and ${fmt(meta.n_wards)} wards.</p>
+          <p class="section-sub">Explore Bengaluru&rsquo;s wards and discover the places, infrastructure, and public amenities in your area.</p>
         </div>
         <div class="corp-filter-pills" role="group" aria-label="Filter by corporation">
           ${CORP_FILTERS.map(c => `<button type="button" class="corp-filter-pill${c === 'All' ? ' active' : ''}" data-corp="${esc(c)}">${esc(c)}</button>`).join('')}
@@ -347,7 +328,13 @@ export function initHomeView({ W, meta }, { onOpenWard, onMethodology }) {
     </section>
   `;
 
-  initWhyVoteToggle();
+  document.getElementById('exploreServicesBtn').addEventListener('click', () => {
+    const target = document.getElementById('wardExplorer');
+    if (!target) return;
+    // The sticky site header would otherwise cover the section's heading.
+    target.style.scrollMarginTop = `${document.getElementById('siteHeader')?.offsetHeight || 0}px`;
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
 
   renderBrowseList(W, 'All');
 
@@ -387,12 +374,14 @@ export function initHomeView({ W, meta }, { onOpenWard, onMethodology }) {
   // trackEvent's page_type is read at push time, so an uncancelled timer
   // would mislabel the event as ward_detail and report a stale (zero)
   // results_count once #wardSuggest has been cleared/replaced.
+  // Queries shorter than SEARCH_REPORT_MIN_LEN are never reported, so
+  // partial words typed mid-pause don't produce noise events.
   function scheduleSearchReport() {
     clearTimeout(searchReportTimer);
     searchReportTimer = setTimeout(() => {
       if (!document.getElementById('view-home')?.classList.contains('view--active')) return;
       const query = document.getElementById('findSearch').value.trim();
-      if (!query) return;
+      if (query.length < SEARCH_REPORT_MIN_LEN) return;
       const resultCount = document.querySelectorAll('#wardSuggest .ward-suggest-row').length;
       const hasLocal = latestLocalMatches.length > 0;
       const hasLandmark = resultCount > latestLocalMatches.length;

@@ -222,11 +222,8 @@ mark {
   padding: var(--space-3) var(--space-4);
   background: var(--forest-2); border-radius: var(--radius-m);
 }
-.hero-stat--alert { background: var(--red); }
 .hero-stat-num { font-family: var(--font-stat); font-weight: 800; font-size: 1.7rem; color: var(--on-forest); }
-.hero-stat--alert .hero-stat-num { color: #fff; }
 .hero-stat-label { font-size: 0.78rem; color: var(--on-forest-muted); }
-.hero-stat--alert .hero-stat-label { color: rgba(255,255,255,.85); }
 
 /* -- why-vote band -- */
 

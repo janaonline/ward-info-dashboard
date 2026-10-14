@@ -1,7 +1,9 @@
+import { FEATURE_FLAGS } from './constants.js';
+
 const NAV_ITEMS = [
   { kind: 'external', href: 'https://data.opencity.in/dataset', label: 'Datasets', emphasize: true },
-  { kind: 'internal', view: 'voter-faq', label: 'Voter FAQs' },
-];
+  { kind: 'internal', view: 'voter-faq', label: 'Voter FAQs', hidden: !FEATURE_FLAGS.voterFaq },
+].filter(item => !item.hidden);
 
 const BACK_ICON = '<svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>';
 const MENU_ICON = '<svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>';

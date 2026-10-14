@@ -1,5 +1,5 @@
 import { esc } from './format.js';
-import { FEEDBACK_FORM_URL } from './constants.js';
+import { FEEDBACK_FORM_URL, FEATURE_FLAGS } from './constants.js';
 
 // Confirmed social URLs (Jul 2026).
 const SOCIAL_LINKS = {
@@ -80,7 +80,7 @@ export function initFooter({ onNavigate, onMethodology }) {
         <div class="footer-col footer-col-links">
           <span class="footer-col-title">Explore</span>
           <a href="#" data-nav="home">Home</a>
-          <a href="#" data-nav="voter-faq">Voter FAQs</a>
+          ${FEATURE_FLAGS.voterFaq ? '<a href="#" data-nav="voter-faq">Voter FAQs</a>' : ''}
           <a href="#" id="footerMethodologyLink">Methodology</a>
           <a href="${esc(FEEDBACK_FORM_URL)}" target="_blank" rel="noopener">Report an issue</a>
         </div>
