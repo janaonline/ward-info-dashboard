@@ -23,6 +23,7 @@ const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
 const NOMINATIM_EMAIL = 'sss@gmail.com';
 const LANDMARK_MIN_LEN = 3;
 const LANDMARK_DEBOUNCE_MS = 400;
+const SEARCH_REPORT_MIN_LEN = 4;
 const SUGGEST_CAP = 6;
 
 const PIN_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
@@ -372,12 +373,14 @@ export function initHomeView({ W, meta }, { onOpenWard, onMethodology }) {
   // trackEvent's page_type is read at push time, so an uncancelled timer
   // would mislabel the event as ward_detail and report a stale (zero)
   // results_count once #wardSuggest has been cleared/replaced.
+  // Queries shorter than SEARCH_REPORT_MIN_LEN are never reported, so
+  // partial words typed mid-pause don't produce noise events.
   function scheduleSearchReport() {
     clearTimeout(searchReportTimer);
     searchReportTimer = setTimeout(() => {
       if (!document.getElementById('view-home')?.classList.contains('view--active')) return;
       const query = document.getElementById('findSearch').value.trim();
-      if (!query) return;
+      if (query.length < SEARCH_REPORT_MIN_LEN) return;
       const resultCount = document.querySelectorAll('#wardSuggest .ward-suggest-row').length;
       const hasLocal = latestLocalMatches.length > 0;
       const hasLandmark = resultCount > latestLocalMatches.length;
