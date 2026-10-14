@@ -403,6 +403,7 @@ export async function loadData() {
       generated: null,
       source: 'GBA_369_Wards_Enriched.geojson',
       n_wards: wards.length,
+      n_point_datasets: Object.keys(POINT_SOURCES).length,
       city_pop: wards.reduce((sum, w) => sum + (numberOr(w.pop, 0) || 0), 0),
     },
   };

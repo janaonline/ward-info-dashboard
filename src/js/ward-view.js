@@ -7,6 +7,7 @@ import {
 import { esc, fmt, fmtTrunc } from './format.js';
 import { isLocalDev, normalizeWardName } from './data-loader.js';
 import { trackEvent, wardAnalyticsAttrs } from './analytics.js';
+import { FEATURE_FLAGS } from './constants.js';
 
 let wardMap = null;
 let currentLayer = null;
@@ -58,13 +59,13 @@ const TEMPERATURE_PDF_URL = 'public/data/Temperature_2015_2026.pdf';
 
 const SUBNAV_ITEMS = [
   { id: 'overview', label: 'Overview' },
-  { id: 'candidates', label: 'Candidates' },
+  { id: 'candidates', label: 'Candidates', hidden: !FEATURE_FLAGS.wardCandidates },
   { id: 'ward-map', label: 'Ward map', shortLabel: 'Map' },
   { id: 'amenities', label: 'Amenities' },
   { id: 'safety-climate', label: 'Safety & climate' },
   { id: 'ask-candidates', label: 'Ask your candidates' },
   { id: 'feedback', label: 'Feedback' },
-];
+].filter(item => !item.hidden);
 
 function renderSubnav() {
   return `
@@ -777,7 +778,7 @@ export function openWard(uid, { onOpenWard, onNavigateHome, source } = {}) {
     ${renderHead(uid, w)}
     ${renderSubnav()}
     ${renderOverview(w)}
-    ${renderCandidates(w)}
+    ${FEATURE_FLAGS.wardCandidates ? renderCandidates(w) : ''}
     ${renderWardMap(uid, W, w)}
     ${renderAmenities(uid, W, w)}
     ${renderFacts(w)}
